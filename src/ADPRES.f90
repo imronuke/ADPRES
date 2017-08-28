@@ -1,7 +1,7 @@
 PROGRAM main
 
 USE sdata, ONLY: mode
-USE InpOutp, ONLY: ounit, inp_read
+USE InpOutp, ONLY: ounit, inp_read, bwrst, w_rst
 USE nodal
 
 IMPLICIT NONE
@@ -22,8 +22,10 @@ SELECT CASE(mode)
         CALL adjoint()
 	CASE DEFAULT
         CALL fixedsrc()	
-END SELECT		
+END SELECT
 
+! Write Restart File if required
+IF (bwrst == 1)	CALL w_rst()
 
 
 CALL CPU_TIME(fn)
