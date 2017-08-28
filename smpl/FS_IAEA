@@ -1,25 +1,24 @@
-! IAEA3D input data
+! IAEA3D Fixed Source input data
 ! NODE SIZE = 20 cm
-! MOSRA K-EFF  : 1.02897
-! ADPRES K-EFF : 1.028969
+
 %MODE  
-FORWARD
+FIXEDSRC
 %CASE
 IAEA3D
 20 CM NODE SIZE 
 %   XSEC                                                                                                                
 2  5    ! Number of groups and number of materials
 ! sigtr   siga   nu*sigf sigf   chi   sigs_g1  sigs_g2
-0.222222  0.010  0.000  0.000    1.0   0.1922   0.020
-0.833333  0.080  0.135  0.135    0.0   0.000    0.7533   ! MAT1 : Outer Fuel
-0.222222  0.010  0.000  0.000    1.0   0.1922   0.020
-0.833333  0.085  0.135  0.135    0.0   0.000    0.7483   ! MAT2 : Inner Fuel
-0.222222  0.0100 0.000  0.000    1.0   0.1922   0.020
-0.833333  0.1300 0.135  0.135    0.0   0.000    0.7033   ! MAT3 : Inner Fuel + Control Rod
-0.166667  0.000  0.000  0.000    0.0   0.1267   0.040
-1.111111  0.010  0.000  0.000    0.0   0.000    1.1011   ! MAT4 : Reflector
-0.166667  0.000  0.000  0.000    0.0   0.000    0.040
-1.111111  0.055  0.000  0.000    0.0   0.000    0.000    ! MAT5 : Reflector + Control Rod	
+0.222222  0.010  0.000   0.000     1.0   0.1922   0.020
+0.833333  0.080  0.0675  0.0675    0.0   0.000    0.7533   ! MAT1 : Outer Fuel
+0.222222  0.010  0.000   0.000     1.0   0.1922   0.020
+0.833333  0.085  0.0675  0.0675    0.0   0.000    0.7483   ! MAT2 : Inner Fuel
+0.222222  0.0100 0.000   0.000     1.0   0.1922   0.020
+0.833333  0.1300 0.0675  0.0675    0.0   0.000    0.7033   ! MAT3 : Inner Fuel + Control Rod
+0.166667  0.000  0.000   0.000     0.0   0.1267   0.040
+1.111111  0.010  0.000   0.000     0.0   0.000    1.1011   ! MAT4 : Reflector
+0.166667  0.000  0.000   0.000     0.0   0.000    0.040
+1.111111  0.055  0.000   0.000     0.0   0.000    0.000    ! MAT5 : Reflector + Control Rod	
 %GEOM
 9 9 19     !nx, ny, nz
 10 8*20    !x-direction assembly size in cm
@@ -72,3 +71,20 @@ IAEA3D
   4  4  4  4  0  0  0  0  0
 ! Boundary conditions (east), (west), (north), (south), (bottom), (top)
 1 2 2 1 1 1
+%ESRC
+2         ! Number of source
+! Repeat this input segment according to the number of sources
+1.0       ! Source Density (n/cm3.s)
+1.0  0.0  ! Source energy spectrum
+10        ! z-position of the source
+2  9      ! x-y position of the source
+2  8
+1  8
+0  0      ! x-y position ends
+0         !  z-position ends
+2.0       ! Source Density (n/cm3.s)
+1.0  0.0  ! Source energy spectrum
+10        ! z-position of the source
+1  9      ! x-y position of the source
+0  0      ! x-y position ends
+0         !  z-position ends
