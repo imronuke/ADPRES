@@ -1,0 +1,19 @@
+FOR UNIX SYSTEM (I AM USING CYGWIN IN WINDOWS):
+1. COMPILE THE CODE USING GFORTRAN (OR OTHER FORTRAN COMPILERS) AS FOLLOW:
+
+gfortran mod_data.f90 mod_InpOutp.f90 mod_nodal.f90 ADPRES.f90 -O4 -o adpres
+
+2. THE COPY PASTE THE EXECUTABLE FILE INTO INPUT FOLDER, THEN RUN ADPRES USING COMMAND
+
+./adpres
+
+3. I HAVEN'T TRIED FOR WINDOWS.
+
+4. ANY QUESTIONS, COMMENTS AND/OR FEEDBACKS CAN BE EMAILED TO:
+muhammad.imron@adpoly.ac.ae
+makrus.imron@gmail.com
+
+5. THANK YOU.
+
+"The best of people are those that bring most benefit to the rest of mankind." (PROPHET)
+
