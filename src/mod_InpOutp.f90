@@ -234,7 +234,7 @@ INTEGER :: eof
 INTEGER :: nline
 
 WRITE(ounit, *) '                      ###########################################################'
-WRITE(ounit, *) '                      #                     ADPRES 1.0                          #'
+WRITE(ounit, *) '                      #                     ADPRES 1.1                          #'
 WRITE(ounit, *) '                      #        ABU DHABI POLYTECHNIC REACTOR SIMULATOR          #'
 WRITE(ounit, *) '                      ###########################################################  '
 WRITE(ounit, *)
@@ -359,7 +359,7 @@ DO
 END DO  
 
 1012 FORMAT(A2, I5,' ',A100)
-1014 FORMAT(2X, 'AT LINE', I3, ' : WRONG CARD ', A8)
+1014 FORMAT(2X, 'AT LINE', I3, ' : THIS IS A WRONG INPUT CARD : ', A8)
 
 
  
@@ -466,6 +466,8 @@ INTEGER :: ln   !Line number
 INTEGER :: ios  ! IOSTAT status
 REAL :: dum
 INTEGER, DIMENSION(:), ALLOCATABLE :: group
+LOGICAL :: cnuf = .TRUE.
+LOGICAL :: csigf = .TRUE.
 
 WRITE(ounit,*) 
 WRITE(ounit,*) 
@@ -499,6 +501,16 @@ DO i= 1, nmat
 		xchi(i,g), (xsigs(i,g,h), h = 1, ng)
 		message = ' error in cross section data'
 		CALL er_message(ounit, ios, ln, message)
+		
+		! Check CXs values
+		IF (xsigtr(i,g) <= 0.0) THEN
+		    WRITE(ounit,1020)i, g
+			STOP
+		END IF
+		IF (xnuf(i,g) > 0.) cnuf = .FALSE.
+		IF (xsigf(i,g) > 0.) csigf = .FALSE.
+		
+		
 		xD(i,g) = 1.d0/(3.d0*xsigtr(i,g)) 
 		dum = 0.0
 		DO h= 1, ng
@@ -507,6 +519,15 @@ DO i= 1, nmat
 		xsigr(i,g) =  xsiga(i,g) + dum
 	END DO
 END DO
+
+IF (cnuf) THEN
+    WRITE(ounit, *) "ERROR: The Problem has no fission material (nu*fission for all materials are zero)" 
+	STOP
+END IF
+IF (cnuf) THEN
+    WRITE(ounit, *) "ERROR: The Problem has no fission material (fission xsec for all materials are zero)"
+	STOP
+END IF
 
 ! Writing output
 IF (oxsec) THEN
@@ -534,6 +555,7 @@ WRITE(ounit,*) ' ...Macroscopic CXs are sucessfully read...'
 1011 FORMAT(2X, A7, A12, A13, A12, A11, 2A13, A15)
 1010 FORMAT(2X, I6, F13.6, 3F12.6, 3F13.6)
 1015 FORMAT(4X, I3, F16.6, 20F12.6)
+1020 FORMAT(2X, 'ERROR: Transport cross section (sigtr)is zero or less in material: ', I3, ' ;group: ', I3)
 
 DEALLOCATE(group)
 
@@ -1462,7 +1484,7 @@ END DO
 
 ! ADF PRINT OPTION
 READ(xbunit, *, IOSTAT=ios) ind, ln, zp
-IF (ios == 0 .AND. zp >=1 .AND. zp <= nz) THEN
+IF (ios == 0 .AND. zp >=1) THEN
     WRITE(ounit,*)
 	WRITE(ounit,'(A,I3)') '  ADF VALUES ON PLANAR NUMBER : ', zp
 	
