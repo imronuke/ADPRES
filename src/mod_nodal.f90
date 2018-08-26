@@ -1,5 +1,10 @@
 MODULE nodal
 
+!=========================
+! Nodal Module to solve diffusion equation using NEM
+! Major parts adapted from MOSRA-Light Manual (in Japanese)
+! =======================
+
 IMPLICIT NONE
 
 SAVE
@@ -118,8 +123,8 @@ IF (p-1 == nout) THEN
 	STOP
 END IF
 
-WRITE(ounit,*)
-WRITE(ounit, '(A36,F9.6)') 'MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
+IF (opt) WRITE(ounit,*)
+IF (opt) WRITE(ounit, '(A36,F9.6)') 'MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
 
 END SUBROUTINE outer4
 
@@ -225,13 +230,15 @@ END SUBROUTINE outer4Fx
 
 
 
-SUBROUTINE outer4ad
+SUBROUTINE outer4ad(popt)
 
 USE sdata, ONLY: ng, nnod, ystag, nout, serc, ferc, &
                  f0, fx1, fy1, fz1, fx2, fy2, fz2, Ke, nac
 USE InpOutp, ONLY: ounit
 
 IMPLICIT NONE
+
+INTEGER, OPTIONAL, INTENT(IN) :: popt
 
 REAL :: Keo                                    !Old Multiplication factor (Keff)
 REAL, DIMENSION(nnod) :: fs0, fs0c             !New and old fission source, and scattering source
@@ -248,7 +255,15 @@ REAL :: domiR
 INTEGER :: h, g
 INTEGER :: p, npos
 
+LOGICAL :: opt
+
 REAL, DIMENSION(nnod) :: errn, erro
+
+IF (PRESENT(popt)) THEN
+    opt = .FALSE.
+ELSE
+    opt = .TRUE.
+END IF
 
 ! Initialize fission source
 fs0  = 0.d0
@@ -302,7 +317,7 @@ DO p=1, nout
 		npos = MAXLOC(ABS(erro),1)
 		IF (erro(npos) * errn(npos) < 0.d0) domiR = -domiR
 	    fs0 = fs0 + domiR / (1.d0 - domiR) * errn
-		WRITE(ounit,*) '    ...FISSION SOURCE EXTRAPOLATED...'
+		IF (opt) WRITE(ounit,*) '    ...FISSION SOURCE EXTRAPOLATED...'
 	END IF
 	
 	f = Integrate(fs0)
@@ -313,7 +328,7 @@ DO p=1, nout
 	
     Ker = ABS(Ke - Keo)                            ! Get Keff Abs Error
 
-    WRITE(ounit,'(I5,F13.6,2ES15.5)') p, Ke, ser, fer
+    IF (opt) WRITE(ounit,'(I5,F13.6,2ES15.5)') p, Ke, ser, fer
 
     IF ((ser < serc) .AND. (fer < ferc)) EXIT
 END DO
@@ -327,8 +342,8 @@ IF (p-1 == nout) THEN
 	STOP
 END IF
 
-WRITE(ounit,*)
-WRITE(ounit, '(A36,F9.6)') 'MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
+IF (opt) WRITE(ounit,*)
+IF (opt) WRITE(ounit, '(A36,F9.6)') 'MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
 
 END SUBROUTINE outer4ad
 
