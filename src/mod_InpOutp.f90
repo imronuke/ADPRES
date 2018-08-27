@@ -166,20 +166,6 @@ ELSE
 	STOP
 END IF
 
-! Card ESRC
-IF (mode == 'FIXEDSRC' .AND. besrc == 1) THEN
-    CALL inp_esrc(uesrc)
-ELSE IF (mode == 'FIXEDSRC' .AND. besrc /= 1) THEN
-    WRITE(ounit,*) '   CALCULATION MODE IS FIXED SOURCE'
-    WRITE(ounit,1041) 'ESRC', 'FIXED SOURCE'
-	STOP
-ELSE IF (mode /= 'FIXEDSRC' .AND. besrc == 1) THEN
-    WRITE(ounit,*) '   ESRC CARD IS NOT NECESSARY FOR THIS CALCULATION MODE'
-	STOP
-ELSE
-    CONTINUE
-END IF
-
 ! Card WRST
 IF (bwrst == 1) CALL inp_wrst (uwrst)
 
@@ -191,17 +177,6 @@ IF (biter == 1) CALL inp_iter (uiter)
 
 ! Card PRNT
 IF (bprnt == 1) CALL inp_prnt (uprnt)
-
-!!! Default alpha = 0.0
-ALLOCATE(al(nnod,ng))
-DO g = 1, ng
-    DO i = 1, nnod
-		al(i,g)%dc = 0.d0
-	END DO
-END DO
-
-!CARD ADF
-IF (badf == 1) CALL inp_adf (uadf)
 
 !CARD CROD
 IF (bcrod == 1) CALL inp_crod (ucrod)
@@ -226,6 +201,29 @@ END IF
 
 ! Miscellaneous things
 CALL misc()
+
+!CARD ADF
+ALLOCATE(al(nnod,ng))
+DO g = 1, ng
+    DO i = 1, nnod
+		al(i,g)%dc = 0.d0 ! Default alpha = 0.0
+	END DO
+END DO
+IF (badf == 1) CALL inp_adf (uadf)
+
+! Card ESRC
+IF (mode == 'FIXEDSRC' .AND. besrc == 1) THEN
+    CALL inp_esrc(uesrc)
+ELSE IF (mode == 'FIXEDSRC' .AND. besrc /= 1) THEN
+    WRITE(ounit,*) '   CALCULATION MODE IS FIXED SOURCE'
+    WRITE(ounit,1041) 'ESRC', 'FIXED SOURCE'
+	STOP
+ELSE IF (mode /= 'FIXEDSRC' .AND. besrc == 1) THEN
+    WRITE(ounit,*) '   ESRC CARD IS NOT NECESSARY FOR THIS CALCULATION MODE'
+	STOP
+ELSE
+    CONTINUE
+END IF
 
 DEALLOCATE(mnum)
 DO i= 1,np
