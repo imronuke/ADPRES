@@ -18,17 +18,22 @@ INTEGER, PARAMETER :: runit = 202   !read restart file
 INTEGER, PARAMETER :: umode = 111, uxsec = 112, ugeom = 113
 INTEGER, PARAMETER :: ucase = 114, uesrc = 115, uwrst = 116
 INTEGER, PARAMETER :: urrst = 117, uiter = 118, uprnt = 119
-INTEGER, PARAMETER :: uadf  = 120, ucrod = 121
+INTEGER, PARAMETER :: uadf  = 120, ucrod = 121, ubcon = 122
+INTEGER, PARAMETER :: uftem = 123, umtem = 124, ucden = 125
+INTEGER, PARAMETER :: ucbcs = 126, uejct = 127, uther = 128
 INTEGER :: bunit
 
 INTEGER :: bmode = 0, bxsec = 0, bgeom = 0, bcase = 0, besrc = 0
 INTEGER :: bwrst = 0, brrst = 0, biter = 0, bprnt = 0, badf  = 0
-INTEGER :: bcrod = 0
+INTEGER :: bcrod = 0, bbcon = 0, bftem = 0, bmtem = 0, bcden = 0
+INTEGER :: bcbcs = 0, bejct = 0, bther = 0
 
 CHARACTER(LEN=100):: iline
 
-INTEGER :: np                                           ! Numbe rof planars
+! Geometry
+INTEGER :: np                                           ! Number of planars
 INTEGER, DIMENSION(:), ALLOCATABLE :: zpln              ! Planar assignment to z direction
+REAL, DIMENSION(:), ALLOCATABLE :: xsize, ysize, zsize  !Assembly size
 TYPE :: MAT_ASGN                                        ! Material assignment
 	INTEGER, DIMENSION(:,:), ALLOCATABLE :: asm         ! Material assignment into assembly
 	INTEGER, DIMENSION(:,:), ALLOCATABLE :: node        ! Material assignment into nodes
@@ -36,18 +41,12 @@ END TYPE
 TYPE(MAT_ASGN), DIMENSION(:), ALLOCATABLE :: plnr       ! planar
 INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: mnum
 
-!! LOCAL CXs
-REAL, DIMENSION(:,:), ALLOCATABLE :: xsigtr          ! Transport macroscopic cx
-REAL, DIMENSION(:,:), ALLOCATABLE :: xsiga           ! Absorption macroscopic cx
-REAL, DIMENSION(:,:), ALLOCATABLE :: xnuf            ! nu* fission macroscopic cx
-REAL, DIMENSION(:,:), ALLOCATABLE :: xsigf           ! fission macroscopic cx
-REAL, DIMENSION(:,:), ALLOCATABLE :: xchi            ! neutron fission spectrum
-REAL, DIMENSION(:,:,:), ALLOCATABLE :: xsigs         ! Scattering macroscopic cx
-REAL, DIMENSION(:,:), ALLOCATABLE :: xD              ! Diffusion coefficient
-REAL, DIMENSION(:,:), ALLOCATABLE :: xsigr           ! Removal macroscopic cx
-
-!Core Height
-REAL :: coreh
+! CROD CHANGES
+INTEGER :: nstep                                                  ! Number of steps
+REAL    :: coreh                                                  ! Core Height
+INTEGER, DIMENSION(:,:), ALLOCATABLE :: fbmap                     ! Radial control rod bank map (node wise)
+REAL :: pos0, ssize                                               ! Zero step position and step size
+LOGICAL :: warn = .TRUE.                                          ! To activate warning for first time
 
 
 CONTAINS
@@ -59,9 +58,7 @@ SUBROUTINE inp_read()
 !    input and gives the description
 !    to the user about his/her input
 !
-!   Date                Programmer           History
-!  ========================================================
-!  6 FEB 2017         Muhammad Imron       Original code
+
 
 USE sdata, ONLY: ng, nnod, mode, al
 
@@ -102,6 +99,13 @@ OPEN (UNIT=uiter, STATUS='SCRATCH', ACTION='READWRITE')
 OPEN (UNIT=uprnt, STATUS='SCRATCH', ACTION='READWRITE') 
 OPEN (UNIT=uadf,  STATUS='SCRATCH', ACTION='READWRITE') 
 OPEN (UNIT=ucrod, STATUS='SCRATCH', ACTION='READWRITE') 
+OPEN (UNIT=ubcon, STATUS='SCRATCH', ACTION='READWRITE') 
+OPEN (UNIT=uftem, STATUS='SCRATCH', ACTION='READWRITE') 
+OPEN (UNIT=umtem, STATUS='SCRATCH', ACTION='READWRITE') 
+OPEN (UNIT=ucden, STATUS='SCRATCH', ACTION='READWRITE') 
+OPEN (UNIT=ucbcs, STATUS='SCRATCH', ACTION='READWRITE') 
+OPEN (UNIT=uejct, STATUS='SCRATCH', ACTION='READWRITE') 
+OPEN (UNIT=uther, STATUS='SCRATCH', ACTION='READWRITE') 
 
 
 CALL inp_echo()
@@ -118,6 +122,13 @@ REWIND(uiter)
 REWIND(uprnt)
 REWIND(uadf)
 REWIND(ucrod)
+REWIND(ubcon)
+REWIND(uftem)
+REWIND(umtem)
+REWIND(ucden)
+REWIND(ucbcs)
+REWIND(uejct)
+REWIND(uther)
 
 ! Start reading buffer files for each card
 
@@ -154,9 +165,6 @@ ELSE
     WRITE(ounit,1021) '%GEOM'
 	STOP
 END IF
-
-! Miscellaneous things
-CALL misc()
 
 ! Card ESRC
 IF (mode == 'FIXEDSRC' .AND. besrc == 1) THEN
@@ -195,9 +203,29 @@ END DO
 !CARD ADF
 IF (badf == 1) CALL inp_adf (uadf)
 
-!!CARD CROD
-! IF (bcrod == 1) CALL inp_crod (ucrod)
+!CARD CROD
+IF (bcrod == 1) CALL inp_crod (ucrod)
 
+! Card EJCT (Rod Ejection)
+IF (mode == 'RODEJECT' .AND. bejct == 1 .AND. bcrod == 1) THEN
+    CALL inp_ejct(uejct)
+ELSE IF (mode == 'RODEJECT' .AND. bejct /= 1) THEN
+    WRITE(ounit,*) '   CALCULATION MODE ROD EJECTION'
+    WRITE(ounit,1041) 'EJCT', 'ROD EJECTION - TRANSIENT'
+	STOP
+ELSE IF (mode == 'RODEJECT' .AND. bcrod /= 1) THEN
+    WRITE(ounit,*) '   CALCULATION MODE ROD EJECTION'
+    WRITE(ounit,1041) 'CROD', 'CONTROL ROD'
+	STOP
+ELSE IF (mode /= 'RODEJECT' .AND. bejct == 1) THEN
+    WRITE(ounit,*) '   EJCT CARD IS NOT NECESSARY FOR THIS CALCULATION MODE'
+	STOP
+ELSE
+    CONTINUE
+END IF
+
+! Miscellaneous things
+CALL misc()
 
 DEALLOCATE(mnum)
 DO i= 1,np
@@ -224,9 +252,6 @@ SUBROUTINE inp_echo()
 ! Purpose:
 !    To rewrite the input
 !
-!   Date                Programmer           History
-!  ========================================================
-!  6 FEB 2017         Muhammad Imron       Original code
 
 IMPLICIT NONE
 
@@ -349,6 +374,9 @@ DO
 		    CASE('CROD')
 			    bunit = ucrod
 				bcrod = 1
+			CASE('EJCT')
+			    bunit = uejct
+				bejct = 1
 		    CASE DEFAULT
 			    WRITE(ounit,1014) ln, iline
 				STOP
@@ -371,9 +399,6 @@ SUBROUTINE inp_mode (xbunit)
 ! Purpose:
 !    To read case mode in input
 !
-!   Date                Programmer           History
-!  ========================================================
-!  6 FEB 2017         Muhammad Imron       Original code
 
 USE sdata, ONLY: mode
 
@@ -401,13 +426,16 @@ SELECT CASE(mode)
     CASE('FIXEDSRC') 
 	    WRITE(ounit,1031) 'FIXED SOURCE CALCULATION'
 		WRITE(ounit,*)
+    CASE('RODEJECT') 
+	    WRITE(ounit,1031) 'ROD EJECTION CALCULATION'
+		WRITE(ounit,*)
 	CASE DEFAULT
 	    WRITE(ounit,1032) mode
 		STOP
 END SELECT		
 
 1031 FORMAT(2X, 'CALCULATION MODE : ', A30)	
-1032 FORMAT(2X, 'MODE : ', A, ' UNIDENTIFIED')	
+1032 FORMAT(2X, 'MODE : ', A10, ' IS UNIDENTIFIED')	
 
 END SUBROUTINE inp_mode
 
@@ -417,9 +445,6 @@ SUBROUTINE inp_case (xbunit)
 ! Purpose:
 !    To read case card in input
 !
-!   Date                Programmer           History
-!  ========================================================
-!  6 FEB 2017         Muhammad Imron       Original code
 
 IMPLICIT NONE
 
@@ -451,11 +476,9 @@ SUBROUTINE inp_xsec (xbunit)
 ! Purpose:
 !    To read CROSS SECTIONS card in input
 !
-!   Date                Programmer           History
-!  ========================================================
-!  6 FEB 2017         Muhammad Imron       Original code
 
-USE sdata, ONLY: nmat, ng
+USE sdata, ONLY: nmat, ng, xsigtr, xsiga, xnuf, xsigf, &
+                 xsigs, xD, xsigr, xchi, mode, ccnuf, ccsigf
 
 IMPLICIT NONE
 
@@ -466,8 +489,6 @@ INTEGER :: ln   !Line number
 INTEGER :: ios  ! IOSTAT status
 REAL :: dum
 INTEGER, DIMENSION(:), ALLOCATABLE :: group
-LOGICAL :: cnuf = .TRUE.
-LOGICAL :: csigf = .TRUE.
 
 WRITE(ounit,*) 
 WRITE(ounit,*) 
@@ -507,8 +528,8 @@ DO i= 1, nmat
 		    WRITE(ounit,1020)i, g
 			STOP
 		END IF
-		IF (xnuf(i,g) > 0.) cnuf = .FALSE.
-		IF (xsigf(i,g) > 0.) csigf = .FALSE.
+		IF (xnuf(i,g) > 0.) ccnuf = .FALSE.
+		IF (xsigf(i,g) > 0.) ccsigf = .FALSE.
 		
 		
 		xD(i,g) = 1.d0/(3.d0*xsigtr(i,g)) 
@@ -520,14 +541,6 @@ DO i= 1, nmat
 	END DO
 END DO
 
-IF (cnuf) THEN
-    WRITE(ounit, *) "ERROR: The Problem has no fission material (nu*fission for all materials are zero)" 
-	STOP
-END IF
-IF (cnuf) THEN
-    WRITE(ounit, *) "ERROR: The Problem has no fission material (fission xsec for all materials are zero)"
-	STOP
-END IF
 
 ! Writing output
 IF (oxsec) THEN
@@ -546,16 +559,25 @@ IF (oxsec) THEN
 	        WRITE(ounit,1015)g, (xsigs(i,g,h), h=1,ng)
 	    END DO
     END DO
-END IF	
+END IF
+
+IF (ccnuf .AND. mode /= 'FIXEDSRC') THEN
+    WRITE(ounit, *) "ERROR: The Problem has no fission material (nu*fission for all materials are zero)" 
+	STOP
+END IF
+IF (ccsigf .AND. mode /= 'FIXEDSRC') THEN
+    WRITE(ounit, *) "ERROR: The Problem has no fission material (fission xsec for all materials are zero)"
+	STOP
+END IF
 
 WRITE(ounit,*)
-WRITE(ounit,*) ' ...Macroscopic CXs are sucessfully read...'
+WRITE(ounit,*) ' ...Macroscopic CX Card is sucessfully read...'
 
 1009 FORMAT(5X, 'MATERIAL', I3)
 1011 FORMAT(2X, A7, A12, A13, A12, A11, 2A13, A15)
 1010 FORMAT(2X, I6, F13.6, 3F12.6, 3F13.6)
 1015 FORMAT(4X, I3, F16.6, 20F12.6)
-1020 FORMAT(2X, 'ERROR: Transport cross section (sigtr)is zero or less in material: ', I3, ' ;group: ', I3)
+1020 FORMAT(2X, 'ERROR: Transport cross section (sigtr)is zero or negative in material: ', I3, ' ;group: ', I3)
 
 DEALLOCATE(group)
 
@@ -567,9 +589,6 @@ SUBROUTINE inp_geom1 (xbunit)
 ! Purpose:
 !    To read geometry card in input (1st part)
 !
-!   Date                Programmer           History
-!  ========================================================
-!  6 FEB 2017         Muhammad Imron       Original code
 
 USE sdata, ONLY: nx, ny, nz, nxx, nyy, nzz, xdel, ydel, zdel, &
                 xdiv, ydiv, zdiv
@@ -725,7 +744,7 @@ SUBROUTINE inp_geom2 (xbunit)
 !  6 FEB 2017         Muhammad Imron       Original code
 
 USE sdata, ONLY: nx, ny, nz, nxx, nyy, nzz, xdel, ydel, zdel, &
-                xwest, xeast, ynorth, ysouth, zbott, ztop, &
+                xwest, xeast, ynorth, ysouth, zbott, ztop, nnod, &
 				xstag, ystag, xdiv, ydiv, zdiv, nmat
 
 IMPLICIT NONE
@@ -1004,30 +1023,13 @@ END IF
 WRITE(ounit,*)
 WRITE(ounit,*) ' ...Core geometry is sucessfully read...'
 
-END SUBROUTINE inp_geom2
+! Calculate core height
+coreh = 0.d0
+DO k = 1, nzz
+    coreh = coreh + zdel(k)
+END DO
 
-
-
-SUBROUTINE misc ()
-!
-! Purpose:
-!    To assign material xsec to nodes
-!    To arranges the nodes into 1-D array instead of 3-D array
-!
-!   Date                Programmer           History
-!  ========================================================
-!  6 FEB 2017         Muhammad Imron       Original code
-
-USE sdata, ONLY: nxx, nyy, nzz, ix, iy, iz, xyz, &
-				 nnod, sigtr, siga, nuf, sigf, zdel, &
-                 chi, sigs, D, sigr, ng, ystag
-
-IMPLICIT NONE
-
-INTEGER :: i, j, k, n
-INTEGER, DIMENSION(:), ALLOCATABLE :: mat
-
-! set nnod
+! set Number of nodes (nnod)
 nnod = 0
 DO k = 1, nzz
     DO j = 1, nyy
@@ -1036,6 +1038,28 @@ DO k = 1, nzz
 		END DO
 	END DO
 END DO
+
+END SUBROUTINE inp_geom2
+
+
+SUBROUTINE misc ()
+!
+! Purpose:
+!    To assign material xsec to nodes
+!    To arranges the nodes into 1-D array instead of 3-D array
+!
+
+
+USE sdata, ONLY: nxx, nyy, nzz, ix, iy, iz, xyz, &
+				 nnod, sigtr, siga, nuf, sigf, &
+                 chi, sigs, D, sigr, ng, ystag, &
+				 xdel, ydel, zdel, vdel, mode, &
+				 mat, xD, xsigr, xchi, &
+				 bcon, ftem, mtem, cden, bpos
+
+IMPLICIT NONE
+
+INTEGER :: i, j, k, n
 
 ALLOCATE(ix(nnod), iy(nnod), iz(nnod))
 ALLOCATE(xyz(nxx, nyy, nzz))
@@ -1066,27 +1090,111 @@ ALLOCATE(sigr (nnod,ng))
 ALLOCATE(chi  (nnod,ng))
 
 DO n = 1, nnod
-    sigtr(n,:)   = xsigtr(mat(n),:)
-    siga (n,:)   = xsiga (mat(n),:)
-    nuf  (n,:)   = xnuf  (mat(n),:)
-    sigf (n,:)   = xsigf (mat(n),:)
-    sigs (n,:,:) = xsigs (mat(n),:,:)
-    D    (n,:)   = xD    (mat(n),:)
-    sigr (n,:)   = xsigr (mat(n),:)
     chi  (n,:)   = xchi  (mat(n),:)
 END DO
 
-DEALLOCATE(xsigtr, xsiga, xnuf, xsigf, xsigs, xD, xsigr, xchi)
-DEALLOCATE(mat)
+IF (mode == 'CBSEARCH' .OR. mode == 'RODEJECT') THEN
+    CONTINUE
+ELSE
+    CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+END IF
 
-! Calculate core height
-coreh = 0.d0
-DO k = 1, nzz
-    coreh = coreh + zdel(k)
+DEALLOCATE(xD, xsigr, xchi)
+
+! Calculate nodes' volume
+ALLOCATE(vdel(nnod))
+DO i = 1, nnod
+    vdel(i) = xdel(ix(i)) * ydel(iy(i)) * zdel(iz(i)) 
 END DO
 
 END SUBROUTINE misc
 
+
+SUBROUTINE XS_updt (xbcon, xftem, xmtem, xcden, xbpos)
+!
+! Purpose:
+!    To update XS
+!
+
+
+USE sdata, ONLY: 
+
+IMPLICIT NONE
+
+REAL, INTENT(IN) :: xbcon  ! Provided Boron Concentration
+REAL, DIMENSION(:), INTENT(IN) :: xftem  ! Provided fuel temperature
+REAL, DIMENSION(:), INTENT(IN) :: xmtem  ! Provided moderator temperature
+REAL, DIMENSION(:), INTENT(IN) :: xcden  ! Provided coolant density
+REAL, DIMENSION(:), INTENT(IN) :: xbpos  ! Provided control rod bank position
+
+CALL base_updt()
+! IF (bbcon == 1 .OR. bcbcs == 1) CALL bcon_updt(xbcon)
+! IF (bftem == 1) CALL ftem_updt(xftem)
+! IF (bmtem == 1) CALL mtem_updt(xmtem)
+! IF (bcden == 1) CALL cden_updt(xcden)
+IF (bcrod == 1) CALL crod_updt(xbpos)
+CALL Dsigr_updt()
+
+
+END SUBROUTINE XS_updt
+
+
+SUBROUTINE base_updt ()
+!
+! Purpose:
+!    To update current XS to base XS
+!
+
+
+USE sdata, ONLY: nnod, sigtr, siga, nuf, sigf, sigs, mat, &
+                 xsigtr, xsiga, xnuf, xsigf, xsigs
+
+IMPLICIT NONE
+
+INTEGER :: n
+
+
+
+DO n = 1, nnod
+    sigtr(n,1:)   = xsigtr(mat(n),1:)
+    siga (n,1:)   = xsiga (mat(n),1:)
+    nuf  (n,1:)   = xnuf  (mat(n),1:)
+    sigf (n,1:)   = xsigf (mat(n),1:)
+    sigs (n,1:,1:) = xsigs (mat(n),1:,1:)
+END DO
+
+
+END SUBROUTINE base_updt
+
+
+
+SUBROUTINE Dsigr_updt ()
+!
+! Purpose:
+!    To update diffusion constant and removal XS
+!
+
+
+USE sdata, ONLY: nnod, ng, sigtr, siga,  &
+                 sigs, D, sigr
+
+IMPLICIT NONE
+
+INTEGER :: n, i, g, h
+REAL :: dum
+
+DO i = 1, nnod
+    DO g = 1, ng
+		D(i,g) = 1./(3.*sigtr(i,g))
+		dum = 0.
+		DO h= 1, ng
+		    IF (g /= h) dum = dum + sigs(i,g,h)
+		END DO
+		sigr(i,g) =  siga(i,g) + dum
+	END DO
+END DO
+
+END SUBROUTINE Dsigr_updt
 
 
 
@@ -1816,6 +1924,412 @@ END IF
 END SUBROUTINE rotate
 
 
+SUBROUTINE inp_crod (xbunit)
+
+!
+! Purpose:
+!    To read control rod position
+
+USE sdata, ONLY: nx, ny, nzz, nmat, ng, xdiv, ydiv, &
+				 nxx, nyy, nzz, mode, bpos, nb, &
+				 dsigtr, dsiga, dnuf, dsigf, dsigs
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: xbunit
+
+INTEGER :: ln   !Line number
+INTEGER :: ios  ! IOSTAT status
+
+INTEGER :: i, j, k, g, h
+REAL :: dum, dumx
+INTEGER, DIMENSION(nx, ny) :: bmap       ! Radial control rod bank map (assembly wise)
+INTEGER :: popt
+INTEGER :: xtot, ytot, kt, ly, lx
+INTEGER, DIMENSION(ng) :: group
+INTEGER, DIMENSION(:), ALLOCATABLE :: bank
+
+WRITE(ounit,*) 
+WRITE(ounit,*) 
+WRITE(ounit,*) '           >>>> READING CONTROL RODS INSERTION <<<<'
+WRITE(ounit,*) '           --------------------------------------------'
+
+READ(xbunit, *, IOSTAT=ios) ind, ln, nb, nstep
+message = ' error in reading number of control rod bank and number of steps'
+CALL er_message(ounit, ios, ln, message)
+
+READ(xbunit, *, IOSTAT=ios) ind, ln, pos0, ssize
+message = ' error in reading zeroth step rod position and step size'
+CALL er_message(ounit, ios, ln, message)
+
+ALLOCATE(bpos(nb))
+
+!!! READ CONTROL ROD BANK POSITIONS
+READ(xbunit, *, IOSTAT=ios) ind, ln, (bpos(i), i = 1, nb)
+message = ' error in reading bank position'
+CALL er_message(ounit, ios, ln, message)
+
+
+!!! Check Control Rod Bank POSITION
+DO i = 1, nb
+    IF (bpos(i) > REAL(nstep)) THEN
+	    WRITE(ounit,1999) 'ERROR: POSITION OF CONTROL ROD BANK ', i, ' IS ', bpos(i), ' WHICH IS HIGHER THAN NUMBER OF STEPS.'
+		STOP
+	END IF
+    IF (bpos(i) < 0.) THEN
+	    WRITE(ounit,1999) 'ERROR: POSITION OF CONTROL ROD BANK ', i, ' IS ', bpos(i), ' WHICH IS LOWER THAN 0.'
+		STOP
+	END IF
+    IF (coreh < bpos(i)*ssize) THEN
+	    WRITE(ounit,1998) 'ERROR: CORE HEIGHT ', coreh, ' IS LOWER THAN CONTROL ROD POSITION ', bpos(i)*ssize+pos0
+		WRITE(ounit,*) ' BANK NUMBER ', i
+		STOP
+	END IF
+END DO
+1999 FORMAT (2X, A, I2, A, F5.1, A)
+1998 FORMAT (2X, A, F6.2, A, F6.2)
+	
+!!! READ CONTROL ROD BANK MAP
+DO j = ny, 1, -1
+    READ(xbunit, *, IOSTAT=ios) ind, ln, (bmap(i,j), i = 1, nx)
+    message = ' error in reading control rod bank map'
+    CALL er_message(ounit, ios, ln, message)
+    DO i = 1, nx
+	    IF (bmap(i,j) > nb) THEN
+		    WRITE(ounit,*) '  ERROR: BANK NUMBER ON CR BANK MAP IS GREATER THAN NUMBER OF BANK'
+			STOP
+		END IF
+	END DO
+END DO
+
+ALLOCATE(dsigtr(nmat,ng))
+ALLOCATE(dsiga (nmat,ng))
+ALLOCATE(dnuf  (nmat,ng))
+ALLOCATE(dsigf (nmat,ng))
+ALLOCATE(dsigs (nmat,ng,ng))
+
+! Reac CX changes due to control rod increment or dcrement
+DO i = 1, nmat
+	DO g= 1, ng
+        READ(xbunit, *, IOSTAT=ios) ind, ln, dsigtr(i,g), &
+		dsiga(i,g), dnuf(i,g), dsigf(i,g), (dsigs(i,g,h), h = 1, ng)
+		message = ' error in reading macro xs changes due to control rod insertion'
+		CALL er_message(ounit, ios, ln, message)
+	END DO
+END DO
+
+!! CROD PRINT OPTION
+READ(xbunit, *, IOSTAT=ios) ind, ln, popt
+IF (ios == 0 .AND. popt > 0) THEN
+	
+	WRITE(ounit,1201) nb
+	WRITE(ounit,1216) nstep
+	WRITE(ounit,1202) pos0
+	WRITE(ounit,1203) ssize
+	
+	ALLOCATE(bank(nb))
+	DO i = 1, nb
+	    bank(i) = i
+	END DO
+	WRITE(ounit,*) ' INITIAL CONTROL ROD BANK POSITION (STEPS) : '
+	WRITE(ounit, 1204)(bank(i), i = 1, nb)
+	WRITE(ounit, 1205)(bpos(i), i = 1, nb)
+	
+	WRITE(ounit,*) 
+	WRITE(ounit,*) ' CONTROL ROD BANK MAP : '
+	WRITE(ounit,*) ' (0 means fully inserted) '
+    DO j = ny, 1, -1
+        WRITE(ounit,'(100I3)' ) (bmap(i,j), i = 1, nx)
+	END DO
+	
+	WRITE(ounit,*)
+	WRITE(ounit,*) ' MATERIAL CX INCREMENT OR DECREMENT DUE TO CR INSERTION : '
+    DO i= 1, nmat
+       WRITE(ounit,1209) i
+	    WRITE(ounit,1211)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+	    'NU*FISS', 'FISSION'
+        DO g= 1, ng
+		    WRITE(ounit,1210) g, dsigtr(i,g), dsiga(i,g), &
+		    dnuf(i,g), dsigf(i,g)
+			group(g) = g
+	    END DO
+	    WRITE(ounit,*)'  --SCATTERING MATRIX--'
+	    WRITE(ounit,'(4X, A5, 20I9)') "G/G'", (group(g), g=1,ng)
+	    DO g= 1, ng
+	        WRITE(ounit,1215)g, (dsigs(i,g,h), h=1,ng)
+	    END DO
+    END DO
+	DEALLOCATE(bank)
+END IF	
+
+1201 FORMAT(2X, 'NUMBER OF CONTROL ROD BANK  :', I3)
+1216 FORMAT(2X, 'NUMBER OF STEPS  :', I3)
+1202 FORMAT(2X, 'FULLY INSERTED POSITION (cm): ', F4.1, ' (FROM BOTTOM OF THE CORE)')
+1203 FORMAT(2X, 'STEP SIZE (cm)              : ', F8.4)
+1204 FORMAT(2X, 10(:, 2X, 'Bank ', I2))
+1205 FORMAT(10(:, 2X, F7.1), /)
+1209 FORMAT(4X, 'MATERIAL', I3)
+1211 FORMAT(2X, A7, A12, A12, 2A13)
+1210 FORMAT(2X, I6, F13.6, F12.6, 2F13.6)
+1215 FORMAT(4X, I3, F14.6, 20F10.6)
+	
+
+!!! Convert assembly wise CR bank map to node wise CR bank map
+ALLOCATE(fbmap(nxx,nyy))
+ytot = 0
+DO j= 1, ny
+	DO ly= 1, ydiv(j)
+	    ytot = ytot+1
+	    xtot = 0
+		DO i= 1, nx
+			DO lx= 1, xdiv(i)
+				 xtot = xtot+1
+				 fbmap(xtot, ytot) = bmap(i,j)
+			END DO
+		END DO
+	END DO
+END DO
+
+
+WRITE(ounit,*)
+WRITE(ounit,*) ' ...Control Rods Insertion card is sucessfully read...'
+
+END SUBROUTINE inp_crod
+
+
+SUBROUTINE crod_updt (bpos)
+!
+! Purpose: TO CALCUALTE VOLUME WEIGHTED HOMOGENIZED CX FOR RODDED NODE
+!    
+
+USE sdata, ONLY: ng, nxx, nyy, nzz, xyz, zdel, nnod, mat, &
+                 sigtr, siga, nuf, sigf, sigs, D, sigr, &
+				 dsigtr, dsiga, dnuf, dsigf, dsigs
+
+IMPLICIT NONE
+
+REAL, DIMENSION(:), INTENT(IN) :: bpos
+
+INTEGER :: n, i, j, k, g, h, kt
+REAL :: rodh, vfrac
+REAL :: dum, dumx
+LOGICAL :: negxs = .FALSE.
+
+
+DO j = 1, nyy
+    DO i = 1, nxx
+	    IF (fbmap(i,j) > 0) THEN
+		    !!!(rodh -> posistion the tip of the control from the top of core)
+		    rodh = coreh - pos0  - bpos(fbmap(i,j))*ssize
+			dum = 0.d0
+			DO k = nzz, 1, -1
+			    ! For partially rodded node, get volume weighted homogenized CX (0 < vfrac < 1.0)
+			    IF (rodh >= dum .AND. rodh < dum+zdel(k)) THEN
+				    vfrac = (rodh - dum) / zdel(k)
+			        sigtr(xyz(i,j,k),1:) = sigtr(xyz(i,j,k),1:) + &
+				                       vfrac * dsigtr(mat(xyz(i,j,k)),1:)
+			        siga(xyz(i,j,k),1:)  = siga(xyz(i,j,k),1:) + &
+				                       vfrac * dsiga(mat(xyz(i,j,k)),1:)
+			        nuf(xyz(i,j,k),1:)   = nuf(xyz(i,j,k),1:) + &
+				                       vfrac * dnuf(mat(xyz(i,j,k)),:)
+			        sigf(xyz(i,j,k),1:)  = sigf(xyz(i,j,k),1:) + &
+				                       vfrac * dsigf(mat(xyz(i,j,k)),1:)
+					sigs(xyz(i,j,k),1:,1:)  = sigs(xyz(i,j,k),1:,1:) + &
+				                       vfrac * dsigs(mat(xyz(i,j,k)),1:,1:)				   
+					
+					EXIT
+				END IF
+				! For fully rodded node, vfrac = 1.
+			    sigtr(xyz(i,j,k),:) = sigtr(xyz(i,j,k),:) + &
+				                       dsigtr(mat(xyz(i,j,k)),:)
+			    siga(xyz(i,j,k),:)  = siga(xyz(i,j,k),:) + &
+				                       dsiga(mat(xyz(i,j,k)),:)
+			    nuf(xyz(i,j,k),:)   = nuf(xyz(i,j,k),:) + &
+				                       dnuf(mat(xyz(i,j,k)),:)
+			    sigf(xyz(i,j,k),:)  = sigf(xyz(i,j,k),:) + &
+				                       dsigf(mat(xyz(i,j,k)),:)
+				sigs(xyz(i,j,k),:,:)  = sigs(xyz(i,j,k),:,:) + &
+				                       dsigs(mat(xyz(i,j,k)),:,:)	
+		        
+			    dum = dum + zdel(k)
+			END DO
+			! if negative CX found, Surpress CX to zero  and calculate D and sigr
+			DO k = nzz, 1, -1
+				DO g = 1, ng
+					IF (sigtr(xyz(i,j,k),g) < 0.) THEN
+						sigtr(xyz(i,j,k),g) = 0.
+						negxs = .TRUE.
+					END IF
+					IF (siga(xyz(i,j,k),g) < 0.) THEN
+						siga(xyz(i,j,k),g) = 0.
+						negxs = .TRUE.
+					END IF
+					IF (nuf(xyz(i,j,k),g) < 0.) THEN
+						nuf(xyz(i,j,k),g) = 0.
+						negxs = .TRUE.
+					END IF
+					IF (sigf(xyz(i,j,k),g) < 0.) THEN
+						sigf(xyz(i,j,k),g) = 0.
+						negxs = .TRUE.
+					END IF
+					DO h = 1, ng
+					    IF (sigs(xyz(i,j,k),g,h) < 0.) THEN
+						    sigs(xyz(i,j,k),g,h) = 0.
+						    negxs = .TRUE.
+					    END IF					    
+					END DO
+				END DO
+							
+                D(xyz(i,j,k),:) = 1.d0/(3.d0*sigtr(xyz(i,j,k),:)) 
+			    DO g = 1, ng
+					dumx = 0.0
+		            DO h= 1, ng
+		                IF (g /= h) dumx = dumx + sigs(xyz(i,j,k),g,h)
+		            END DO
+		            sigr(xyz(i,j,k),g) =  siga(xyz(i,j,k),g) + dumx
+			    END DO
+			END DO
+		END IF
+	END DO
+END DO
+
+IF (warn) THEN
+    IF (negxs) WRITE(ounit,*)
+    IF (negxs) WRITE(ounit,*) "  WARNING: SOME NEGATIVE CXs (DUE TO CR INSERTION) ARE SUPPRESSED TO ZERO IN SUBROUTINE CROD_UPDT"
+	warn = .FALSE.
+END IF
+
+
+END SUBROUTINE crod_updt
+
+
+
+SUBROUTINE inp_ejct (xbunit)
+
+!
+! Purpose:
+!    To read rod ejection input
+
+USE sdata, ONLY: nf, ng, lamb, iBeta, velo, nnod, nb, &
+                 ttot, tstep1, tdiv, tstep2, bpos, fbpos, tmove, &
+				 bspeed, mdir
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: xbunit
+
+INTEGER :: ln   !Line number
+INTEGER :: ios  ! IOSTAT status
+
+INTEGER :: i, g, n
+INTEGER :: popt
+INTEGER, DIMENSION(nb) :: bank
+CHARACTER(LEN=4) :: cnb         ! number of bank (character type)
+
+WRITE(ounit,*) 
+WRITE(ounit,*) 
+WRITE(ounit,*) '           >>>>     READING ROD EJECTION DATA      <<<<'
+WRITE(ounit,*) '           --------------------------------------------'
+
+ALLOCATE(tmove(nb), bspeed(nb), mdir(nb), fbpos(nb))
+
+! Read Final CR bank position, time to start, and speed
+DO i = 1, nb
+    READ(xbunit, *, IOSTAT=ios) ind, ln, fbpos(i), tmove(i), bspeed(i)
+	WRITE (cnb,'(I4)') nb
+	cnb = TRIM(ADJUSTL(cnb))
+    message = ' error in reading Final CR Bank Position, time to move and speed for bank : ' // cnb
+    CALL er_message(ounit, ios, ln, message)
+	IF (ABS(fbpos(i)-bpos(i)) < 1.d-5) THEN
+	    mdir(i) = 0
+	ELSE IF (fbpos(i)-bpos(i) > 1.d-5) THEN
+	    mdir(i) = 2
+	ELSE
+	    mdir(i) = 1
+	END IF
+END DO
+
+! Read time for CR to be ejected
+READ(xbunit, *, IOSTAT=ios) ind, ln, ttot, tstep1, tdiv, tstep2
+message = ' error in time parameters'
+CALL er_message(ounit, ios, ln, message)
+
+! ttot must be bigger than tstep1 and tstep2
+IF ((ttot < tstep1) .OR. (ttot < tstep2)) THEN
+    WRITE(ounit,*) 'TOTAL SIMULATION TIME SHALL BE GREATER THAN TIME STEPS'
+	STOP
+END IF
+
+! tdiv must be bigger than tstep1
+IF (tdiv < tstep1) THEN
+    WRITE(ounit,*) 'THEN TIME WHEN SECOND TIME STEP STARTS SHALL BE GREATER THAN FIRST TIME STEP'
+	STOP
+END IF
+
+! Read beta (delayed neutron fraction)
+READ(xbunit, *, IOSTAT=ios) ind, ln, (iBeta(i), i = 1, nf)
+message = ' error in reading delayed netron fraction (beta)'
+CALL er_message(ounit, ios, ln, message)
+
+! Read precusor decay constant
+READ(xbunit, *, IOSTAT=ios) ind, ln, (lamb(i), i = 1, nf)
+message = ' error in reading precusor decay constant'
+CALL er_message(ounit, ios, ln, message)
+
+! Read neutron velocity
+ALLOCATE(velo(ng))
+READ(xbunit, *, IOSTAT=ios) ind, ln, (velo(g), g = 1, ng)
+message = ' error in reading neutron velocity'
+CALL er_message(ounit, ios, ln, message)
+
+
+!! EJCT PRINT OPTION
+READ(xbunit, *, IOSTAT=ios) ind, ln, popt
+IF (ios == 0 .AND. popt > 0) THEN
+	
+	DO i = 1, nb
+	    bank(i) = i
+	END DO
+	WRITE(ounit, 1294)(bank(i), i = 1, nb)
+	WRITE(ounit, 1295)(fbpos(i), i = 1, nb)
+	WRITE(ounit, 1281)(tmove(i), i = 1, nb)
+	WRITE(ounit, 1282)(bspeed(i), i = 1, nb)
+	
+	WRITE(ounit,*)
+	WRITE(ounit,*) ' TIME PARAMETERS IN SECONDS : '
+	WRITE(ounit,1297) ttot
+	WRITE(ounit,1298) tstep1
+	WRITE(ounit,1299) tstep2
+	WRITE(ounit,1300) tdiv
+	
+	WRITE(ounit,*)
+	WRITE(ounit,*) ' DELAYED NEUTRON FRACTION : '
+	WRITE(ounit,'(100F11.5)') (iBeta(i), i = 1, nf)
+	
+	WRITE(ounit,*)
+	WRITE(ounit,*) ' PRECUSOR DECAY CONSTANT (1/s): '
+	WRITE(ounit,'(100F11.5)') (lamb(i), i = 1, nf)
+	
+	WRITE(ounit,*)
+	WRITE(ounit,*) ' NEUTRON VELOCITY (cm/s) : '
+	WRITE(ounit,'(100ES15.5)') (velo(g), g = 1, ng)
+END IF
+
+WRITE(ounit,*)
+WRITE(ounit,*) ' ...Rod Ejection Card is sucessfully read...'
+
+1294 FORMAT(25X, 99(:, 2X, 'Bank ', I2))
+1295 FORMAT(2X, 'FINAL BANK POS. (STEP)', 99(:, 2X, F7.1), /)
+1281 FORMAT(2X, 'STARTS MOVE (SECOND)  ', 99(:, 2X, F7.1), /)
+1282 FORMAT(2X, 'SPEED (STEP/SECOND)   ', 99(:, 2X, F7.1), /)
+1297 FORMAT(4X, 'TOTAL SIMULATION TIME         : ', F6.2)
+1298 FORMAT(4X, 'FIRST TIME STEP               : ', F6.4)
+1299 FORMAT(4X, 'SECOND TIME STEP              : ', F6.4)
+1300 FORMAT(4X, 'WHEN SECOND TIME STEP APPLY?  : ', F6.2)
+
+END SUBROUTINE inp_ejct
+
+
 
 SUBROUTINE er_message (funit, ios, ln, mess)
 !
@@ -2044,12 +2558,9 @@ SUBROUTINE  AxiPow(fn)
 ! Purpose:
 !    To print radially averaged  power distribution
 !
-!   Date                Programmer           History
-!  ========================================================
-!  6 FEB 2017         Muhammad Imron       Original code
 
-USE sdata, ONLY: nx, ny, nxx, nyy, nzz, nz, zdel, zdiv, &
-                xdel, ydel, ystag, nnod, ix, iy, iz
+USE sdata, ONLY: nx, ny, nxx, nyy, nzz, nz, zdiv, &
+                vdel, ystag, nnod, ix, iy, iz, xyz, zdel, ystag
 
 IMPLICIT NONE
 
@@ -2059,7 +2570,7 @@ REAL, DIMENSION(nxx, nyy, nzz) :: fx
 INTEGER :: i, j, k, n, ztot
 INTEGER :: ly, lx, ys, xs, yf, xf, lz
 REAL :: summ, vsumm
-REAL, DIMENSION(nzz) :: faxi
+REAL, DIMENSION(nz) :: faxi
 REAL :: totp
 INTEGER :: nfuel
 REAL :: fmax
@@ -2080,9 +2591,9 @@ DO k= 1, nz
     DO lz= 1, zdiv(k)
 	    ztot = ztot + 1
         DO j = 1, nyy
-	        DO i = 1, nxx
-		        summ = summ + fx(i,j,ztot)*xdel(i)*ydel(j)*zdel(ztot)
-			    vsumm = vsumm + xdel(i)*ydel(j)*zdel(ztot)
+	        DO i = ystag(j)%smin, ystag(j)%smax
+		        summ = summ + fx(i,j,ztot)
+			    vsumm = vsumm + vdel(xyz(i,j,ztot))
 		    END DO
 	    END DO	
     END DO
@@ -2094,8 +2605,8 @@ END DO
 ! Normalize Axial power to 1.0
 fmax = 0.d0
 amax = 1
-DO k = 1, nzz
-	faxi(k) = DBLE(nfuel) / totp * faxi(k)
+DO k = 1, nz
+	faxi(k) = REAL(nfuel) / totp * faxi(k)
 	IF (faxi(k) > fmax) THEN
 	    amax = k   ! Get max position
 		fmax = faxi(k)
@@ -2105,8 +2616,8 @@ END DO
 ! Print Axial power distribution
 WRITE(ounit,*)
 WRITE(ounit,*)
-WRITE(ounit,*) '    Axial Power Distribution'
-WRITE(ounit,*) '  ============================'
+WRITE(ounit,*) '    Axial Power Density Distribution'
+WRITE(ounit,*) '  ===================================='
 WRITE(ounit,*) 
 WRITE(ounit,*) '    Plane Number        Power      Height'
 WRITE(ounit,*) '   -----------------------------------------'
