@@ -1,5 +1,5 @@
                        ###########################################################
-                       #                     ADPRES 1.0                          #
+                       #                     ADPRES 1.1                          #
                        #        ABU DHABI POLYTECHNIC REACTOR SIMULATOR          #
                        ###########################################################  
 
@@ -141,7 +141,7 @@
       1        0.000000    0.040000
       2        0.000000    0.000000
 
-  ...Macroscopic CXs are sucessfully read...
+  ...Macroscopic CX Card is sucessfully read...
 
 
             >>>>>READING CORE GEOMETRY<<<<<
@@ -422,8 +422,8 @@
   (  8,  3)          1.427
 
 
-     Axial Power Distribution
-   ============================
+     Axial Power Density Distribution
+   ====================================
 
      Plane Number        Power      Height
     -----------------------------------------
@@ -479,4 +479,4 @@
 
 
 
- Total time :    1.85641098      seconds
+ Total time :    1.79401100      seconds
