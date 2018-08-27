@@ -2,7 +2,9 @@ MODULE nodal
 
 !=========================
 ! Nodal Module to solve diffusion equation using NEM
-! Major parts adapted from MOSRA-Light Manual (in Japanese)
+! Major parts adapted from
+! MOSRA-Light Manual (in Japanese)
+! Keisuke Okumura
 ! =======================
 
 IMPLICIT NONE
