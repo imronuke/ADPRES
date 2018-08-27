@@ -2,7 +2,8 @@ PROGRAM main
 
 USE sdata, ONLY: mode
 USE InpOutp, ONLY: ounit, inp_read, bwrst, w_rst
-USE nodal
+USE nodal, ONLY: forward, adjoint, fixedsrc, init
+USE trans, ONLY: rod_eject
 
 IMPLICIT NONE
 
@@ -16,12 +17,14 @@ CALL inp_read()
 CALL Init()
 
 SELECT CASE(mode)
-    CASE('FORWARD')
-	    CALL forward()
+    CASE('FIXEDSRC')
+	    CALL fixedsrc()
     CASE('ADJOINT')		
         CALL adjoint()
+    CASE('RODEJECT')		
+        CALL rod_eject()
 	CASE DEFAULT
-        CALL fixedsrc()	
+		CALL forward()
 END SELECT
 
 ! Write Restart File if required
