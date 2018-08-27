@@ -1,5 +1,5 @@
 ! DVP BWR REACTOR PROBLEM
-! THIS PROBLEM IS TO DEMONSTRATE ADF USAGE IN ADPRES
+! THIS PROBLEM IS TO DEMONSTRATE ADF FEATURE IN ADPRES
 !See:
 !=========
 ! K.S. Smith, Assembly Homogenization Techniques for LWR Analysis.
@@ -13,7 +13,7 @@
 ! Average Error in rodded assembly power     1.5%          1.3%
 
 
-%MODE  
+%MODE
 FORWARD
 %CASE
 DVP
