@@ -45,7 +45,7 @@ LMW  TRANSIENT
 
 ! CONTROL CARD
 %CROD
-2   180                          ! Number of CR banks
+2   180                          ! Number of CR banks and Max number of steps
 0.  1.0                          ! Zero step pos. (cm from bottom) and step size (cm/step)
 180.  100.                       ! CR Bank pos.
 0  0  0  0  0  0  
