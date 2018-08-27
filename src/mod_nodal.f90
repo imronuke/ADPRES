@@ -2,7 +2,9 @@ MODULE nodal
 
 !=========================
 ! Nodal Module to solve diffusion equation using NEM
-! Major parts adapted from MOSRA-Light Manual (in Japanese)
+! Major parts adapted from:
+! Okumura K (1998) MOSRA-light: high speed three-dimensional nodal diffusion code for vector computers,
+! JAERI-Data/Code 98-025. Japan Atomic Energy Research Institute, Tokaimura (in Japanese)
 ! =======================
 
 IMPLICIT NONE
