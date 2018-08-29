@@ -72,14 +72,14 @@ vdum = 0.
 DO g = 1, ng
     DO n = 1, nnod
         vdum(n) = vdum(n) + nuf(n,g) * sf(n,g)
-	END DO
+    END DO
 END DO
 
 vdum2 = 0.
 DO g = 1, ng
     DO n = 1, nnod
-	    vdum2(n) = vdum2(n) + chi(n,g) * vdum(n) * af(n,g)
-	END DO
+        vdum2(n) = vdum2(n) + chi(n,g) * vdum(n) * af(n,g)
+    END DO
 END DO
 
 F2 = Integrate(vdum2)
@@ -89,8 +89,8 @@ F2 = Integrate(vdum2)
 vdum2 = 0.
 DO g = 1, ng
     DO n = 1, nnod
-	    vdum2(n) = vdum2(n) + af(n,g) * sf(n,g) / velo(g)
-	END DO
+        vdum2(n) = vdum2(n) + af(n,g) * sf(n,g) / velo(g)
+    END DO
 END DO
 
 xA = Integrate(vdum2) / F2    ! Calculate neutron generation time
@@ -100,20 +100,20 @@ vdum2 = 0.; vdum3 = 0.; vdum4 = 0.
 DO g = 1, ng
     DO n = 1, nnod
         vdum2(n) = vdum2(n) + dnuf(n,g) * sf(n,g)
-		vdum3(n) = vdum3(n) + af(n,g) * dsigr(n,g) * sf(n,g)
-	END DO
+        vdum3(n) = vdum3(n) + af(n,g) * dsigr(n,g) * sf(n,g)
+    END DO
 END DO
 
 DO g = 1, ng
     vdum5 = 0.
     DO h = 1, ng
-	    DO n = 1, nnod
-		    vdum5(n) = vdum5(n) + dsigs(n,h,g) * sf(n,h)
-		END DO
-	END DO
-	DO n = 1, nnod
-	    vdum4(n) = vdum4(n) + af(n,g) * (vdum5(n) + chi(n,g) * vdum2(n))
-	END DO
+        DO n = 1, nnod
+            vdum5(n) = vdum5(n) + dsigs(n,h,g) * sf(n,h)
+        END DO
+    END DO
+    DO n = 1, nnod
+        vdum4(n) = vdum4(n) + af(n,g) * (vdum5(n) + chi(n,g) * vdum2(n))
+    END DO
 END DO
 
 xrho = Integrate(vdum4 - vdum3) / F2
@@ -121,13 +121,13 @@ xrho = Integrate(vdum4 - vdum3) / F2
 ! Calculate Delayed neutron fraction (beta)
 DO i = 1, nf
     vdum2 = 0.
-	! Delayed neutron fraction (beta)
+    ! Delayed neutron fraction (beta)
     DO g = 1, ng
         DO n = 1, nnod
-	        vdum2(n) = vdum2(n) + chi(n,g) * iBeta(i) * vdum(n) * af(n,g)
-	    END DO
-	END DO
-	beta(i) = Integrate(vdum2) / F2
+            vdum2(n) = vdum2(n) + chi(n,g) * iBeta(i) * vdum(n) * af(n,g)
+        END DO
+    END DO
+    beta(i) = Integrate(vdum2) / F2
 
 END DO
 
@@ -145,12 +145,12 @@ SUBROUTINE rod_eject()
 
 
 USE sdata, ONLY: ng, nnod, sigr, nuf, sigs, f0, &
-				 iBeta, lamb, nf, nout, nac, &
-				 ttot, tdiv, tstep1, tstep2, &
-				 ix, iy, iz, zdel,Ke, &
-				 bcon, ftem, mtem, cden, &
-				 fbpos, bpos, tmove, bspeed, mdir, &
-				 nout, nac, nb
+                 iBeta, lamb, nf, nout, nac, &
+                 ttot, tdiv, tstep1, tstep2, &
+                 ix, iy, iz, zdel,Ke, &
+                 bcon, ftem, mtem, cden, &
+                 fbpos, bpos, tmove, bspeed, mdir, &
+                 nout, nac, nb
 ! npow, ppow, pow, node_nf,  nf, tfm
 USE InpOutp, ONLY: XS_updt, bther, ounit
 USE nodal, ONLY: nodal_coup4, outer4
@@ -217,63 +217,63 @@ DO i = 1, imax
 
     step = step + 1
     t1 = t2
-	t2 = t1 + tstep1
-	
-	IF (t2 > tdiv) THEN
-	    t2 = tdiv
-		stime = .TRUE.
-	END IF
-		
-	! Rod bank changes
-	DO n = 1, nb
-	    IF (mdir(n) == 1) THEN   ! If CR moving down
-			IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
-				bpos(n) = bpos(n) - tstep1 *  bspeed(n)
-				IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
-		    END IF
-		ELSE IF (mdir(n) == 2) THEN ! If CR moving up
-			IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
-				bpos(n) = bpos(n) + tstep1 *  bspeed(n)
-				IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
-		    END IF
-		ELSE
-		    CONTINUE
-		END IF
-	 END DO
-	
-	! Calculate xsec after pertubation
+    t2 = t1 + tstep1
+    
+    IF (t2 > tdiv) THEN
+        t2 = tdiv
+        stime = .TRUE.
+    END IF
+        
+    ! Rod bank changes
+    DO n = 1, nb
+        IF (mdir(n) == 1) THEN   ! If CR moving down
+            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
+                bpos(n) = bpos(n) - tstep1 *  bspeed(n)
+                IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
+            END IF
+        ELSE IF (mdir(n) == 2) THEN ! If CR moving up
+            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
+                bpos(n) = bpos(n) + tstep1 *  bspeed(n)
+                IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
+            END IF
+        ELSE
+            CONTINUE
+        END IF
+     END DO
+    
+    ! Calculate xsec after pertubation
     CALL XS_updt(bcon, ftem, mtem, cden, bpos)
-	
-	! Calculate shape function
+    
+    ! Calculate shape function
     CALL nodal_coup4()
     CALL outer4(0)
-	
+    
     ! Calculate xsec changes after rod is ejected
     dsigr = sigr - osigr
     dnuf = nuf - onuf
     dsigs = sigs - osigs
-	
+    
     ! Calculate intgral kinet parameters
     CALL kinet_par(dsigr, dnuf, dsigs, f0, A, rho)
-	
-	tbeta = 0.
+    
+    tbeta = 0.
     DO j = 1, nf
         tbeta = tbeta + beta(j)
     END DO
-	
-	!Calculate amplitude function	
-	CALL point(t1, t2, hp, rho, A, beta, amp)
-	
-	fl = amp * f0
-	
+    
+    !Calculate amplitude function    
+    CALL point(t1, t2, hp, rho, A, beta, amp)
+    
+    fl = amp * f0
+    
     WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, amp, (bpos(n), n = 1, nb)
-	
-	IF (stime) EXIT
-	
-	IF (step>1000) THEN
-	    WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
-		STOP
-	END IF
+    
+    IF (stime) EXIT
+    
+    IF (step>1000) THEN
+        WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
+        STOP
+    END IF
 
 END DO
 
@@ -286,63 +286,63 @@ DO i = 1, imax
 
     step = step + 1
     t1 = t2
-	t2 = t1 + tstep2
-	
-	IF (t2 > ttot) THEN
-	    t2 = ttot
-		stime = .TRUE.
-	END IF
-		
-	! Rod bank changes
-	DO n = 1, nb
-	    IF (mdir(n) == 1) THEN   ! If CR moving down
-			IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
-				bpos(n) = bpos(n) - tstep2 *  bspeed(n)
-				IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
-		    END IF
-		ELSE IF (mdir(n) == 2) THEN ! If CR moving up
-			IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
-				bpos(n) = bpos(n) + tstep2 *  bspeed(n)
-				IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
-		    END IF
-		ELSE
-		    CONTINUE
-		END IF
-	 END DO
-	
-	! Calculate xsec after pertubation
+    t2 = t1 + tstep2
+    
+    IF (t2 > ttot) THEN
+        t2 = ttot
+        stime = .TRUE.
+    END IF
+        
+    ! Rod bank changes
+    DO n = 1, nb
+        IF (mdir(n) == 1) THEN   ! If CR moving down
+            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
+                bpos(n) = bpos(n) - tstep2 *  bspeed(n)
+                IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
+            END IF
+        ELSE IF (mdir(n) == 2) THEN ! If CR moving up
+            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
+                bpos(n) = bpos(n) + tstep2 *  bspeed(n)
+                IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
+            END IF
+        ELSE
+            CONTINUE
+        END IF
+     END DO
+    
+    ! Calculate xsec after pertubation
     CALL XS_updt(bcon, ftem, mtem, cden, bpos)
-	
-	! Calculate shape function
+    
+    ! Calculate shape function
     CALL nodal_coup4()
     CALL outer4(0)
-	
+    
     ! Calculate xsec changes after rod is ejected
     dsigr = sigr - osigr
     dnuf = nuf - onuf
     dsigs = sigs - osigs
-	
+    
     ! Calculate intgral kinet parameters
     CALL kinet_par(dsigr, dnuf, dsigs, f0, A, rho)
-	
-	tbeta = 0.
+    
+    tbeta = 0.
     DO j = 1, nf
         tbeta = tbeta + beta(j)
     END DO
-	
-	!Calculate amplitude function	
-	CALL point(t1, t2, hp, rho, A, beta, amp)
-	
-	fl = amp * f0
-	
+    
+    !Calculate amplitude function    
+    CALL point(t1, t2, hp, rho, A, beta, amp)
+    
+    fl = amp * f0
+    
     WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, amp, (bpos(n), n = 1, nb)
-	
-	IF (stime) EXIT
-	
-	IF (step>1000) THEN
-	    WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
-		STOP
-	END IF
+    
+    IF (stime) EXIT
+    
+    IF (step>1000) THEN
+        WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
+        STOP
+    END IF
 
 END DO
 
@@ -379,28 +379,28 @@ END DO
 itot = INT((tf - ti) / h)
 DO i = 1, itot
 
-	!!!Calculate Power for time step = i
-	summ = 0.
-	DO j = 1, nf
-	    summ = summ + lamb(j)*C(j)
-	END DO
-	
-	k1 = (xrho - tbeta) * xamp / xA + summ
-	k2 = (xrho - tbeta) * (xamp + k1 * 0.5 * h) / xA + summ
-	k3 = (xrho - tbeta) * (xamp + k2 * 0.5 * h) / xA + summ
-	k4 = (xrho - tbeta) * (xamp + k3 * h) / xA + summ
-	
-	xamp = xamp + h/6. * (k1 + 2.* k2 + 2.* k3 + k4)
-	
-	!!!Calculate precursor density for each group j for time step = i
-	DO j = 1, nf
-	    k1 = xbet(j) * xamp / xA - lamb(j) * C(j)
-		k2 = xbet(j) * xamp / xA - lamb(j) * (C(j) + k1 * 0.5 * h)
-		k3 = xbet(j) * xamp / xA - lamb(j) * (C(j) + k2 * 0.5 * h)
-		k4 = xbet(j) * xamp / xA - lamb(j) * (C(j) + k3 * h)
-		
-		C(j) =  C(j) + h/6. * (k1 + 2.* k2 + 2.* k3 + k4)
-	END DO
+    !!!Calculate Power for time step = i
+    summ = 0.
+    DO j = 1, nf
+        summ = summ + lamb(j)*C(j)
+    END DO
+    
+    k1 = (xrho - tbeta) * xamp / xA + summ
+    k2 = (xrho - tbeta) * (xamp + k1 * 0.5 * h) / xA + summ
+    k3 = (xrho - tbeta) * (xamp + k2 * 0.5 * h) / xA + summ
+    k4 = (xrho - tbeta) * (xamp + k3 * h) / xA + summ
+    
+    xamp = xamp + h/6. * (k1 + 2.* k2 + 2.* k3 + k4)
+    
+    !!!Calculate precursor density for each group j for time step = i
+    DO j = 1, nf
+        k1 = xbet(j) * xamp / xA - lamb(j) * C(j)
+        k2 = xbet(j) * xamp / xA - lamb(j) * (C(j) + k1 * 0.5 * h)
+        k3 = xbet(j) * xamp / xA - lamb(j) * (C(j) + k2 * 0.5 * h)
+        k4 = xbet(j) * xamp / xA - lamb(j) * (C(j) + k3 * h)
+        
+        C(j) =  C(j) + h/6. * (k1 + 2.* k2 + 2.* k3 + k4)
+    END DO
 END DO
 
 

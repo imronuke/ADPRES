@@ -18,17 +18,17 @@ CALL Init()
 
 SELECT CASE(mode)
     CASE('FIXEDSRC')
-	    CALL fixedsrc()
-    CASE('ADJOINT')		
+        CALL fixedsrc()
+    CASE('ADJOINT')        
         CALL adjoint()
-    CASE('RODEJECT')		
+    CASE('RODEJECT')        
         CALL rod_eject()
-	CASE DEFAULT
-		CALL forward()
+    CASE DEFAULT
+        CALL forward()
 END SELECT
 
 ! Write Restart File if required
-IF (bwrst == 1)	CALL w_rst()
+IF (bwrst == 1)    CALL w_rst()
 
 
 CALL CPU_TIME(fn)

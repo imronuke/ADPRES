@@ -42,19 +42,19 @@ INTEGER, DIMENSION(:), ALLOCATABLE :: mat
 ! Keff, flux and currents
 REAL :: Ke
 TYPE :: NODE_DATA
-	REAL, DIMENSION(6) :: jo             ! Nodals' outgoing currents (X+,X-,Y+, Y-, Z+, Z-)
-	REAL, DIMENSION(6) :: ji             ! Nodals' ingoing currents  (X+,X-,Y+, Y-, Z+, Z-)
-	REAL, DIMENSION(3) :: L              ! Zeroth transverse leakages (Lx, Ly, Lz)
-	REAL, DIMENSION(7) :: Q              ! Nodal's source and source moments (0, x1, y1, z1, x2, y2, z2)
+    REAL, DIMENSION(6) :: jo             ! Nodals' outgoing currents (X+,X-,Y+, Y-, Z+, Z-)
+    REAL, DIMENSION(6) :: ji             ! Nodals' ingoing currents  (X+,X-,Y+, Y-, Z+, Z-)
+    REAL, DIMENSION(3) :: L              ! Zeroth transverse leakages (Lx, Ly, Lz)
+    REAL, DIMENSION(7) :: Q              ! Nodal's source and source moments (0, x1, y1, z1, x2, y2, z2)
     REAL, DIMENSION(6,6) :: P            ! Response matrix
-    REAL, DIMENSION(6,7) :: R            ! Response matrix	
+    REAL, DIMENSION(6,7) :: R            ! Response matrix    
 END TYPE
 TYPE(NODE_DATA), DIMENSION(:,:), ALLOCATABLE :: nod
 
 REAL, DIMENSION(:,:), ALLOCATABLE :: f0, fx1, fy1, fz1, fx2, fy2, fz2      ! Flux and Flux moments
 
 TYPE :: STAGGERED
-	INTEGER :: smax, smin                             ! imax and imin along x and y direction for staggered nodes
+    INTEGER :: smax, smin                             ! imax and imin along x and y direction for staggered nodes
 END TYPE
 TYPE(STAGGERED), DIMENSION(:), ALLOCATABLE :: ystag, xstag 
 
@@ -74,7 +74,7 @@ INTEGER :: aprad=1, apaxi=1, afrad=1
 
 !ADF
 TYPE :: ADF_TYPE
-	REAL, DIMENSION(6) :: dc            
+    REAL, DIMENSION(6) :: dc            
 END TYPE
 TYPE(ADF_TYPE), DIMENSION(:,:), ALLOCATABLE :: al
 
