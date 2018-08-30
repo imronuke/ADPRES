@@ -218,12 +218,12 @@ DO i = 1, imax
     step = step + 1
     t1 = t2
     t2 = t1 + tstep1
-    
+
     IF (t2 > tdiv) THEN
         t2 = tdiv
         stime = .TRUE.
     END IF
-        
+
     ! Rod bank changes
     DO n = 1, nb
         IF (mdir(n) == 1) THEN   ! If CR moving down
@@ -240,36 +240,36 @@ DO i = 1, imax
             CONTINUE
         END IF
      END DO
-    
+
     ! Calculate xsec after pertubation
     CALL XS_updt(bcon, ftem, mtem, cden, bpos)
-    
+
     ! Calculate shape function
     CALL nodal_coup4()
     CALL outer4(0)
-    
+
     ! Calculate xsec changes after rod is ejected
     dsigr = sigr - osigr
     dnuf = nuf - onuf
     dsigs = sigs - osigs
-    
+
     ! Calculate intgral kinet parameters
     CALL kinet_par(dsigr, dnuf, dsigs, f0, A, rho)
-    
+
     tbeta = 0.
     DO j = 1, nf
         tbeta = tbeta + beta(j)
     END DO
-    
-    !Calculate amplitude function    
+
+    !Calculate amplitude function
     CALL point(t1, t2, hp, rho, A, beta, amp)
-    
+
     fl = amp * f0
-    
+
     WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, amp, (bpos(n), n = 1, nb)
-    
+
     IF (stime) EXIT
-    
+
     IF (step>1000) THEN
         WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
         STOP
@@ -287,12 +287,12 @@ DO i = 1, imax
     step = step + 1
     t1 = t2
     t2 = t1 + tstep2
-    
+
     IF (t2 > ttot) THEN
         t2 = ttot
         stime = .TRUE.
     END IF
-        
+
     ! Rod bank changes
     DO n = 1, nb
         IF (mdir(n) == 1) THEN   ! If CR moving down
@@ -309,36 +309,36 @@ DO i = 1, imax
             CONTINUE
         END IF
      END DO
-    
+
     ! Calculate xsec after pertubation
     CALL XS_updt(bcon, ftem, mtem, cden, bpos)
-    
+
     ! Calculate shape function
     CALL nodal_coup4()
     CALL outer4(0)
-    
+
     ! Calculate xsec changes after rod is ejected
     dsigr = sigr - osigr
     dnuf = nuf - onuf
     dsigs = sigs - osigs
-    
+
     ! Calculate intgral kinet parameters
     CALL kinet_par(dsigr, dnuf, dsigs, f0, A, rho)
-    
+
     tbeta = 0.
     DO j = 1, nf
         tbeta = tbeta + beta(j)
     END DO
-    
-    !Calculate amplitude function    
+
+    !Calculate amplitude function
     CALL point(t1, t2, hp, rho, A, beta, amp)
-    
+
     fl = amp * f0
-    
+
     WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, amp, (bpos(n), n = 1, nb)
-    
+
     IF (stime) EXIT
-    
+
     IF (step>1000) THEN
         WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
         STOP
@@ -384,21 +384,21 @@ DO i = 1, itot
     DO j = 1, nf
         summ = summ + lamb(j)*C(j)
     END DO
-    
+
     k1 = (xrho - tbeta) * xamp / xA + summ
     k2 = (xrho - tbeta) * (xamp + k1 * 0.5 * h) / xA + summ
     k3 = (xrho - tbeta) * (xamp + k2 * 0.5 * h) / xA + summ
     k4 = (xrho - tbeta) * (xamp + k3 * h) / xA + summ
-    
+
     xamp = xamp + h/6. * (k1 + 2.* k2 + 2.* k3 + k4)
-    
+
     !!!Calculate precursor density for each group j for time step = i
     DO j = 1, nf
         k1 = xbet(j) * xamp / xA - lamb(j) * C(j)
         k2 = xbet(j) * xamp / xA - lamb(j) * (C(j) + k1 * 0.5 * h)
         k3 = xbet(j) * xamp / xA - lamb(j) * (C(j) + k2 * 0.5 * h)
         k4 = xbet(j) * xamp / xA - lamb(j) * (C(j) + k3 * h)
-        
+
         C(j) =  C(j) + h/6. * (k1 + 2.* k2 + 2.* k3 + k4)
     END DO
 END DO

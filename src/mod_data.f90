@@ -28,9 +28,9 @@ REAL, DIMENSION(:,:,:), ALLOCATABLE :: xsigs         ! Scattering macroscopic cx
 LOGICAL :: ccnuf = .TRUE.                            ! Logical variable to check the presence of fissile material
 LOGICAL :: ccsigf = .TRUE.                           ! Logical variable to check the presence of fissile material
 
-! Geometry 
+! Geometry
 INTEGER :: nx, ny, nz                                ! Number of assemblies in x, y, and z directions
-INTEGER :: nxx, nyy, nzz                             ! Number of nodes in x, y, and z directions 
+INTEGER :: nxx, nyy, nzz                             ! Number of nodes in x, y, and z directions
 INTEGER :: nnod                                      ! Number of nodes
 INTEGER, DIMENSION(:), ALLOCATABLE :: ix, iy, iz
 INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: xyz
@@ -47,7 +47,7 @@ TYPE :: NODE_DATA
     REAL, DIMENSION(3) :: L              ! Zeroth transverse leakages (Lx, Ly, Lz)
     REAL, DIMENSION(7) :: Q              ! Nodal's source and source moments (0, x1, y1, z1, x2, y2, z2)
     REAL, DIMENSION(6,6) :: P            ! Response matrix
-    REAL, DIMENSION(6,7) :: R            ! Response matrix    
+    REAL, DIMENSION(6,7) :: R            ! Response matrix
 END TYPE
 TYPE(NODE_DATA), DIMENSION(:,:), ALLOCATABLE :: nod
 
@@ -56,15 +56,16 @@ REAL, DIMENSION(:,:), ALLOCATABLE :: f0, fx1, fy1, fz1, fx2, fy2, fz2      ! Flu
 TYPE :: STAGGERED
     INTEGER :: smax, smin                             ! imax and imin along x and y direction for staggered nodes
 END TYPE
-TYPE(STAGGERED), DIMENSION(:), ALLOCATABLE :: ystag, xstag 
+TYPE(STAGGERED), DIMENSION(:), ALLOCATABLE :: ystag, xstag
 
 ! Extra Sources
 REAL, DIMENSION(:,:), ALLOCATABLE :: exsrc
 
 ! Iteration Control
-REAL :: ferc = 1.e-5
-REAL :: serc = 1.e-5
-REAL :: ierc = 1.e-5
+REAL :: ferc = 1.e-5    ! Flux Error Criteria
+REAL :: serc = 1.e-5    ! Fission source Error CRITERIA
+REAL :: ierc = 1.e-5    ! Inner Iteration Error Criteria
+REAL :: fer, ser        ! Flux and Fission source error in BCSEARCH calcs.
 INTEGER :: nin = 2
 INTEGER :: nout = 500
 INTEGER :: nac = 5
@@ -74,7 +75,7 @@ INTEGER :: aprad=1, apaxi=1, afrad=1
 
 !ADF
 TYPE :: ADF_TYPE
-    REAL, DIMENSION(6) :: dc            
+    REAL, DIMENSION(6) :: dc
 END TYPE
 TYPE(ADF_TYPE), DIMENSION(:,:), ALLOCATABLE :: al
 
@@ -105,6 +106,7 @@ REAL, DIMENSION(:,:,:), ALLOCATABLE :: dsigs
 REAL, DIMENSION(:), ALLOCATABLE :: tmove    ! Time when CR bank starts moving
 REAL, DIMENSION(:), ALLOCATABLE :: bspeed   ! CR bank movement speed
 INTEGER, DIMENSION(:), ALLOCATABLE :: mdir     ! To indicate CR movement direction (0=do not move, 1=down, 2 = up)
+LOGICAL :: negxs = .FALSE.                      ! To activate warning for first time
 
 ! Boron Concentration
 REAL :: bcon       ! Boron concentration in ppm
@@ -113,7 +115,7 @@ REAL, DIMENSION(:,:), ALLOCATABLE :: csigtr, csiga, cnuf, csigf   ! CX changes d
 REAL, DIMENSION(:,:,:), ALLOCATABLE :: csigs                      ! Used only for CBCS card
 
 ! Transient parameters
-INTEGER, PARAMETER :: nf = 6                       ! Number of delaye dneutron precusor family 
+INTEGER, PARAMETER :: nf = 6                       ! Number of delaye dneutron precusor family
 REAL, DIMENSION(nf) :: ibeta, lamb                 ! beta and precusor decay constant
 ! REAL, DIMENSION(:,:), ALLOCATABLE :: iC            ! neutron precusor density
 REAL, DIMENSION(:), ALLOCATABLE :: velo            ! Neutron velocity
@@ -121,6 +123,29 @@ REAL :: ttot                                       ! TOTAL SIMULATION TIME
 REAL :: tstep1                                     ! FIRST TIME STEP
 REAL :: tstep2                                     ! SECOND TIME STEP
 REAL :: tdiv                                       ! WHEN SECOND TIME STEP APPLY
+
+! Thermal-hydraulics parameters
+REAL :: pow                                        ! Reactor power for given geometry (watt)
+REAL :: ppow                                       ! Reactor percent power in percent
+REAL :: tpow                                       ! Total reactor power
+REAL, DIMENSION(:), ALLOCATABLE :: npow            ! nodes power (watt)
+REAL :: tin                                        ! coolant inlet temperature (kelvin)
+REAL :: cflow                                      ! Sub-channel mass flow rate (kg/s)
+REAL :: rf, tg, tc, ppitch                         ! Fuel meat radius, gap thickness, clad thickness, and pin picth (m)
+REAL :: dia, dh, farea                             ! Pi diameter, Hydraulic diameter (m) and sub-channel area (m2)
+REAL :: cf                                         ! heat fraction deposited into coolant
+REAL, DIMENSION(:,:), ALLOCATABLE :: node_nf       ! Number of fuel pin per node
+INTEGER :: nm                                      ! number of Fuel meat mesh
+INTEGER :: nt                                      ! Number Total mesh
+REAL, DIMENSION(:,:), ALLOCATABLE :: tfm           ! Fuel pin mesh temperature for each nodes
+REAL, DIMENSION(:), ALLOCATABLE :: rdel            ! mesh delta
+REAL, DIMENSION(:), ALLOCATABLE :: rpos            ! mesh position
+REAL :: th_err                                     ! Doppler error
+REAL, DIMENSION(:), ALLOCATABLE :: ent             ! Coolant Enthalpy (J/Kg)
+REAL, DIMENSION(:), ALLOCATABLE :: heatf           ! Heat flux (W/m2)
+INTEGER :: th_niter = 20                                ! Maximum number of thermal-hydraulics iteration
+INTEGER, PARAMETER :: thunit = 300                 ! Unit number to open steam table file
+REAL, PARAMETER :: pi = 3.14159265
 
 
 END MODULE sdata

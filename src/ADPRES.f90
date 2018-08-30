@@ -1,9 +1,10 @@
 PROGRAM main
 
-USE sdata, ONLY: mode
-USE InpOutp, ONLY: ounit, inp_read, bwrst, w_rst
+USE sdata, ONLY: mode, negxs
+USE InpOutp, ONLY: ounit, inp_read, bwrst, w_rst, bther
 USE nodal, ONLY: forward, adjoint, fixedsrc, init
 USE trans, ONLY: rod_eject
+USE th, ONLY: cbsearch, cbsearcht
 
 IMPLICIT NONE
 
@@ -19,10 +20,16 @@ CALL Init()
 SELECT CASE(mode)
     CASE('FIXEDSRC')
         CALL fixedsrc()
-    CASE('ADJOINT')        
+    CASE('ADJOINT')
         CALL adjoint()
-    CASE('RODEJECT')        
+    CASE('RODEJECT')
         CALL rod_eject()
+    CASE('BCSEARCH')
+  	    IF (bther == 0) THEN
+            CALL cbsearch()
+  	    ELSE
+  		      CALL cbsearcht()
+  		  END IF
     CASE DEFAULT
         CALL forward()
 END SELECT
@@ -30,11 +37,16 @@ END SELECT
 ! Write Restart File if required
 IF (bwrst == 1)    CALL w_rst()
 
+IF (negxs) THEN
+    WRITE(ounit,*)
+    WRITE(ounit,*) "  WARNING: SOME NEGATIVE CXs (DUE TO CR INSERTION) ARE SUPPRESSED TO ZERO IN SUBROUTINE CROD_UPDT"
+END IF
+
 
 CALL CPU_TIME(fn)
 
 WRITE(ounit,*)
 WRITE(ounit,*)
-WRITE(ounit,*) "Total time : ", fn-st, " seconds" 
- 
+WRITE(ounit,*) "Total time : ", fn-st, " seconds"
+
 END PROGRAM main

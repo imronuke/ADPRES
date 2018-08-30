@@ -46,11 +46,10 @@ TYPE(MAT_ASGN), DIMENSION(:), ALLOCATABLE :: plnr       ! planar
 INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: mnum
 
 ! CROD CHANGES
-INTEGER :: nstep                                                  ! Number of steps
+REAL :: nstep                                                  ! Number of steps
 REAL    :: coreh                                                  ! Core Height
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: fbmap                     ! Radial control rod bank map (node wise)
 REAL :: pos0, ssize                                               ! Zero step position and step size
-LOGICAL :: warn = .TRUE.                                          ! To activate warning for first time
 
 
 CONTAINS
@@ -182,6 +181,35 @@ IF (biter == 1) CALL inp_iter (uiter)
 ! Card PRNT
 IF (bprnt == 1) CALL inp_prnt (uprnt)
 
+! Card CBCS
+IF (mode == 'BCSEARCH' .AND. bcbcs == 1) THEN
+    CALL inp_cbcs(ucbcs)
+ELSE IF (mode == 'BCSEARCH' .AND. bcbcs /= 1) THEN
+    WRITE(ounit,*) '   ERROR: CALCULATION MODE IS CRITICAL BORON CONCENTRATION SEARCH'
+    WRITE(ounit,1041) 'CBCS', 'CRITICAL BORON CONCENTRATION SEARCH'
+	STOP
+ELSE IF (mode /= 'BCSEARCH' .AND. bcbcs == 1) THEN
+    WRITE(ounit,*) '   ERROR: CBCS CARD IS NOT NECESSARY FOR THIS CALCULATION MODE'
+	STOP
+ELSE IF (mode == 'BCSEARCH' .AND. bbcon == 1) THEN
+    WRITE(ounit,*) '   ERROR: BCON CARD MUST NOT PRESENT FOR THIS CALCULATION MODE'
+	STOP
+ELSE
+    CONTINUE
+END IF
+
+!!CARD BCON
+IF (bbcon == 1) CALL inp_bcon (ubcon)
+
+!!CARD FTEM
+IF (bftem == 1) CALL inp_ftem (uftem)
+
+!!CARD MTEM
+IF (bmtem == 1) CALL inp_mtem (umtem)
+
+!!CARD CDEN
+IF (bcden == 1) CALL inp_cden (ucden)
+
 !CARD CROD
 IF (bcrod == 1) CALL inp_crod (ucrod)
 
@@ -206,6 +234,27 @@ END IF
 ! Miscellaneous things
 CALL misc()
 
+!!CARD THER
+IF (bther == 1 .AND. bftem == 1 .AND. (bmtem ==1 .OR. bcden == 1)) THEN
+    CALL inp_ther (uther)
+ELSE IF (bther == 1 .AND. mode == 'FORWARD') THEN
+    WRITE(ounit,*)'   ERROR: %THER CARD NOT VALID FOR FORWARD CALCULATION MODE'
+	STOP
+ELSE IF (bther == 1 .AND. mode == 'FIXEDSRC') THEN
+    WRITE(ounit,*)'   ERROR: %THER CARD NOT VALID FOR FIXED SOURCE CALCULATION MODE'
+	STOP
+ELSE IF (bther == 1 .AND. mode == 'ADJOINT') THEN
+    WRITE(ounit,*)'   ERROR: %THER CARD NOT VALID FOR ADJOINT CALCULATION MODE'
+	STOP
+ELSE IF (bther == 0) THEN
+    CONTINUE
+ELSE
+    WRITE(ounit,*)'   ERROR: WHEN %THER CARD PRESENT %FTEM AND,' // &
+	              'AT LEAST ONE OF THE FOLLOWING CARDS MUST PRESENT'
+	WRITE(ounit,*)'   1. %MTEM   2. %CDEN'
+	STOP
+END IF
+
 !CARD ADF
 ALLOCATE(al(nnod,ng))
 DO g = 1, ng
@@ -228,6 +277,8 @@ ELSE IF (mode /= 'FIXEDSRC' .AND. besrc == 1) THEN
 ELSE
     CONTINUE
 END IF
+
+
 
 DEALLOCATE(mnum)
 DO i= 1,np
@@ -295,9 +346,6 @@ SUBROUTINE inp_comments ()
 !    To remove the comments in input and rewrite the
 !    input into input buffer for each card. Comments marked by !.
 !
-!   Date                Programmer           History
-!  ========================================================
-!  6 FEB 2017         Muhammad Imron       Original code
 
 IMPLICIT NONE
 
@@ -379,6 +427,21 @@ DO
             CASE('EJCT')
                 bunit = uejct
                 bejct = 1
+            CASE('CBCS')
+                bunit = ucbcs
+                bcbcs = 1
+            CASE('FTEM')
+                bunit = uftem
+                bftem = 1
+            CASE('MTEM')
+                bunit = umtem
+                bmtem = 1
+            CASE('CDEN')
+                bunit = ucden
+                bcden = 1
+            CASE('THER')
+                bunit = uther
+                bther = 1
             CASE DEFAULT
                 WRITE(ounit,1014) ln, iline
                 STOP
@@ -431,6 +494,9 @@ SELECT CASE(mode)
     CASE('RODEJECT')
         WRITE(ounit,1031) 'ROD EJECTION CALCULATION'
         WRITE(ounit,*)
+      CASE('BCSEARCH')
+          WRITE(ounit,1031) 'CRITICAL BORON CONC. SEARCH CALCULATION'
+          WRITE(ounit,*)
     CASE DEFAULT
         WRITE(ounit,1032) mode
         STOP
@@ -602,7 +668,6 @@ INTEGER, INTENT(IN) :: xbunit
 INTEGER :: ln, ios
 
 INTEGER :: i, j, k, lx, ly, lz, xtot, ytot, ztot
-REAL, DIMENSION(:), ALLOCATABLE :: xsize, ysize, zsize  !Assembly size
 REAL :: div
 
 WRITE(ounit,*)
@@ -728,8 +793,6 @@ DO k= 1,nz
     zdel(ztot) = div
     END DO
 END DO
-
-DEALLOCATE(xsize, ysize, zsize)
 
 END SUBROUTINE inp_geom1
 
@@ -1092,7 +1155,7 @@ DO n = 1, nnod
     chi  (n,:)   = xchi  (mat(n),:)
 END DO
 
-IF (mode == 'CBSEARCH' .OR. mode == 'RODEJECT') THEN
+IF (mode == 'BCSEARCH' .OR. mode == 'RODEJECT') THEN
     CONTINUE
 ELSE
     CALL XS_updt(bcon, ftem, mtem, cden, bpos)
@@ -1127,10 +1190,10 @@ REAL, DIMENSION(:), INTENT(IN) :: xcden  ! Provided coolant density
 REAL, DIMENSION(:), INTENT(IN) :: xbpos  ! Provided control rod bank position
 
 CALL base_updt()
-! IF (bbcon == 1 .OR. bcbcs == 1) CALL bcon_updt(xbcon)
-! IF (bftem == 1) CALL ftem_updt(xftem)
-! IF (bmtem == 1) CALL mtem_updt(xmtem)
-! IF (bcden == 1) CALL cden_updt(xcden)
+ IF (bbcon == 1 .OR. bcbcs == 1) CALL bcon_updt(xbcon)
+ IF (bftem == 1) CALL ftem_updt(xftem)
+ IF (bmtem == 1) CALL mtem_updt(xmtem)
+ IF (bcden == 1) CALL cden_updt(xcden)
 IF (bcrod == 1) CALL crod_updt(xbpos)
 CALL Dsigr_updt()
 
@@ -1951,7 +2014,7 @@ WRITE(ounit,*) '           >>>> READING CONTROL RODS INSERTION <<<<'
 WRITE(ounit,*) '           --------------------------------------------'
 
 READ(xbunit, *, IOSTAT=ios) ind, ln, nb, nstep
-message = ' error in reading number of control rod bank and number of steps'
+message = ' error in reading number of control rod bank and max. number of steps'
 CALL er_message(ounit, ios, ln, message)
 
 READ(xbunit, *, IOSTAT=ios) ind, ln, pos0, ssize
@@ -2019,7 +2082,7 @@ READ(xbunit, *, IOSTAT=ios) ind, ln, popt
 IF (ios == 0 .AND. popt > 0) THEN
 
     WRITE(ounit,1201) nb
-    WRITE(ounit,1216) nstep
+    WRITE(ounit,1216) NINT(nstep)
     WRITE(ounit,1202) pos0
     WRITE(ounit,1203) ssize
 
@@ -2028,12 +2091,12 @@ IF (ios == 0 .AND. popt > 0) THEN
         bank(i) = i
     END DO
     WRITE(ounit,*) ' INITIAL CONTROL ROD BANK POSITION (STEPS) : '
+    WRITE(ounit,*) ' (0 means fully inserted) '
     WRITE(ounit, 1204)(bank(i), i = 1, nb)
     WRITE(ounit, 1205)(bpos(i), i = 1, nb)
 
     WRITE(ounit,*)
     WRITE(ounit,*) ' CONTROL ROD BANK MAP : '
-    WRITE(ounit,*) ' (0 means fully inserted) '
     DO j = ny, 1, -1
         WRITE(ounit,'(100I3)' ) (bmap(i,j), i = 1, nx)
     END DO
@@ -2059,7 +2122,7 @@ IF (ios == 0 .AND. popt > 0) THEN
 END IF
 
 1201 FORMAT(2X, 'NUMBER OF CONTROL ROD BANK  :', I3)
-1216 FORMAT(2X, 'NUMBER OF STEPS  :', I3)
+1216 FORMAT(2X, 'MAX. NUMBER OF STEPS  :', I4)
 1202 FORMAT(2X, 'FULLY INSERTED POSITION (cm): ', F4.1, ' (FROM BOTTOM OF THE CORE)')
 1203 FORMAT(2X, 'STEP SIZE (cm)              : ', F8.4)
 1204 FORMAT(2X, 10(:, 2X, 'Bank ', I2))
@@ -2100,7 +2163,7 @@ SUBROUTINE crod_updt (bpos)
 
 USE sdata, ONLY: ng, nxx, nyy, nzz, xyz, zdel, nnod, mat, &
                  sigtr, siga, nuf, sigf, sigs, D, sigr, &
-                 dsigtr, dsiga, dnuf, dsigf, dsigs
+                 dsigtr, dsiga, dnuf, dsigf, dsigs, negxs
 
 IMPLICIT NONE
 
@@ -2109,7 +2172,6 @@ REAL, DIMENSION(:), INTENT(IN) :: bpos
 INTEGER :: n, i, j, k, g, h, kt
 REAL :: rodh, vfrac
 REAL :: dum, dumx
-LOGICAL :: negxs = .FALSE.
 
 
 DO j = 1, nyy
@@ -2188,12 +2250,6 @@ DO j = 1, nyy
         END IF
     END DO
 END DO
-
-IF (warn) THEN
-    IF (negxs) WRITE(ounit,*)
-    IF (negxs) WRITE(ounit,*) "  WARNING: SOME NEGATIVE CXs (DUE TO CR INSERTION) ARE SUPPRESSED TO ZERO IN SUBROUTINE CROD_UPDT"
-    warn = .FALSE.
-END IF
 
 
 END SUBROUTINE crod_updt
@@ -2326,15 +2382,846 @@ WRITE(ounit,*) ' ...Rod Ejection Card is sucessfully read...'
 END SUBROUTINE inp_ejct
 
 
+SUBROUTINE inp_cbcs (xbunit)
+
+!
+! Purpose:
+!    To read boron concentration for bc search
+
+USE sdata, ONLY: nmat, ng, nnod, rbcon, &
+                 csigtr, csiga, cnuf, csigf, csigs
+
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: xbunit
+
+INTEGER :: ln   !Line number
+INTEGER :: ios  ! IOSTAT status
+
+INTEGER :: i, g, h
+INTEGER :: popt
+INTEGER, DIMENSION(ng) :: group
+REAL :: dum
+
+WRITE(ounit,*)
+WRITE(ounit,*)
+WRITE(ounit,*) '           >>>> READING BORON CONCENTRATION FOR BC SEARCH <<<<'
+WRITE(ounit,*) '           --------------------------------------------------'
+
+! Read Boron Concentration
+READ(xbunit, *, IOSTAT=ios) ind, ln, rbcon
+message = ' error in reading bc guess and bc reference'
+CALL er_message(ounit, ios, ln, message)
+
+ALLOCATE(csigtr(nmat,ng))
+ALLOCATE(csiga (nmat,ng))
+ALLOCATE(cnuf  (nmat,ng))
+ALLOCATE(csigf (nmat,ng))
+ALLOCATE(csigs (nmat,ng,ng))
+
+! Read CX changes per ppm born change
+DO i = 1, nmat
+	DO g= 1, ng
+        READ(xbunit, *, IOSTAT=ios) ind, ln, csigtr(i,g), &
+		csiga(i,g), cnuf(i,g), csigf(i,g), (csigs(i,g,h), h = 1, ng)
+		message = ' error in reading macro xs changes per ppm boron changes'
+		CALL er_message(ounit, ios, ln, message)
+	END DO
+END DO
+
+!! BCON PRINT OPTION
+READ(xbunit, *, IOSTAT=ios) ind, ln, popt
+IF (ios == 0 .AND. popt > 0) THEN
+
+	WRITE(ounit,1422) rbcon
+
+	WRITE(ounit,*)
+	WRITE(ounit,*) ' MATERIAL CX CHANGES PER PPM BORON CHANGES : '
+    DO i= 1, nmat
+       WRITE(ounit,1429) i
+	    WRITE(ounit,1431)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+	    'NU*FISS', 'FISSION'
+        DO g= 1, ng
+		    WRITE(ounit,1430) g, csigtr(i,g), csiga(i,g), &
+		    cnuf(i,g), csigf(i,g)
+			group(g) = g
+	    END DO
+	    WRITE(ounit,*)'  --SCATTERING MATRIX--'
+	    WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
+	    DO g= 1, ng
+	        WRITE(ounit,1435)g, (csigs(i,g,h), h=1,ng)
+	    END DO
+    END DO
+END IF
+
+1422 FORMAT(2X, 'BORON CONCENTRATION REFERENCE :', F8.2)
+1429 FORMAT(4X, 'MATERIAL', I3)
+1431 FORMAT(2X, A8, A12, A13, A10, A14)
+1430 FORMAT(2X, I6, 4E15.6)
+1435 FORMAT(4X, I3, E17.5, 20E13.5)
+
+
+WRITE(ounit,*)
+WRITE(ounit,*) ' ...Critical Boron Search card is sucessfully read...'
+
+END SUBROUTINE inp_cbcs
+
+
+
+SUBROUTINE inp_bcon (xbunit)
+
+!
+! Purpose:
+!    To read boron concentration
+
+USE sdata, ONLY: nmat, ng, nnod, bcon, rbcon, &
+                 csigtr, csiga, cnuf, csigf, csigs
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: xbunit
+
+INTEGER :: ln   !Line number
+INTEGER :: ios  ! IOSTAT status
+
+INTEGER :: i, g, h
+INTEGER :: popt
+INTEGER, DIMENSION(ng) :: group
+REAL :: dum
+
+WRITE(ounit,*)
+WRITE(ounit,*)
+WRITE(ounit,*) '           >>>>       READING BORON CONCENTRATION        <<<<'
+WRITE(ounit,*) '           --------------------------------------------------'
+
+! Read Boron Concentration
+READ(xbunit, *, IOSTAT=ios) ind, ln, bcon, rbcon
+message = ' error in reading boron concentration and boron concentration reference'
+CALL er_message(ounit, ios, ln, message)
+
+
+! Read CX changes per ppm born change
+ALLOCATE(csigtr(nmat,ng))
+ALLOCATE(csiga (nmat,ng))
+ALLOCATE(cnuf  (nmat,ng))
+ALLOCATE(csigf (nmat,ng))
+ALLOCATE(csigs (nmat,ng,ng))
+DO i = 1, nmat
+	DO g= 1, ng
+        READ(xbunit, *, IOSTAT=ios) ind, ln, csigtr(i,g), &
+		csiga(i,g), cnuf(i,g), csigf(i,g), (csigs(i,g,h), h = 1, ng)
+		message = ' error in reading macro xs changes per ppm boron changes'
+		CALL er_message(ounit, ios, ln, message)
+	END DO
+END DO
+
+!! BCON PRINT OPTION
+READ(xbunit, *, IOSTAT=ios) ind, ln, popt
+IF (ios == 0 .AND. popt > 0) THEN
+
+	WRITE(ounit,1221) bcon
+	WRITE(ounit,1222) rbcon
+
+	WRITE(ounit,*)
+	WRITE(ounit,*) ' MATERIAL CX CHANGES PER PPM BORON CHANGES : '
+    DO i= 1, nmat
+       WRITE(ounit,1229) i
+	    WRITE(ounit,1231)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+	    'NU*FISS', 'FISSION'
+        DO g= 1, ng
+		    WRITE(ounit,1230) g, csigtr(i,g), csiga(i,g), &
+		    cnuf(i,g), csigf(i,g)
+			group(g) = g
+	    END DO
+	    WRITE(ounit,*)'  --SCATTERING MATRIX--'
+	    WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
+	    DO g= 1, ng
+	        WRITE(ounit,1235)g, (csigs(i,g,h), h=1,ng)
+	    END DO
+    END DO
+END IF
+
+1221 FORMAT(2X, 'BORON CONCENTRATION SET       :', F8.2)
+1222 FORMAT(2X, 'BORON CONCENTRATION REFERENCE :', F8.2)
+1229 FORMAT(4X, 'MATERIAL', I3)
+1231 FORMAT(2X, A8, A12, A13, A10, A14)
+1230 FORMAT(2X, I6, F13.6, F12.6, 2E14.5)
+1235 FORMAT(4X, I3, E17.5, 20E13.5)
+
+
+
+WRITE(ounit,*)
+WRITE(ounit,*) ' ...Boron Concentration card is sucessfully read...'
+
+END SUBROUTINE inp_bcon
+
+
+SUBROUTINE bcon_updt (bcon)
+
+!
+! Purpose:
+!    To update CX for given boron concentration
+
+USE sdata, ONLY: nnod, ng, sigtr, siga, nuf, sigf, sigs, mat, &
+                 csigtr, csiga, cnuf, csigf, csigs, rbcon
+
+IMPLICIT NONE
+
+REAL, INTENT(IN) :: bcon
+INTEGER :: i, g, h
+REAL :: dum
+
+DO i = 1, nnod
+    DO g = 1, ng
+        sigtr(i,g) = sigtr(i,g) + csigtr(mat(i),g) * (bcon - rbcon)
+		siga(i,g)  = siga(i,g)  + csiga(mat(i),g)  * (bcon - rbcon)
+		nuf(i,g)   = nuf(i,g)   + cnuf(mat(i),g)   * (bcon - rbcon)
+		sigf(i,g)  = sigf(i,g)  + csigf(mat(i),g)  * (bcon - rbcon)
+		DO h = 1, ng
+		    sigs(i,g,h) = sigs(i,g,h) + csigs(mat(i),g,h) * (bcon - rbcon)
+		END DO
+	END DO
+END DO
+
+
+END SUBROUTINE bcon_updt
+
+
+
+SUBROUTINE inp_ftem (xbunit)
+
+!
+! Purpose:
+!    To read fuel temperature
+
+USE sdata, ONLY: nmat, ng, nnod, mode, ftem, rftem, &
+                 fsigtr, fsiga, fnuf, fsigf, fsigs
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: xbunit
+
+INTEGER :: ln   !Line number
+INTEGER :: ios  ! IOSTAT status
+
+REAL :: cftem
+INTEGER :: i, g, h
+INTEGER :: popt
+INTEGER, DIMENSION(ng) :: group
+REAL :: dum
+
+WRITE(ounit,*)
+WRITE(ounit,*)
+WRITE(ounit,*) '           >>>>      READING FUEL TEMPERATURE      <<<<'
+WRITE(ounit,*) '           --------------------------------------------'
+
+! Read Fuel Temperature
+READ(xbunit, *, IOSTAT=ios) ind, ln, cftem, rftem
+message = ' error in reading average fuel temperature and fuel temperature reference'
+CALL er_message(ounit, ios, ln, message)
+
+! ASSIGN CFTEM to FTEM
+ALLOCATE(ftem(nnod))
+IF (bther == 0) ftem = cftem
+
+! Read CX changes fuel temperature change
+ALLOCATE(fsigtr(nmat,ng), fsiga(nmat,ng), fnuf(nmat,ng), fsigf(nmat,ng), fsigs(nmat,ng,ng))
+DO i = 1, nmat
+	DO g= 1, ng
+        READ(xbunit, *, IOSTAT=ios) ind, ln, fsigtr(i,g), &
+		fsiga(i,g), fnuf(i,g), fsigf(i,g), (fsigs(i,g,h), h = 1, ng)
+		message = ' error in reading macro xs changes per fuel temperature changes'
+		CALL er_message(ounit, ios, ln, message)
+	END DO
+END DO
+
+!! FTEM PRINT OPTION
+READ(xbunit, *, IOSTAT=ios) ind, ln, popt
+IF (ios == 0 .AND. popt > 0) THEN
+
+	IF (bther == 0) THEN
+	    WRITE(ounit,1241) cftem
+	ELSE
+	    WRITE(ounit,1256) cftem
+	END IF
+	WRITE(ounit,1242) rftem
+
+	WRITE(ounit,*)
+	WRITE(ounit,*) ' MATERIAL CX CHANGES PER FUEL TEMPERATURE CHANGES : '
+    DO i= 1, nmat
+       WRITE(ounit,1249) i
+	    WRITE(ounit,1251)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+	    'NU*FISS', 'FISSION'
+        DO g= 1, ng
+		    WRITE(ounit,1250) g, fsigtr(i,g), fsiga(i,g), &
+		    fnuf(i,g), fsigf(i,g)
+			group(g) = g
+	    END DO
+	    WRITE(ounit,*)'  --SCATTERING MATRIX--'
+	    WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
+	    DO g= 1, ng
+	        WRITE(ounit,1255)g, (fsigs(i,g,h), h=1,ng)
+	    END DO
+    END DO
+END IF
+
+1241 FORMAT(2X, 'AVERAGE FUEL TEMPERATURE   :', F6.2)
+1242 FORMAT(2X, 'FUEL TEMPERATURE REFERENCE :', F6.2)
+1249 FORMAT(4X, 'MATERIAL', I3)
+1251 FORMAT(2X, A8, A12, A13, A10, A14)
+1250 FORMAT(2X, I6, E14.5, E13.5, 2E14.5)
+1255 FORMAT(4X, I3, E17.5, 20E13.5)
+1256 FORMAT(2X, 'AVERAGE FUEL TEMPERATURE   :', F6.2, '  (NOT USED)')
+
+
+
+WRITE(ounit,*)
+WRITE(ounit,*) ' ...Fuel Temperature is card sucessfully read...'
+
+END SUBROUTINE inp_ftem
+
+
+SUBROUTINE ftem_updt (ftem)
+
+!
+! Purpose:
+!    To update CX for given fuel temp
+
+USE sdata, ONLY: nnod, ng, sigtr, siga, nuf, sigf, sigs, mat, &
+                 fsigtr, fsiga, fnuf, fsigf, fsigs, rftem
+
+IMPLICIT NONE
+
+REAL, DIMENSION(:), INTENT(IN) :: ftem
+INTEGER :: i, g, h
+REAL :: dum
+
+
+DO i = 1, nnod
+    DO g = 1, ng
+        sigtr(i,g) = sigtr(i,g) + fsigtr(mat(i),g) * (SQRT(ftem(i))- SQRT(rftem))
+		siga(i,g)  = siga(i,g)  + fsiga(mat(i),g)  * (SQRT(ftem(i)) - SQRT(rftem))
+		nuf(i,g)   = nuf(i,g)   + fnuf(mat(i),g)   * (SQRT(ftem(i)) - SQRT(rftem))
+		sigf(i,g)  = sigf(i,g)  + fsigf(mat(i),g)  * (SQRT(ftem(i)) - SQRT(rftem))
+		DO h = 1, ng
+		    sigs(i,g,h) = sigs(i,g,h) + fsigs(mat(i),g,h) * (SQRT(ftem(i)) - SQRT(rftem))
+		END DO
+	END DO
+END DO
+
+
+END SUBROUTINE ftem_updt
+
+
+SUBROUTINE inp_mtem (xbunit)
+
+!
+! Purpose:
+!    To read moderator temperature
+
+USE sdata, ONLY: nmat, ng, nnod, mode, mtem, rmtem, &
+                 msigtr, msiga, mnuf, msigf, msigs
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: xbunit
+
+INTEGER :: ln   !Line number
+INTEGER :: ios  ! IOSTAT status
+
+REAL :: cmtem
+INTEGER :: i, g, h
+INTEGER :: popt
+INTEGER, DIMENSION(ng) :: group
+REAL :: dum
+
+WRITE(ounit,*)
+WRITE(ounit,*)
+WRITE(ounit,*) '           >>>>   READING MODERATOR TEMPERATURE    <<<<'
+WRITE(ounit,*) '           --------------------------------------------'
+
+! Read Moderator Temperature
+READ(xbunit, *, IOSTAT=ios) ind, ln, cmtem, rmtem
+message = ' error in reading Moderator temperature and Moderator temperature reference'
+CALL er_message(ounit, ios, ln, message)
+
+! ASSIGN CMTEM to MTEM
+ALLOCATE(mtem(nnod))
+IF (bther == 0) mtem = cmtem
+
+! Read CX changes per moderator temperature change
+ALLOCATE(msigtr(nmat,ng), msiga(nmat,ng), mnuf(nmat,ng), msigf(nmat,ng), msigs(nmat,ng,ng))
+DO i = 1, nmat
+	DO g= 1, ng
+        READ(xbunit, *, IOSTAT=ios) ind, ln, msigtr(i,g), &
+		msiga(i,g), mnuf(i,g), msigf(i,g), (msigs(i,g,h), h = 1, ng)
+		message = ' error in reading macro xs changes per Moderator temperature changes'
+		CALL er_message(ounit, ios, ln, message)
+	END DO
+END DO
+
+!! MTEM PRINT OPTION
+READ(xbunit, *, IOSTAT=ios) ind, ln, popt
+IF (ios == 0 .AND. popt > 0) THEN
+
+	IF (bther == 0) THEN
+	    WRITE(ounit,1261) cmtem
+	ELSE
+	    WRITE(ounit,1276) cmtem
+	END IF
+	WRITE(ounit,1262) rmtem
+
+	WRITE(ounit,*)
+	WRITE(ounit,*) ' MATERIAL CX CHANGES PER MODERATOR TEMPERATURE CHANGES : '
+    DO i= 1, nmat
+       WRITE(ounit,1269) i
+	    WRITE(ounit,1271)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+	    'NU*FISS', 'FISSION'
+        DO g= 1, ng
+		    WRITE(ounit,1270) g, msigtr(i,g), msiga(i,g), &
+		    mnuf(i,g), msigf(i,g)
+			group(g) = g
+	    END DO
+	    WRITE(ounit,*)'  --SCATTERING MATRIX--'
+	    WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
+	    DO g= 1, ng
+	        WRITE(ounit,1275)g, (msigs(i,g,h), h=1,ng)
+	    END DO
+    END DO
+END IF
+
+1261 FORMAT(2X, 'AVERAGE MODERATOR TEMPERATURE   :', F6.2)
+1262 FORMAT(2X, 'MODERATOR TEMPERATURE REFERENCE :', F6.2)
+1269 FORMAT(4X, 'MATERIAL', I3)
+1271 FORMAT(2X, A8, A12, A13, A10, A14)
+1270 FORMAT(2X, I6, E14.5, E13.5, 2E14.5)
+1275 FORMAT(4X, I3, E17.5, 20E13.5)
+1276 FORMAT(2X, 'AVERAGE MODERATOR TEMPERATURE   :', F6.2, '  (NOT USED)')
+
+
+
+WRITE(ounit,*)
+WRITE(ounit,*) ' ...Moderator Temperature Card is sucessfully read...'
+
+
+END SUBROUTINE inp_mtem
+
+
+SUBROUTINE mtem_updt (mtem)
+
+!
+! Purpose:
+!    To update CX for given moderator temperature
+
+USE sdata, ONLY: nnod, ng, sigtr, siga, nuf, sigf, sigs, mat, &
+                 msigtr, msiga, mnuf, msigf, msigs, rmtem
+
+IMPLICIT NONE
+
+REAL, DIMENSION(:), INTENT(IN) :: mtem
+INTEGER :: i, g, h
+REAL :: dum
+
+
+DO i = 1, nnod
+    DO g = 1, ng
+        sigtr(i,g) = sigtr(i,g) + msigtr(mat(i),g) * (mtem(i) - rmtem)
+		siga(i,g)  = siga(i,g)  + msiga(mat(i),g)  * (mtem(i) - rmtem)
+		nuf(i,g)   = nuf(i,g)   + mnuf(mat(i),g)   * (mtem(i) - rmtem)
+		sigf(i,g)  = sigf(i,g)  + msigf(mat(i),g)  * (mtem(i) - rmtem)
+		DO h = 1, ng
+		    sigs(i,g,h) = sigs(i,g,h) + msigs(mat(i),g,h) * (mtem(i) - rmtem)
+		END DO
+	END DO
+END DO
+
+
+END SUBROUTINE mtem_updt
+
+
+SUBROUTINE inp_cden (xbunit)
+
+!
+! Purpose:
+!    To read Coolant Density
+
+USE sdata, ONLY: nmat, ng, nnod, mode, cden, rcden, &
+                 lsigtr, lsiga, lnuf, lsigf, lsigs
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: xbunit
+
+INTEGER :: ln   !Line number
+INTEGER :: ios  ! IOSTAT status
+
+REAL :: ccden
+INTEGER :: i, g, h
+INTEGER :: popt
+INTEGER, DIMENSION(ng) :: group
+REAL :: dum
+
+WRITE(ounit,*)
+WRITE(ounit,*)
+WRITE(ounit,*) '           >>>>       READING COOLANT DENSITY      <<<<'
+WRITE(ounit,*) '           --------------------------------------------'
+
+! Read Coolant Density
+READ(xbunit, *, IOSTAT=ios) ind, ln, ccden, rcden
+message = ' error in reading Coolant Density and Coolant Density reference'
+CALL er_message(ounit, ios, ln, message)
+
+!ASSIGN CCDEN TO CDEN
+ALLOCATE(cden(nnod))
+cden = ccden
+
+! Read CX changes per Coolant Density change
+ALLOCATE(lsigtr(nmat,ng), lsiga(nmat,ng), lnuf(nmat,ng), lsigf(nmat,ng), lsigs(nmat,ng,ng))
+DO i = 1, nmat
+	DO g= 1, ng
+        READ(xbunit, *, IOSTAT=ios) ind, ln, lsigtr(i,g), &
+		lsiga(i,g), lnuf(i,g), lsigf(i,g), (lsigs(i,g,h), h = 1, ng)
+		message = ' error in reading macro xs changes per Coolant Density changes'
+		CALL er_message(ounit, ios, ln, message)
+	END DO
+END DO
+
+!! CDEN PRINT OPTION
+READ(xbunit, *, IOSTAT=ios) ind, ln, popt
+IF (ios == 0 .AND. popt > 0) THEN
+
+	IF (bther == 0) THEN
+	    WRITE(ounit,1361) ccden
+	ELSE
+	    WRITE(ounit,1376) ccden
+	END IF
+	WRITE(ounit,1362) rcden
+
+	WRITE(ounit,*)
+	WRITE(ounit,*) ' MATERIAL CX CHANGES PER COOLANT DENSITY CHANGES : '
+    DO i= 1, nmat
+       WRITE(ounit,1369) i
+	    WRITE(ounit,1371)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+	    'NU*FISS', 'FISSION'
+        DO g= 1, ng
+		    WRITE(ounit,1370) g, lsigtr(i,g), lsiga(i,g), &
+		    lnuf(i,g), lsigf(i,g)
+			group(g) = g
+	    END DO
+	    WRITE(ounit,*)'  --SCATTERING MATRIX--'
+	    WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
+	    DO g= 1, ng
+	        WRITE(ounit,1375)g, (lsigs(i,g,h), h=1,ng)
+	    END DO
+    END DO
+END IF
+
+
+1361 FORMAT(2X, 'AVERAGE COOLANT DENSITY   :', F8.4)
+1362 FORMAT(2X, 'COOLANT DENSITY REFERENCE :', F8.4)
+1369 FORMAT(4X, 'MATERIAL', I3)
+1371 FORMAT(2X, A8, A12, A13, A10, A14)
+1370 FORMAT(2X, I6, E14.5, E13.5, 2E14.5)
+1375 FORMAT(4X, I3, E17.5, 20E13.5)
+1376 FORMAT(2X, 'AVERAGE COOLANT DENSITY   :', F8.4, '  (USED AS GUESS)')
+
+
+
+WRITE(ounit,*)
+WRITE(ounit,*) ' ...Coolant Density Card is sucessfully read...'
+
+
+END SUBROUTINE inp_cden
+
+
+SUBROUTINE cden_updt (cden)
+
+!
+! Purpose:
+!    To update CX for given coolant density
+
+USE sdata, ONLY: nnod, ng, sigtr, siga, nuf, sigf, sigs, mat, &
+                 lsigtr, lsiga, lnuf, lsigf, lsigs, rcden
+
+IMPLICIT NONE
+
+REAL, DIMENSION(:), INTENT(IN) :: cden
+INTEGER :: i, g, h
+REAL :: dum
+
+
+DO i = 1, nnod
+    DO g = 1, ng
+        sigtr(i,g) = sigtr(i,g) + lsigtr(mat(i),g) * (cden(i) - rcden)
+		siga(i,g)  = siga(i,g)  + lsiga(mat(i),g)  * (cden(i) - rcden)
+		nuf(i,g)   = nuf(i,g)   + lnuf(mat(i),g)   * (cden(i) - rcden)
+		sigf(i,g)  = sigf(i,g)  + lsigf(mat(i),g)  * (cden(i) - rcden)
+		DO h = 1, ng
+		    sigs(i,g,h) = sigs(i,g,h) + lsigs(mat(i),g,h) * (cden(i) - rcden)
+		END DO
+	END DO
+END DO
+
+
+END SUBROUTINE cden_updt
+
+
+SUBROUTINE inp_ther (xbunit)
+
+!
+! Purpose:
+!    To read thermalhydraulics parameters input
+
+USE sdata, ONLY: pow, tin, nx, ny, nxx, nyy, ystag, &
+                 xdel, ydel, rf, tg, tc, ppitch, cf, dia, cflow, dh, pi, &
+				 farea, xdiv, ydiv, ystag, node_nf, nm, nt, rdel, rpos, &
+				 nnod, tfm, ppow, ent, heatf, thunit
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: xbunit
+
+INTEGER :: ln   !Line number
+INTEGER :: ios  ! IOSTAT status
+
+INTEGER :: i, j, iost
+INTEGER :: nfpin, ngt                              ! Number of fuel pin and guide tubes
+
+INTEGER :: ly, lx, ytot, xtot
+REAL :: tflow, cmflow
+REAL, DIMENSION(nx,ny) :: area, aflow
+REAL :: barea, div
+
+REAL :: dum
+
+INTEGER :: popt
+
+WRITE(ounit,*)
+WRITE(ounit,*)
+WRITE(ounit,*) '           >>>>   READING THERMAL-HYDRAULIC DATA   <<<<'
+WRITE(ounit,*) '           --------------------------------------------'
+
+! Read Percent Power
+READ(xbunit, *, IOSTAT=ios) ind, ln, ppow
+message = ' error in reading percent power'
+CALL er_message(ounit, ios, ln, message)
+
+! Read reactor Power
+READ(xbunit, *, IOSTAT=ios) ind, ln, pow
+message = ' error in reading reactor full thermal power'
+CALL er_message(ounit, ios, ln, message)
+
+! Read inlet coolant temp. (Kelvin) and  FA flow rate (kg/s)
+READ(xbunit, *, IOSTAT=ios) ind, ln, tin, cmflow
+message = ' error in reading coolant inlet temp. and Fuel Assembly mass flow rate'
+CALL er_message(ounit, ios, ln, message)
+
+! Read fuel pin geometry in meter
+READ(xbunit, *, IOSTAT=ios) ind, ln, rf, tg, tc, ppitch
+message = ' error in reading fuel meat rad., gap thickness, clad thickness and pin pitch'
+CALL er_message(ounit, ios, ln, message)
+
+! Check gap and clad thickness
+IF (tg > 0.25 * rf) THEN
+    WRITE(ounit,*) '  ERROR: GAP THICKNESS IS TO LARGE (> 0.25*rf)'
+	STOP
+END IF
+IF (tc > 0.25 * rf) THEN
+    WRITE(ounit,*) '  ERROR: CLADDING THICKNESS IS TO LARGE (> 0.25*rf)'
+	STOP
+END IF
+
+! Read Number of fuel pins and guide tubes
+READ(xbunit, *, IOSTAT=ios) ind, ln, nfpin, ngt
+message = ' error in reading number of fuel pins and guide tubes'
+CALL er_message(ounit, ios, ln, message)
+
+! Read Fraction of heat deposited in the coolant
+READ(xbunit, *, IOSTAT=ios) ind, ln, cf
+message = ' error in reading fraction of heat deposited in the coolant'
+CALL er_message(ounit, ios, ln, message)
+
+! Calculate fuel pin diameter
+dia = 2. * (rf + tg + tc)
+
+! Calculate hydraulic diameter
+dh = dia * ((4./pi) * (ppitch/dia)**2 - 1.)
+
+! Calculate sub-channel area
+farea = ppitch**2 - 0.25*pi*dia**2
+
+! Calculate sub-channel mass flow rate
+cflow = cmflow / REAL(nfpin)
+
+! Calculate total coolant mass flow rate and number of fuel pins per node
+barea = 0.
+DO j = 1, ny
+    DO i = 1, nx
+	    area(i,j) = xsize(i)*ysize(j)             ! assembly area
+		IF (area(i,j) > barea) barea = area(i,j)  ! barea => largest assembly area for ref.
+	END DO
+END DO
+
+tflow = 0.
+DO j = 1, ny
+    DO i = 1, nx
+	    IF ((i >= ystag(j)%smin) .AND. (i <= ystag(j)%smax )) THEN
+	        aflow(i,j) = area(i,j) / barea * cmflow   ! Flow rate per assembly
+	        tflow = tflow + aflow(i,j)               ! Total mass flow rate
+		END IF
+	END DO
+END DO
+
+ALLOCATE(node_nf(nxx, nyy))
+node_nf = nfpin
+
+ytot = 0
+DO j= 1, ny
+	DO ly= 1, ydiv(j)
+	  ytot = ytot+1
+		xtot = 0
+		DO i= 1, nx
+		    DO lx= 1, xdiv(i)
+				xtot = xtot+1
+				IF ((i >= ystag(j)%smin) .AND. (i <= ystag(j)%smax )) THEN
+				    div = REAL (ydiv(j) * xdiv(i))            ! Number of nodes in current assembly
+				    node_nf(xtot,ytot) = area(i,j) * nfpin / (barea * div)   ! Number of fuel pin for this node
+				END IF
+			END DO
+		END DO
+	END DO
+END DO
+
+! Calculate fuel pin mesh delta and position
+nm = 10      ! Fuel meat divided into 10 mesh
+nt = nm + 2  ! two more mesh for gap and clad
+dum = rf / REAL(nm)
+
+ALLOCATE(rdel(nt), rpos(nt+2))
+DO i = 1, nm
+    rdel(i) = dum
+END DO
+rdel(nm+1) = tg
+rdel(nm+2) = tc
+
+rpos(1) = 0.5 * rdel(1)
+DO i = 2, nt-2
+    rpos(i) = rpos(i-1) + 0.5 * (rdel(i-1) + rdel(i))
+END DO
+rpos(nt-1) = rpos(nt-2) + 0.5*rdel(nt-2)
+rpos(nt) = rpos(nt-1) + rdel(nt-1)
+rpos(nt+1) = rpos(nt) + 0.5*rdel(nt)
+rpos(nt+2) = rpos(nt+1) + 0.5*rdel(nt)
+
+! Guess fuel and moderator temperature
+ALLOCATE(tfm(nnod, nt+1)) ! Allocate fuel pin mesh temperature
+tfm = 1200.
+
+ALLOCATE(ent(nnod))
+ALLOCATE(heatf(nnod))
+
+! Initial heat-flux rate
+heatf = 0.
+
+! Open steam table file
+OPEN (UNIT=thunit, FILE='st2', STATUS='OLD', ACTION='READ', &
+      IOSTAT = iost)
+IF (iost /= 0) THEN
+    WRITE(*,1091) iost
+    1091 FORMAT	(2X, 'Steam Table Open Failed--status', I6)
+	STOP
+END IF
+
+!! THER PRINT OPTION
+READ(xbunit, *, IOSTAT=ios) ind, ln, popt
+IF (ios == 0 .AND. popt > 0) THEN
+    WRITE(ounit,1309) ppow
+	WRITE(ounit,1301) pow
+	WRITE(ounit,1302) tin
+	WRITE(ounit,1303) cmflow
+	WRITE(ounit,1308) tflow
+	WRITE(ounit,1304) rf
+	WRITE(ounit,1305) tg
+	WRITE(ounit,1306) tc
+	WRITE(ounit,1310) ppitch
+	WRITE(ounit,1307) cf
+END IF
+
+WRITE(ounit,*)
+WRITE(ounit,*) ' ...Thermal-hydraulic Card is sucessfully read...'
+
+1309 FORMAT(2X, 'REACTOR PERCENT POWER (%)                : ', F12.5)
+1301 FORMAT(2X, 'REACTOR POWER (Watt)                     : ', ES12.4)
+1302 FORMAT(2X, 'COOLANT INLET TEMPERATURE (Kelvin)       : ', ES12.4)
+1303 FORMAT(2X, 'FUEL ASSEMBLY MASS FLOW RATE (Kg/s)      : ', ES12.4)
+1308 FORMAT(2X, 'TOTAL MASS FLOW RATE FOR CORE GEOM.(Kg/s): ', ES12.4)
+1304 FORMAT(2X, 'FUEL MEAT RADIUS (m)                     : ', ES12.4)
+1305 FORMAT(2X, 'GAP THICKNESS (m)                        : ', ES12.4)
+1306 FORMAT(2X, 'CLAD THICKNESS (m)                       : ', ES12.4)
+1310 FORMAT(2X, 'PIN PITCH(m)                             : ', ES12.4)
+1307 FORMAT(2X, 'FRACTION OF HEAT DEPOSITED IN COOL.      : ', ES12.4)
+
+DEALLOCATE(xsize, ysize, zsize)
+
+END SUBROUTINE inp_ther
+
+
+SUBROUTINE  GetFq(fn)
+
+!
+! Purpose:
+!    To get Heat Flux Hot Channel Factor
+!    The maximum local linear power density in the core divided by the core average fuel rod linear power density.
+!
+
+USE sdata, ONLY: ix, iy, iz, nnod, zdel, node_nf, vdel
+
+IMPLICIT NONE
+
+REAL, DIMENSION(:), INTENT(IN) :: fn           ! Relative Power
+
+INTEGER :: n, fnnod
+REAL, DIMENSION(nnod) :: locp, xf
+REAL :: totp, npmax, tleng, pave
+
+
+totp = 0.; tleng = 0.
+DO n = 1, nnod
+    IF (fn(n) > 0.) THEN
+	    xf(n) = fn(n) / node_nf(ix(n),iy(n))
+        totp = totp + xf(n)
+	    tleng = tleng + zdel(iz(n))
+	    locp(n) = xf(n) / zdel(iz(n))
+	END IF
+END DO
+
+pave = totp / tleng
+
+npmax = 0.
+DO n = 1, nnod
+    IF (fn(n) > 0.) THEN
+        locp(n) = locp(n) / pave
+	    IF (locp(n) > npmax) npmax = locp(n)
+	END IF
+END DO
+
+
+WRITE(ounit,*)
+WRITE(ounit, 4001) npmax
+
+4001 FORMAT (2X, ' HEAT FLUX HOT CHANNEL FACTOR :', F7.3)
+
+
+END SUBROUTINE GetFq
+
+
 
 SUBROUTINE er_message (funit, ios, ln, mess)
 !
 ! Purpose:
 !    To provide error message
 !
-!   Date                Programmer           History
-!  ========================================================
-!  6 FEB 2017         Muhammad Imron       Original code
 
 IMPLICIT NONE
 
@@ -2364,9 +3251,6 @@ SUBROUTINE NodPow (fn)
 ! Purpose:
 !    To print axially averaged node-wise power distribution
 !
-!   Date                Programmer           History
-!  ========================================================
-!  6 FEB 2017         Muhammad Imron       Original code
 
 USE sdata, ONLY: nxx, nyy, nzz, ystag, nnod, ix, iy, iz
 
@@ -2411,9 +3295,6 @@ SUBROUTINE  AsmPow(fn)
 ! Purpose:
 !    To print axially averaged assembly-wise power distribution
 !
-!   Date                Programmer           History
-!  ========================================================
-!  6 FEB 2017         Muhammad Imron       Original code
 
 USE sdata, ONLY: nx, ny, nxx, nyy, nzz, zdel, &
                 xdel, ydel, ystag, nnod, ix, iy, iz, &
@@ -2649,9 +3530,6 @@ SUBROUTINE  AsmFlux(fn, norm)
 ! Purpose:
 !    To print axially averaged assembly-wise flux distribution
 !
-!   Date                Programmer           History
-!  ========================================================
-!  6 FEB 2017         Muhammad Imron       Original code
 
 USE sdata, ONLY: ng, nx, ny, nxx, nyy, nzz, zdel, &
                 xdel, ydel, ystag, nnod, ix, iy, iz, &

@@ -21,7 +21,7 @@ SUBROUTINE outer4(popt)
 !    To perform normal outer iteration
 
 
-USE sdata, ONLY: ng, nnod, ystag, nout, serc, ferc, &
+USE sdata, ONLY: ng, nnod, ystag, nout, serc, ferc, fer, ser, &
                  f0, fx1, fy1, fz1, fx2, fy2, fz2, Ke, nac
 USE InpOutp, ONLY: ounit
 
@@ -38,7 +38,6 @@ REAL, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 REAL, DIMENSION(nnod) :: ss0                   ! Scattering source
 REAL, DIMENSION(nnod) :: ssx1, ssy1, ssz1
 REAL, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
-REAL :: ser, Ker, fer                          ! Fission source and Keff error
 REAL :: f, fc                                  ! new and old integrated fission sources
 REAL :: domiR
 INTEGER :: h, g
@@ -112,9 +111,7 @@ DO p=1, nout
 
     Ke = Keo * f / fc                              ! Update Keff
 
-    CALL RelE(fs0, fs0c, ser)                      ! Search maximum point wise total source Relative Error\
-
-    Ker = ABS(Ke - Keo)                            ! Get Keff Abs Error
+    CALL RelE(fs0, fs0c, ser)                      ! Search maximum point wise fission source Relative Error
 
     IF (opt) WRITE(ounit,'(I5,F13.6,2ES15.5)') p, Ke, ser, fer
 
@@ -216,7 +213,7 @@ DO p=1, nout
         WRITE(ounit,*) '    ...FISSION SOURCE EXTRAPOLATED...'
     END IF
 
-    CALL RelE(fs0, fs0c, ser)                      ! Search maximum point wise total source Relative Error
+    CALL RelE(fs0, fs0c, ser)                      ! Search maximum point wise fission source Relative Error
 
     WRITE(ounit,'(I5,2ES15.5)') p, ser, fer
 
@@ -339,7 +336,7 @@ DO p=1, nout
 
     Ke = Keo * f / fc                              ! Update Keff
 
-    CALL RelE(fs0, fs0c, ser)                      ! Search maximum point wise total source Relative Error\
+    CALL RelE(fs0, fs0c, ser)                      ! Search maximum point wise fission source Relative Error\
 
     Ker = ABS(Ke - Keo)                            ! Get Keff Abs Error
 
@@ -1424,12 +1421,8 @@ END DO
 END SUBROUTINE nodal_coup4
 
 
-
-SUBROUTINE nodal_coup2()
-
-
-
 SUBROUTINE inverse (gt, nt, mat)
+
 !
 ! Purpose:
 !    To perform matrix inverse by LU decomposition
@@ -1760,18 +1753,36 @@ SUBROUTINE PowDis (p)
 !
 
 
-USE sdata, ONLY: ng, nnod, sigf, chi, f0, ix, iy, iz
+USE sdata, ONLY: ng, nnod, sigf, chi, f0, ix, iy, iz, mode
+USE InpOutp, ONLY: ounit
 
 IMPLICIT NONE
 
 REAL, DIMENSION(:), INTENT(OUT) :: p
 INTEGER :: g, n
+REAL :: tpow
 
 p = 0.d0
 DO g= 1, ng
     DO n= 1, nnod
         p(n) = p(n) + f0(n,g) * sigf(n,g)
     END DO
+END DO
+
+! Normalize to 1.0
+tpow = 0.
+DO n = 1, nnod
+    tpow = tpow + p(n)
+END DO
+
+IF (tpow <= 0 .AND. mode /= 'FIXEDSRC') THEN
+    WRITE(ounit, *) '   ERROR: TOTAL NODES POWER IS ZERO OR LESS'
+	WRITE(ounit, *) '   STOP IN SUBROUTINE POWDIS'
+	STOP
+END IF
+
+DO n = 1, nnod
+    p(n) = p(n) / tpow
 END DO
 
 
