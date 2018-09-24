@@ -3,7 +3,7 @@ PROGRAM main
 USE sdata, ONLY: mode, negxs
 USE InpOutp, ONLY: ounit, inp_read, bwrst, w_rst, bther
 USE nodal, ONLY: forward, adjoint, fixedsrc, init
-USE trans, ONLY: rod_eject
+USE trans, ONLY: rod_eject, trod_eject, trod_eject2
 USE th, ONLY: cbsearch, cbsearcht
 
 IMPLICIT NONE
@@ -23,7 +23,11 @@ SELECT CASE(mode)
     CASE('ADJOINT')
         CALL adjoint()
     CASE('RODEJECT')
-        CALL rod_eject()
+        IF (bther == 0) THEN
+            CALL rod_eject()
+  	    ELSE
+  		      CALL trod_eject()
+  		  END IF
     CASE('BCSEARCH')
   	    IF (bther == 0) THEN
             CALL cbsearch()
