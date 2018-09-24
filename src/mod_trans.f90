@@ -15,8 +15,10 @@ SAVE
 
 REAL, DIMENSION(:,:), ALLOCATABLE :: af      ! Adjoint Flux
 REAL, DIMENSION(:), ALLOCATABLE :: beta, C   ! beta, neutron precusor density
+REAL, DIMENSION(:,:), ALLOCATABLE :: xvdum
 REAL :: amp                             ! Amplitude function
 REAL :: tbeta
+LOGICAL :: logi = .TRUE.
 
 CONTAINS
 
@@ -42,6 +44,7 @@ ALLOCATE(af(nnod,ng))
 af = f0       ! Save adjoint flux to af
 
 ALLOCATE(beta(nf), C(nf))
+ALLOCATE(xvdum(nnod,ng))
 
 END SUBROUTINE adj_calc
 
@@ -65,6 +68,7 @@ REAL, INTENT(OUT) :: xA, xrho
 
 INTEGER :: n, i, g, h
 REAL, DIMENSION(nnod) :: vdum, vdum2, vdum3, vdum4, vdum5
+REAL, DIMENSION(nnod,ng) :: yvdum
 REAL :: F2, rho2
 
 ! Calculate F
@@ -95,6 +99,19 @@ END DO
 
 xA = Integrate(vdum2) / F2    ! Calculate neutron generation time
 
+
+! Calculate Delayed neutron fraction (beta)
+DO i = 1, nf
+    vdum2 = 0.
+    DO g = 1, ng
+        DO n = 1, nnod
+            vdum2(n) = vdum2(n) + chi(n,g) * iBeta(i) * vdum(n) * af(n,g)
+        END DO
+    END DO
+    beta(i) = Integrate(vdum2) / F2
+END DO
+
+
 ! Calculate reactivity (rho)
 vdum2 = 0.; vdum3 = 0.; vdum4 = 0.
 DO g = 1, ng
@@ -105,7 +122,7 @@ DO g = 1, ng
 END DO
 
 DO g = 1, ng
-    vdum5 = 0.
+      vdum5 = 0.
     DO h = 1, ng
         DO n = 1, nnod
             vdum5(n) = vdum5(n) + dsigs(n,h,g) * sf(n,h)
@@ -118,19 +135,6 @@ END DO
 
 xrho = Integrate(vdum4 - vdum3) / F2
 
-! Calculate Delayed neutron fraction (beta)
-DO i = 1, nf
-    vdum2 = 0.
-    ! Delayed neutron fraction (beta)
-    DO g = 1, ng
-        DO n = 1, nnod
-            vdum2(n) = vdum2(n) + chi(n,g) * iBeta(i) * vdum(n) * af(n,g)
-        END DO
-    END DO
-    beta(i) = Integrate(vdum2) / F2
-
-END DO
-
 END SUBROUTINE kinet_par
 
 
@@ -142,8 +146,6 @@ SUBROUTINE rod_eject()
 !    To perform rod ejection simulation
 !
 
-
-
 USE sdata, ONLY: ng, nnod, sigr, nuf, sigs, f0, &
                  iBeta, lamb, nf, nout, nac, &
                  ttot, tdiv, tstep1, tstep2, &
@@ -151,11 +153,8 @@ USE sdata, ONLY: ng, nnod, sigr, nuf, sigs, f0, &
                  bcon, ftem, mtem, cden, &
                  fbpos, bpos, tmove, bspeed, mdir, &
                  nout, nac, nb
-! npow, ppow, pow, node_nf,  nf, tfm
 USE InpOutp, ONLY: XS_updt, bther, ounit
 USE nodal, ONLY: nodal_coup4, outer4
-! , powdis, powdis2
-! USE th, ONLY: th_iter, th_trans4, th_trans3, par_ave_f, par_max, par_ave
 
 IMPLICIT NONE
 
@@ -165,9 +164,6 @@ REAL, DIMENSION(nnod,ng,ng) :: dsigs
 REAL, DIMENSION(nnod,ng) ::  osigr, onuf
 REAL, DIMENSION(nnod,ng,ng) :: osigs
 
-REAL, DIMENSION(nnod,ng) :: fl       ! To store scalar flux. f0 used to store shape function.
-REAL, DIMENSION(nnod) :: pline       ! Linear power density
-
 REAL :: A, rho
 
 REAL :: t1, t2
@@ -176,9 +172,6 @@ INTEGER :: n, i, j, imax, step
 REAL, PARAMETER :: hp = 0.0001 ! Point Kinetetic Time step
 LOGICAL :: stime
 
-! WRITE(*,*) bpos
-
-! Adjoint flux at t=0
 
 ! Calculate forward flux at t=0
 CALL XS_updt(bcon, ftem, mtem, cden, bpos)
@@ -189,6 +182,7 @@ CALL outer4(0)
 
 ! Save old sigr, nuf and sigs
 osigr = sigr; onuf = nuf; osigs = sigs
+dsigr = 0.; dnuf = 0.; dsigs = 0.
 
 ! Calculate intgral kinet parameters at t = 0
 CALL kinet_par(dsigr, dnuf, dsigs, f0, A, rho)
@@ -264,8 +258,6 @@ DO i = 1, imax
     !Calculate amplitude function
     CALL point(t1, t2, hp, rho, A, beta, amp)
 
-    fl = amp * f0
-
     WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, amp, (bpos(n), n = 1, nb)
 
     IF (stime) EXIT
@@ -333,8 +325,6 @@ DO i = 1, imax
     !Calculate amplitude function
     CALL point(t1, t2, hp, rho, A, beta, amp)
 
-    fl = amp * f0
-
     WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, amp, (bpos(n), n = 1, nb)
 
     IF (stime) EXIT
@@ -347,6 +337,497 @@ DO i = 1, imax
 END DO
 
 END SUBROUTINE rod_eject
+
+
+SUBROUTINE trod_eject()
+
+!
+! Purpose:
+!    To perform rod ejection simulation
+!
+
+USE sdata, ONLY: ng, nnod, sigr, nuf, sigs, f0, &
+                 iBeta, lamb, nf, nout, nac, &
+                 ttot, tdiv, tstep1, tstep2, &
+                 ix, iy, iz, zdel,Ke, &
+                 bcon, ftem, mtem, cden, &
+                 fbpos, bpos, tmove, bspeed, mdir, &
+                 nout, nac, nb, npow, ppow, pow, node_nf
+USE InpOutp, ONLY: XS_updt, bther, ounit
+USE nodal, ONLY: nodal_coup4, outer4, powdis
+USE th, ONLY: th_iter, th_trans3
+!, par_ave_f, par_max, par_ave
+
+IMPLICIT NONE
+
+REAL, DIMENSION(nnod,ng) ::  dsigr, dnuf
+REAL, DIMENSION(nnod,ng,ng) :: dsigs
+
+REAL, DIMENSION(nnod,ng) ::  osigr, onuf
+REAL, DIMENSION(nnod,ng,ng) :: osigs
+
+REAL, DIMENSION(nnod) :: pline       ! Linear power density
+REAL, DIMENSION(nnod,ng) :: fl
+
+REAL :: A, rho
+
+REAL :: t1, t2
+REAL :: xppow
+INTEGER :: n, i, j, imax, step
+REAL, PARAMETER :: hp = 0.0001 ! Point Kinetetic Time step
+LOGICAL :: stime
+
+
+! Allocate node power distribution npow
+ALLOCATE(npow(nnod))
+
+! Calculate forward flux at t=0
+CALL th_iter(0)
+fl = f0
+
+!Initial amplitude function
+amp = 1.
+
+! Save old sigr, nuf and sigs
+osigr = sigr; onuf = nuf; osigs = sigs
+dsigr = 0.; dnuf = 0.; dsigs = 0.
+
+WRITE(ounit, *)
+WRITE(ounit, *) " TRANSIENT RESULTS :"
+WRITE(ounit, *)
+WRITE(ounit, *) " Step  Time(s)  React.($)    Power (W)    CR Bank Pos. (1-end)"
+WRITE(ounit, *) "--------------------------------------------------------------"
+WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') 0, 0., 0., amp*ppow*0.01, (bpos(n), n = 1, nb)
+
+! Adjoint flux at t=0
+CALL adj_calc()
+
+! Calculate intgral kinet parameters at t = 0
+CALL kinet_par(dsigr, dnuf, dsigs, fl, A, rho)
+
+! Calculate Initial precursor density
+DO j = 1, nf
+    C(j) = beta(j) / (A * lamb(j))   ! See Eq. 6-32 D&H
+END DO
+
+! Start transient calculation
+step = 0
+t2 = 0.
+imax = CEILING(tdiv/tstep1)
+stime = .FALSE.
+
+! First Time Step
+DO i = 1, imax
+
+    step = step + 1
+    t1 = t2
+    t2 = t1 + tstep1
+
+    IF (t2 > tdiv) THEN
+        t2 = tdiv
+        stime = .TRUE.
+    END IF
+
+    ! Rod bank changes
+    DO n = 1, nb
+        IF (mdir(n) == 1) THEN   ! If CR moving down
+            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
+                bpos(n) = bpos(n) - tstep1 *  bspeed(n)
+                IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
+            END IF
+        ELSE IF (mdir(n) == 2) THEN ! If CR moving up
+            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
+                bpos(n) = bpos(n) + tstep1 *  bspeed(n)
+                IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
+            END IF
+        ELSE
+            CONTINUE
+        END IF
+     END DO
+
+    ! Calculate xsec after pertubation
+    CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+
+    ! Calculate shape function
+    CALL nodal_coup4()
+    CALL outer4(0)
+
+    ! Calculate xsec changes after rod is ejected
+    dsigr = sigr - osigr
+    dnuf = nuf - onuf
+    dsigs = sigs - osigs
+
+    ! Calculate intgral kinet parameters
+    CALL kinet_par(dsigr, dnuf, dsigs, f0, A, rho)
+
+    tbeta = 0.
+    DO j = 1, nf
+        tbeta = tbeta + beta(j)
+    END DO
+
+    !Calculate amplitude function
+    CALL point(t1, t2, hp, rho, A, beta, amp)
+
+    ! Calculate node power distribution
+    CALL powdis(npow)
+
+    ! Power change
+    xppow = ppow * amp * 0.01
+
+    ! Calculate linear power density for each nodes (W/cm)
+    DO n = 1, nnod
+        pline(n) = npow(n) * pow * xppow &
+                 / (node_nf(ix(n),iy(n)) * zdel(iz(n)))     ! Linear power density (W/cm)
+    END DO
+
+    ! TH transient
+    CALL th_trans3(pline,tstep1)
+
+    WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, xppow, (bpos(n), n = 1, nb)
+
+    IF (stime) EXIT
+
+    IF (step>1000) THEN
+        WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
+        STOP
+    END IF
+
+END DO
+
+
+! Second Time Step
+imax = CEILING((ttot-tdiv)/tstep2)
+stime = .FALSE.
+
+DO i = 1, imax
+
+    step = step + 1
+    t1 = t2
+    t2 = t1 + tstep2
+
+    IF (t2 > ttot) THEN
+        t2 = ttot
+        stime = .TRUE.
+    END IF
+
+    ! Rod bank changes
+    DO n = 1, nb
+        IF (mdir(n) == 1) THEN   ! If CR moving down
+            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
+                bpos(n) = bpos(n) - tstep2 *  bspeed(n)
+                IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
+            END IF
+        ELSE IF (mdir(n) == 2) THEN ! If CR moving up
+            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
+                bpos(n) = bpos(n) + tstep2 *  bspeed(n)
+                IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
+            END IF
+        ELSE
+            CONTINUE
+        END IF
+     END DO
+
+    ! Calculate xsec after pertubation
+    CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+
+    ! Calculate shape function
+    CALL nodal_coup4()
+    CALL outer4(0)
+
+    ! Calculate xsec changes after rod is ejected
+    dsigr = sigr - osigr
+    dnuf = nuf - onuf
+    dsigs = sigs - osigs
+
+    ! Calculate intgral kinet parameters
+    CALL kinet_par(dsigr, dnuf, dsigs, f0, A, rho)
+
+    tbeta = 0.
+    DO j = 1, nf
+        tbeta = tbeta + beta(j)
+    END DO
+
+    !Calculate amplitude function
+    CALL point(t1, t2, hp, rho, A, beta, amp)
+
+    ! Calculate node power distribution
+    CALL powdis(npow)
+
+    ! Power change
+    xppow = ppow * amp * 0.01
+
+    ! Calculate linear power density for each nodes (W/cm)
+    DO n = 1, nnod
+        pline(n) = npow(n) * pow * xppow  &
+                 / (node_nf(ix(n),iy(n)) * zdel(iz(n)))     ! Linear power density (W/cm)
+    END DO
+
+    ! TH transient
+    CALL th_trans3(pline,tstep2)
+
+    WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, xppow, (bpos(n), n = 1, nb)
+
+    IF (stime) EXIT
+
+    IF (step>1000) THEN
+        WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
+        STOP
+    END IF
+
+END DO
+
+END SUBROUTINE trod_eject
+
+
+SUBROUTINE trod_eject2()
+
+!
+! Purpose:
+!    To perform rod ejection simulation
+!
+
+USE sdata, ONLY: ng, nnod, sigr, nuf, sigs, f0, &
+                 iBeta, lamb, nf, nout, nac, &
+                 ttot, tdiv, tstep1, tstep2, &
+                 ix, iy, iz, zdel,Ke, &
+                 bcon, ftem, mtem, cden, &
+                 fbpos, bpos, tmove, bspeed, mdir, &
+                 nout, nac, nb, npow, ppow, pow, node_nf
+USE InpOutp, ONLY: XS_updt, bther, ounit
+USE nodal, ONLY: nodal_coup4, outer4, powdis
+USE th, ONLY: th_iter, th_trans4
+!, par_ave_f, par_max, par_ave
+
+IMPLICIT NONE
+
+REAL, DIMENSION(nnod,ng) ::  dsigr, dnuf
+REAL, DIMENSION(nnod,ng,ng) :: dsigs
+
+REAL, DIMENSION(nnod,ng) ::  osigr, onuf
+REAL, DIMENSION(nnod,ng,ng) :: osigs
+
+REAL, DIMENSION(nnod) :: pline       ! Linear power density
+REAL, DIMENSION(nnod,ng) :: fl
+
+REAL, DIMENSION(nnod) :: oftem, omtem, ocden
+
+REAL :: A, rho
+
+REAL :: t1, t2
+REAL :: xppow
+INTEGER :: n, i, j, imax, step
+REAL, PARAMETER :: hp = 0.0001 ! Point Kinetetic Time step
+LOGICAL :: stime
+
+
+! Allocate node power distribution npow
+ALLOCATE(npow(nnod))
+
+! Calculate forward flux at t=0
+CALL th_iter(0)
+fl = f0
+
+! Calculate node power distribution
+CALL powdis(npow)
+
+!Initial amplitude function
+amp = 1.
+
+! Save old sigr, nuf and sigs
+osigr = sigr; onuf = nuf; osigs = sigs
+dsigr = 0.; dnuf = 0.; dsigs = 0.
+
+WRITE(ounit, *)
+WRITE(ounit, *) " TRANSIENT RESULTS :"
+WRITE(ounit, *)
+WRITE(ounit, *) " Step  Time(s)  React.($)    Power (W)    CR Bank Pos. (1-end)"
+WRITE(ounit, *) "--------------------------------------------------------------"
+WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') 0, 0., 0., amp*ppow*0.01, (bpos(n), n = 1, nb)
+
+! Adjoint flux at t=0
+CALL adj_calc()
+
+! Calculate intgral kinet parameters at t = 0
+CALL kinet_par(dsigr, dnuf, dsigs, fl, A, rho)
+
+! Calculate Initial precursor density
+DO j = 1, nf
+    C(j) = beta(j) / (A * lamb(j))   ! See Eq. 6-32 D&H
+END DO
+
+! Start transient calculation
+step = 0
+t2 = 0.
+imax = CEILING(tdiv/tstep1)
+stime = .FALSE.
+
+! First Time Step
+DO i = 1, imax
+
+    step = step + 1
+    t1 = t2
+    t2 = t1 + tstep1
+
+    IF (t2 > tdiv) THEN
+        t2 = tdiv
+        stime = .TRUE.
+    END IF
+
+    ! Rod bank changes
+    DO n = 1, nb
+        IF (mdir(n) == 1) THEN   ! If CR moving down
+            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
+                bpos(n) = bpos(n) - tstep1 *  bspeed(n)
+                IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
+            END IF
+        ELSE IF (mdir(n) == 2) THEN ! If CR moving up
+            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
+                bpos(n) = bpos(n) + tstep1 *  bspeed(n)
+                IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
+            END IF
+        ELSE
+            CONTINUE
+        END IF
+     END DO
+
+     ! Power change
+     xppow = ppow * amp * 0.01
+
+     ! Calculate linear power density for each nodes (W/cm)
+     DO n = 1, nnod
+         pline(n) = npow(n) * pow * xppow &
+                  / (node_nf(ix(n),iy(n)) * zdel(iz(n)))     ! Linear power density (W/cm)
+     END DO
+
+     !Save old th paramaters
+     oftem = ftem; ocden = cden; omtem = mtem
+
+     ! TH transient
+     CALL th_trans4(pline,tstep1)
+
+     ! Calculate xsec after pertubation
+     CALL XS_updt(bcon, 0.5*(ftem+oftem), 0.5*(mtem+omtem), 0.5*(cden+ocden), bpos)
+
+    ! Calculate shape function
+    CALL nodal_coup4()
+    CALL outer4(0)
+
+    ! Calculate node power distribution
+    CALL powdis(npow)
+
+    ! Calculate xsec changes after rod is ejected
+    dsigr = sigr - osigr
+    dnuf = nuf - onuf
+    dsigs = sigs - osigs
+
+    ! Calculate intgral kinet parameters
+    CALL kinet_par(dsigr, dnuf, dsigs, f0, A, rho)
+
+    tbeta = 0.
+    DO j = 1, nf
+        tbeta = tbeta + beta(j)
+    END DO
+
+    !Calculate amplitude function
+    CALL point(t1, t2, hp, rho, A, beta, amp)
+
+    WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, xppow, (bpos(n), n = 1, nb)
+
+    IF (stime) EXIT
+
+    IF (step>1000) THEN
+        WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
+        STOP
+    END IF
+
+END DO
+
+
+! Second Time Step
+imax = CEILING((ttot-tdiv)/tstep2)
+stime = .FALSE.
+
+DO i = 1, imax
+
+    step = step + 1
+    t1 = t2
+    t2 = t1 + tstep2
+
+    IF (t2 > ttot) THEN
+        t2 = ttot
+        stime = .TRUE.
+    END IF
+
+    ! Rod bank changes
+    DO n = 1, nb
+        IF (mdir(n) == 1) THEN   ! If CR moving down
+            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
+                bpos(n) = bpos(n) - tstep2 *  bspeed(n)
+                IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
+            END IF
+        ELSE IF (mdir(n) == 2) THEN ! If CR moving up
+            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
+                bpos(n) = bpos(n) + tstep2 *  bspeed(n)
+                IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
+            END IF
+        ELSE
+            CONTINUE
+        END IF
+     END DO
+
+     ! Power change
+     xppow = ppow * amp * 0.01
+
+     ! Calculate linear power density for each nodes (W/cm)
+     DO n = 1, nnod
+         pline(n) = npow(n) * pow * xppow &
+                  / (node_nf(ix(n),iy(n)) * zdel(iz(n)))     ! Linear power density (W/cm)
+     END DO
+
+     !Save old th paramaters
+     oftem = ftem; ocden = cden; omtem = mtem
+
+     ! TH transient
+     CALL th_trans4(pline,tstep2)
+
+     ! Calculate xsec after pertubation
+     CALL XS_updt(bcon, 0.5*(ftem+oftem), 0.5*(mtem+omtem), 0.5*(cden+ocden), bpos)
+
+    ! Calculate shape function
+    CALL nodal_coup4()
+    CALL outer4(0)
+
+    ! Calculate node power distribution
+    CALL powdis(npow)
+
+    ! Calculate xsec changes after rod is ejected
+    dsigr = sigr - osigr
+    dnuf = nuf - onuf
+    dsigs = sigs - osigs
+
+    ! Calculate intgral kinet parameters
+    CALL kinet_par(dsigr, dnuf, dsigs, f0, A, rho)
+
+    tbeta = 0.
+    DO j = 1, nf
+        tbeta = tbeta + beta(j)
+    END DO
+
+    !Calculate amplitude function
+    CALL point(t1, t2, hp, rho, A, beta, amp)
+
+    WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, xppow, (bpos(n), n = 1, nb)
+
+    IF (stime) EXIT
+
+    IF (step>1000) THEN
+        WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
+        STOP
+    END IF
+
+END DO
+
+END SUBROUTINE trod_eject2
 
 
 SUBROUTINE point(ti, tf, h, xrho, xA, xbet, xamp)
@@ -370,11 +851,6 @@ REAL :: summ
 REAL :: k1, k2, k3, k4
 REAL :: xtbet
 
-! Calculate total delayed neuron fraction
-tbeta = 0.
-DO  j = 1, nf
-    tbeta = tbeta + xbet(j)
-END DO
 
 itot = INT((tf - ti) / h)
 DO i = 1, itot
