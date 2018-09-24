@@ -128,6 +128,7 @@ REAL :: tdiv                                       ! WHEN SECOND TIME STEP APPLY
 REAL :: pow                                        ! Reactor power for given geometry (watt)
 REAL :: ppow                                       ! Reactor percent power in percent
 REAL :: tpow                                       ! Total reactor power
+! REAL, DIMENSION(:), ALLOCATABLE :: efis            ! Amount of Energy per fission
 REAL, DIMENSION(:), ALLOCATABLE :: npow            ! nodes power (watt)
 REAL :: tin                                        ! coolant inlet temperature (kelvin)
 REAL :: cflow                                      ! Sub-channel mass flow rate (kg/s)
@@ -143,6 +144,7 @@ REAL, DIMENSION(:), ALLOCATABLE :: rpos            ! mesh position
 REAL :: th_err                                     ! Doppler error
 REAL, DIMENSION(:), ALLOCATABLE :: ent             ! Coolant Enthalpy (J/Kg)
 REAL, DIMENSION(:), ALLOCATABLE :: heatf           ! Heat flux (W/m2)
+REAL :: cpres = 155.0                              ! Core pressure in Bar
 INTEGER :: th_niter = 20                                ! Maximum number of thermal-hydraulics iteration
 INTEGER, PARAMETER :: thunit = 300                 ! Unit number to open steam table file
 REAL, PARAMETER :: pi = 3.14159265
