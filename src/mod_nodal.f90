@@ -133,6 +133,101 @@ IF (opt) WRITE(ounit, '(A36,F9.6)') 'MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
 END SUBROUTINE outer4
 
 
+SUBROUTINE outer4th(maxn)
+
+!
+! Purpose:
+!    To perform normal outer iteration when %THER card present
+
+
+USE sdata, ONLY: ng, nnod, ystag, serc, ferc, fer, ser, &
+                 f0, fx1, fy1, fz1, fx2, fy2, fz2, Ke, nac
+USE InpOutp, ONLY: ounit
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: maxn
+
+REAL :: Keo                                    !Old Multiplication factor (Keff)
+REAL, DIMENSION(nnod) :: fs0, fs0c             !New and old fission source, and scattering source
+REAL, DIMENSION(nnod) :: fsx1, fsy1, fsz1
+REAL, DIMENSION(nnod) :: fsx2, fsy2, fsz2      ! Fission source moments
+REAL, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
+REAL, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
+REAL, DIMENSION(nnod) :: ss0                   ! Scattering source
+REAL, DIMENSION(nnod) :: ssx1, ssy1, ssz1
+REAL, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
+REAL :: f, fc                                  ! new and old integrated fission sources
+REAL :: domiR
+INTEGER :: h, g
+INTEGER :: p, npos
+
+REAL, DIMENSION(nnod) :: errn, erro
+
+
+! Initialize fission source
+fs0  = 0.d0
+fsx1 = 0.d0; fsy1 = 0.d0; fsz1 = 0.d0
+fsx2 = 0.d0; fsy2 = 0.d0; fsz2 = 0.d0
+
+DO g= 1, ng
+    CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
+END DO
+
+errn = 1.d0
+f = Integrate(fs0)
+
+!Start outer iteration
+DO p=1, maxn
+    fc = f
+    fs0c  = fs0
+    fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
+    fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
+    fs0  = 0.d0
+    fsx1 = 0.d0; fsy1 = 0.d0; fsz1 = 0.d0
+    fsx2 = 0.d0; fsy2 = 0.d0; fsz2 = 0.d0
+    Keo = Ke
+    erro = errn
+    DO g = 1, ng
+
+        !!!Calculate Scattering source
+        CALL SSrc(g, ss0, ssx1, ssy1, ssz1, ssx2, ssy2, ssz2)
+
+        !!!Calculate total source
+        CALL TSrc(g, Keo, fs0c , fsx1c, fsy1c, fsz1c, &
+                                 fsx2c, fsy2c, fsz2c, &
+                           ss0 , ssx1 , ssy1 , ssz1 , &
+                                 ssx2 , ssy2 , ssz2   )
+
+        !!!Inner Iteration
+        CALL inner4(g, fer)
+
+        !!!Calculate fission source for next outer iteration
+        CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
+    END DO
+
+    errn = fs0 - fs0c
+
+    IF (MOD(p,nac) == 0) THEN
+        domiR = Integrate(ABS(errn)) / Integrate(ABS(erro))
+        npos = MAXLOC(ABS(erro),1)
+        IF (erro(npos) * errn(npos) < 0.d0) domiR = -domiR
+        fs0 = fs0 + domiR / (1.d0 - domiR) * errn
+    END IF
+
+    f = Integrate(fs0)
+
+    Ke = Keo * f / fc                              ! Update Keff
+
+    CALL RelE(fs0, fs0c, ser)                      ! Search maximum point wise fission source Relative Error
+
+    IF ((ser < serc) .AND. (fer < ferc)) EXIT
+END DO
+
+
+END SUBROUTINE outer4th
+
+
 
 SUBROUTINE outer4Fx
 
@@ -182,10 +277,6 @@ DO p=1, nout
     fsx2 = 0.d0; fsy2 = 0.d0; fsz2 = 0.d0
     erro = errn
     DO g = 1, ng
-
-        ss0  = 0.d0
-        ssx1 = 0.d0; ssy1 = 0.d0; ssz1 = 0.d0
-        ssx2 = 0.d0; ssy2 = 0.d0; ssz2 = 0.d0
 
         !!!Calculate Scattering source
         CALL SSrc(g, ss0, ssx1, ssy1, ssz1, ssx2, ssy2, ssz2)
@@ -301,10 +392,6 @@ DO p=1, nout
     Keo = Ke
     erro = errn
     DO g = ng,1,-1
-
-        ss0  = 0.d0
-        ssx1 = 0.d0; ssy1 = 0.d0; ssz1 = 0.d0
-        ssx2 = 0.d0; ssy2 = 0.d0; ssz2 = 0.d0
 
         !!!Calculate Scattering source
         CALL SSrcAd(g, ss0, ssx1, ssy1, ssz1, ssx2, ssy2, ssz2)
@@ -1076,10 +1163,13 @@ USE sdata, ONLY: ng, nnod, sigs, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: gt
-REAL, DIMENSION(:), INTENT(INOUT) :: s, sx1, sy1, sz1
-REAL, DIMENSION(:), INTENT(INOUT) :: sx2, sy2, sz2
+REAL, DIMENSION(:), INTENT(OUT) :: s, sx1, sy1, sz1
+REAL, DIMENSION(:), INTENT(OUT) :: sx2, sy2, sz2
 
 INTEGER :: h, n
+
+s = 0.; sx1 = 0.; sy1 = 0.; sz1 = 0.
+sx2 = 0.; sy2 = 0.; sz2 = 0.
 
 DO h = 1, ng
     DO n = 1, nnod
@@ -1111,10 +1201,13 @@ USE sdata, ONLY: ng, nnod, sigs, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: gt
-REAL, DIMENSION(:), INTENT(INOUT) :: s, sx1, sy1, sz1
-REAL, DIMENSION(:), INTENT(INOUT) :: sx2, sy2, sz2
+REAL, DIMENSION(:), INTENT(OUT) :: s, sx1, sy1, sz1
+REAL, DIMENSION(:), INTENT(OUT) :: sx2, sy2, sz2
 
 INTEGER :: h, n
+
+s = 0.; sx1 = 0.; sy1 = 0.; sz1 = 0.
+sx2 = 0.; sy2 = 0.; sz2 = 0.
 
 DO h = 1, ng
     DO n = 1, nnod
@@ -1535,7 +1628,7 @@ REAL FUNCTION Integrate(s)
   ! Purpose:
   !    To perform integration
 
-USE sdata, ONLY: nnod, xdel, ydel, zdel, ix, iy, iz
+USE sdata, ONLY: nnod, vdel
 
 IMPLICIT NONE
 
@@ -1544,7 +1637,7 @@ INTEGER :: n
 
 Integrate = 0.
 DO n = 1, nnod
-    Integrate = Integrate + xdel(ix(n))*ydel(iy(n))*zdel(iz(n)) * s(n)
+    Integrate = Integrate + vdel(n) * s(n)
 END DO
 
 END FUNCTION Integrate
@@ -1753,7 +1846,7 @@ SUBROUTINE PowDis (p)
 !
 
 
-USE sdata, ONLY: ng, nnod, sigf, chi, f0, ix, iy, iz, mode
+USE sdata, ONLY: ng, nnod, nuf, sigf, f0, vdel, mode
 USE InpOutp, ONLY: ounit
 
 IMPLICIT NONE
@@ -1765,9 +1858,11 @@ REAL :: tpow
 p = 0.d0
 DO g= 1, ng
     DO n= 1, nnod
-        p(n) = p(n) + f0(n,g) * sigf(n,g)
+        p(n) = p(n) + f0(n,g) * sigf(n,g) * vdel(n)
     END DO
 END DO
+
+!STOP
 
 ! Normalize to 1.0
 tpow = 0.
