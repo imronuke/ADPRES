@@ -18,7 +18,6 @@ REAL, DIMENSION(:), ALLOCATABLE :: beta, C   ! beta, neutron precusor density
 REAL, DIMENSION(:,:), ALLOCATABLE :: xvdum
 REAL :: amp                             ! Amplitude function
 REAL :: tbeta
-LOGICAL :: logi = .TRUE.
 
 CONTAINS
 
