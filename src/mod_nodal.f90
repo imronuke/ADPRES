@@ -629,14 +629,6 @@ ELSE
     nod(nt,gt)%ji(side) = nod(nt,gt)%jo(side)
 END IF
 
-! IF (bc == 0) THEN
-    ! nod(nt,gt)%ji(side) = 0.d0
-! ELSE IF (bc == 1) THEN
-    ! nod(nt,gt)%ji(side) = 0.041927d0*nod(nt,gt)%jo(side)
-! ELSE
-    ! nod(nt,gt)%ji(side) = nod(nt,gt)%jo(side)
-! END IF
-
 END SUBROUTINE bcond
 
 
