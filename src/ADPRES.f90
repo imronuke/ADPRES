@@ -3,7 +3,7 @@ PROGRAM main
 USE sdata, ONLY: mode, negxs
 USE InpOutp, ONLY: ounit, inp_read, bwrst, w_rst, bther
 USE nodal, ONLY: forward, adjoint, fixedsrc, init
-USE trans, ONLY: rod_eject, trod_eject, trod_eject2
+USE trans, ONLY: rod_eject, trod_eject
 USE th, ONLY: cbsearch, cbsearcht
 
 IMPLICIT NONE
