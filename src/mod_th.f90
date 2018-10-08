@@ -27,63 +27,63 @@ CONTAINS
 
 SUBROUTINE th_iter(ind)
 
-!
-! Purpose:
-!    To do thermal-hydrailics iteration
-!
+  !
+  ! Purpose:
+  !    To do thermal-hydrailics iteration
+  !
 
-USE sdata, ONLY: nnod, ftem, mtem, cden, bcon, bpos, npow, pow, ppow, nout, nac,  &
-                 zdel, node_nf, ix, iy, iz, th_err, node_nf, ix, iy, iz, th_niter
-USE nodal, ONLY: nodal_coup4, outer4th, PowDis
-USE InpOutp, ONLY: XS_updt, ounit
+  USE sdata, ONLY: nnod, ftem, mtem, cden, bcon, bpos, npow, pow, ppow, nout, nac,  &
+                   zdel, node_nf, ix, iy, iz, th_err, node_nf, ix, iy, iz, th_niter
+  USE nodal, ONLY: nodal_coup4, outer4th, PowDis
+  USE InpOutp, ONLY: XS_updt, ounit
 
-IMPLICIT NONE
+  IMPLICIT NONE
 
-INTEGER, INTENT(IN), OPTIONAL :: ind    ! if iteration reaching th_iter: ind = 0 => stop
-REAL, DIMENSION(nnod) :: pline
-REAL, DIMENSION(nnod) :: otem
-INTEGER :: n, niter
+  INTEGER, INTENT(IN), OPTIONAL :: ind    ! if iteration reaching th_iter: ind = 0 => stop
+  REAL, DIMENSION(nnod) :: pline
+  REAL, DIMENSION(nnod) :: otem
+  INTEGER :: n, niter
 
-th_err = 1.
-niter = 0
-DO
-    niter = niter + 1
+  th_err = 1.
+  niter = 0
+  DO
+      niter = niter + 1
 
-    ! Save old moderator temp
-    otem = ftem
+      ! Save old moderator temp
+      otem = ftem
 
-    ! Update XS
-    CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+      ! Update XS
+      CALL XS_updt(bcon, ftem, mtem, cden, bpos)
 
-    ! Update nodal couplings
-    CALL nodal_coup4()
+      ! Update nodal couplings
+      CALL nodal_coup4()
 
-    ! Perform outer inner iteration
-    CALL outer4th(20)
+      ! Perform outer inner iteration
+      CALL outer4th(20)
 
-    ! Calculate power density
-    CALL PowDis(npow)
+      ! Calculate power density
+      CALL PowDis(npow)
 
-    ! Calculate linear power density for each nodes (W/cm)
-    DO n = 1, nnod
-        pline(n) = npow(n) * pow * ppow * 0.01 &
-                 / (node_nf(ix(n),iy(n)) * zdel(iz(n)))     ! Linear power density (W/cm)
-    END DO
+      ! Calculate linear power density for each nodes (W/cm)
+      DO n = 1, nnod
+          pline(n) = npow(n) * pow * ppow * 0.01 &
+                   / (node_nf(ix(n),iy(n)) * zdel(iz(n)))     ! Linear power density (W/cm)
+      END DO
 
-    ! Update fuel, moderator temp. and coolant density
-    CALL th_upd2(pline)
+      ! Update fuel, moderator temp. and coolant density
+      CALL th_upd2(pline)
 
-    th_err = MAXVAL(ABS(ftem - otem))
-    IF ((th_err < 0.01) .OR. (niter == th_niter)) EXIT
-END DO
+      th_err = MAXVAL(ABS(ftem - otem))
+      IF ((th_err < 0.01) .OR. (niter == th_niter)) EXIT
+  END DO
 
-IF (PRESENT(ind)) THEN
-  IF ((niter == th_niter) .AND. (ind == 0)) THEN
-     WRITE(ounit,*) '  MAXIMUM TH ITERATION REACHED.'
-     WRITE(ounit,*) '  CALCULATION MIGHT BE NOT CONVERGED OR CHANGE ITERATION CONTROL'
-     STOP
+  IF (PRESENT(ind)) THEN
+    IF ((niter == th_niter) .AND. (ind == 0)) THEN
+       WRITE(ounit,*) '  MAXIMUM TH ITERATION REACHED.'
+       WRITE(ounit,*) '  CALCULATION MIGHT BE NOT CONVERGED OR CHANGE ITERATION CONTROL'
+       STOP
+    END IF
   END IF
-END IF
 
 
 
@@ -836,7 +836,7 @@ DO
 	bc2 = bc
 	ke1 = ke2
 	ke2 = ke
-    WRITE(ounit,'(I5, F15.2, F23.5, ES15.5, ES17.5)') n, bc, Ke, ser, fer
+    WRITE(ounit,'(I5, F15.1, F23.5, ES15.5, ES17.5)') n, bc, Ke, ser, fer
 	IF ((rKe == 100000) .AND. (ser < 1.e-2) .AND. (fer < 1.e-2)) EXIT
 	n = n + 1
 	IF (bc > 2999. .AND. bc < 3000.) THEN
@@ -935,7 +935,7 @@ DO
 	bc2 = bcon
 	ke1 = ke2
 	ke2 = ke
-    WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') n, bcon, Ke, ser, fer, th_err
+    WRITE(ounit,'(I5, F15.1, F23.5, ES16.5, ES21.5, ES22.5)') n, bcon, Ke, ser, fer, th_err
 	IF ((rKe == 100000) .AND. (ser < 1.e-5) .AND. (fer < 1.e-5)) EXIT
 	n = n + 1
 	IF (bcon > 2999. .AND. bcon < 3000.) THEN
@@ -965,12 +965,28 @@ IF (apaxi == 1) CALL AxiPow(npow)
 
 IF (afrad == 1) CALL AsmFlux(f0, 1.e0)
 
+! CALL par_ave_f(ftem, tf)
+! CALL par_ave(mtem, tm)
+
+! CALL par_max(ftem, maxtf)
+! CALL par_max(tfm(:,1), maxfcl)
+! CALL par_max(mtem, maxtm)
+! CALL getfq(npow)
+
+! Write Output
+! WRITE(ounit,*)
+! WRITE(ounit, 5001) tf, tf-273.15
+! WRITE(ounit, 5002)  maxfcl, maxfcl-273.15
+! WRITE(ounit, 5003) tm, tm-273.15
+! WRITE(ounit, 5004) maxtm, maxtm-273.15
+
+5001 FORMAT(2X, 'AVERAGE DOPPLER TEMPERATURE     : ', F7.1, ' K (', F7.1, ' C)')
+5002 FORMAT(2X, 'MAX FUEL CENTERLINE TEMPERATURE : ', F7.1, ' K (', F7.1, ' C)')
+5003 FORMAT(2X, 'AVERAGE MODERATOR TEMPERATURE   : ', F7.1, ' K (', F7.1, ' C)')
+5004 FORMAT(2X, 'MAXIMUM MODERATOR TEMPERATURE   : ', F7.1, ' K (', F7.1, ' C)')
+
 
 END SUBROUTINE cbsearcht
-
-
-
-
 
 
 END MODULE th
