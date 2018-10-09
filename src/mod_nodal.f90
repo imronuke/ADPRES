@@ -623,7 +623,9 @@ IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: bc, nt, gt, side
 
-IF (bc == 0 .OR. bc == 1) THEN
+IF (bc == 0) THEN
+    nod(nt,gt)%ji(side) = -nod(nt,gt)%jo(side)
+ELSE IF (bc == 1) THEN
     nod(nt,gt)%ji(side) = 0.d0
 ELSE
     nod(nt,gt)%ji(side) = nod(nt,gt)%jo(side)
