@@ -2179,7 +2179,7 @@ SUBROUTINE crod_updt (bpos)
 ! Purpose: TO UPDATE AND CALCUALTE VOLUME WEIGHTED HOMOGENIZED CX FOR RODDED NODE
 !
 
-USE sdata, ONLY: ng, nxx, nyy, nzz, xyz, zdel, nnod, mat, &
+USE sdata, ONLY: ng, nxx, nyy, nzz, xyz, zdel, nnod, mat, nod, cusp, f0, &
                  sigtr, siga, nuf, sigf, sigs, D, sigr, &
                  dsigtr, dsiga, dnuf, dsigf, dsigs, negxs
 
@@ -2187,10 +2187,16 @@ IMPLICIT NONE
 
 REAL, DIMENSION(:), INTENT(IN) :: bpos
 
-INTEGER :: n, i, j, k, g, h, kt
+INTEGER ::i, j, k, g, h, kt
 REAL :: rodh, vfrac
 REAL :: dum, dumx
 
+INTEGER :: n, n1, n2, nmax
+REAL :: del1, del2, eta1, eta2
+REAL :: D1, D2, sigr1, sigr2
+REAL :: sum1, sum2, sum3, sum4, sumx
+REAL, DIMENSION(ng) :: sum5
+REAL, DIMENSION(:), ALLOCATABLE :: a, b, c, dx, f
 
 DO j = 1, nyy
     DO i = 1, nxx
@@ -2201,17 +2207,164 @@ DO j = 1, nyy
             DO k = nzz, 1, -1
                 ! For partially rodded node, get volume weighted homogenized CX (0 < vfrac < 1.0)
                 IF (rodh >= dum .AND. rodh < dum+zdel(k)) THEN
-                    vfrac = (rodh - dum) / zdel(k)
-                    sigtr(xyz(i,j,k),:) = sigtr(xyz(i,j,k),:) + &
-                                       vfrac * dsigtr(mat(xyz(i,j,k)),:)
-                    siga(xyz(i,j,k),:)  = siga(xyz(i,j,k),:) + &
-                                       vfrac * dsiga(mat(xyz(i,j,k)),:)
-                    nuf(xyz(i,j,k),:)   = nuf(xyz(i,j,k),:) + &
-                                       vfrac * dnuf(mat(xyz(i,j,k)),:)
-                    sigf(xyz(i,j,k),:)  = sigf(xyz(i,j,k),:) + &
-                                       vfrac * dsigf(mat(xyz(i,j,k)),:)
-                    sigs(xyz(i,j,k),:,:)  = sigs(xyz(i,j,k),:,:) + &
-                                       vfrac * dsigs(mat(xyz(i,j,k)),:,:)
+                    eta1 = rodh - dum
+                    eta2 = zdel(k) - rodh + dum
+                    IF (cusp == 0 .OR. eta1 < 1. .OR. eta2 < 1.) THEN    ! IF ROD CUSPING NOT ACTIVE
+                        vfrac = (rodh - dum) / zdel(k)
+                        sigtr(xyz(i,j,k),:) = sigtr(xyz(i,j,k),:) + &
+                                           vfrac * dsigtr(mat(xyz(i,j,k)),:)
+                        siga(xyz(i,j,k),:)  = siga(xyz(i,j,k),:) + &
+                                           vfrac * dsiga(mat(xyz(i,j,k)),:)
+                        nuf(xyz(i,j,k),:)   = nuf(xyz(i,j,k),:) + &
+                                           vfrac * dnuf(mat(xyz(i,j,k)),:)
+                        sigf(xyz(i,j,k),:)  = sigf(xyz(i,j,k),:) + &
+                                           vfrac * dsigf(mat(xyz(i,j,k)),:)
+                        sigs(xyz(i,j,k),:,:)  = sigs(xyz(i,j,k),:,:) + &
+                                           vfrac * dsigs(mat(xyz(i,j,k)),:,:)
+                    ELSE                    ! IF ROD CUSPING ACTIVE
+                        n1 = CEILING(rodh - dum)        ! Number of mesh in rodded area
+                        del1 = (rodh - dum) / REAL(n1)  ! mesh size in rodded area
+                        n2 = CEILING(zdel(k) - rodh + dum)  ! Number of mesh in non-rodded area
+                        del2 = (zdel(k) - rodh + dum) / REAL(n2)  ! mesh size in non-rodded area
+
+                        nmax = n1 + n2                     ! Total number of mesh
+
+                        ! Calculate vectors a, b, c, d
+                        ALLOCATE(a(nmax), b(nmax), c(nmax), dx(nmax), f(nmax))
+                        DO g = 1, ng
+
+                           ! Diff coef for rodded mesh
+                           D1 = 1. / (3. * (sigtr(xyz(i,j,k),g) &
+                              + dsigtr(mat(xyz(i,j,k)),g)))
+                           dumx = 0.0
+                           DO h= 1, ng
+                              IF (g /= h) dumx = dumx &
+                                               + sigs(xyz(i,j,k),g,h) &
+                                               + dsigs(mat(xyz(i,j,k)),g,h)
+                           END DO
+
+                           ! Removal CX for rodded mesh
+                           sigr1 =  siga(xyz(i,j,k),g) &
+                                 + dsiga(mat(xyz(i,j,k)),g) + dumx
+
+                           ! Vectors for Top BC => upper node flux
+                           eta1 = D1 / del1
+                           a(1) = 0.
+                           b(1) = 2. * eta1 + sigr1
+                           c(1) = -eta1
+                           IF (k == nzz) THEN
+                              dx(1) = nod(xyz(i,j,k),g)%Q(1)
+                           ELSE
+                              dx(1) = nod(xyz(i,j,k),g)%Q(1) &
+                                   + eta1 * f0(xyz(i,j,k+1),g)
+                           END IF
+
+                           ! Vectors for rodded node
+                           DO n = 2, n1-1
+                              a(n) = -eta1
+                              b(n) = 2. * eta1 + sigr1
+                              c(n) = -eta1
+                              dx(n) = nod(xyz(i,j,k),g)%Q(1)
+                           END DO
+
+                           ! Diff coef for non-rodded mesh
+                           D2 = 1. / (3. * sigtr(xyz(i,j,k),g))
+                           dumx = 0.0
+                           DO h= 1, ng
+                              IF (g /= h) dumx = dumx &
+                                               + sigs(xyz(i,j,k),g,h)
+                           END DO
+                           sigr2 =  siga(xyz(i,j,k),g) + dumx
+
+                           ! Vectors between rodded and non-rodded
+                           eta2  = 2. * (D1 * del1 + D2 * Del2) &
+                                 / (del1 + del2)**2
+                           a(n1) = -eta1
+                           b(n1) = eta1 + eta2 + sigr1
+                           c(n1) = -eta2
+                           dx(n1) = nod(xyz(i,j,k),g)%Q(1)
+
+                           eta1 = eta2
+                           eta2 = D2 / del2
+                           a(n1+1) = -eta1
+                           b(n1+1) = eta1 + eta2 + sigr2
+                           c(n1+1) = -eta2
+                           dx(n1+1) = nod(xyz(i,j,k),g)%Q(1)
+
+                           ! Vectors for non-rodded node
+                           DO n = n1+2, nmax-1
+                             a(n) = -eta2
+                             b(n) = 2. * eta2 + sigr2
+                             c(n) = -eta2
+                             dx(n) = nod(xyz(i,j,k),g)%Q(1)
+                           END DO
+
+                           ! Vectors for Bottom BC => lower node flux
+                           a(nmax) = -eta2
+                           b(nmax) = 2. * eta2 + sigr2
+                           c(nmax) = 0.
+                           IF (k == 1) THEN
+                              dx(nmax) = nod(xyz(i,j,k),g)%Q(1)
+                           ELSE
+                              dx(nmax) = nod(xyz(i,j,k),g)%Q(1) &
+                                       + eta2 * f0(xyz(i,j,k-1),g)
+                           END IF
+
+                           !Calculate fluxes
+                           CALL TridiaSolve(a, b, c, dx, f)
+
+                           ! WRITE(ounit,*) 0, f0(xyz(i,j,k+1),g)
+                           ! DO n = 1, nmax
+                           !    WRITE(ounit,*) n, f(n)
+                           ! END DO
+                           ! WRITE(ounit,*) nmax+1, f0(xyz(i,j,k-1),g)
+
+                           ! Calculate homogenized CXs
+                           sumx = 0.
+                           sum1 = 0.; sum2 = 0.; sum3 = 0.; sum4 = 0.; sum5 = 0.
+                           DO n = 1, n1
+                              sumx = sumx + f(n)
+                              sum1 = sum1 + f(n) * (sigtr(xyz(i,j,k),g) &
+                                   + dsigtr(mat(xyz(i,j,k)),g))
+                              sum2 = sum2 + f(n) * (siga(xyz(i,j,k),g) &
+                                   + dsiga(mat(xyz(i,j,k)),g))
+                              sum3 = sum3 + f(n) * (nuf(xyz(i,j,k),g) &
+                                   + dnuf(mat(xyz(i,j,k)),g))
+                              sum4 = sum4 + f(n) * (sigf(xyz(i,j,k),g) &
+                                   + dsigf(mat(xyz(i,j,k)),g))
+                              DO h = 1, ng
+                                 sum5(h) = sum5(h) + f(n) * (sigs(xyz(i,j,k),g,h) &
+                                      + dsigs(mat(xyz(i,j,k)),g,h))
+                              END DO
+                           END DO
+
+                           DO n = n1+1, nmax
+                              sumx = sumx + f(n)
+                              sum1 = sum1 + f(n) * sigtr(xyz(i,j,k),g)
+                              sum2 = sum2 + f(n) * siga(xyz(i,j,k),g)
+                              sum3 = sum3 + f(n) * nuf(xyz(i,j,k),g)
+                              sum4 = sum4 + f(n) * sigf(xyz(i,j,k),g)
+                              DO h = 1, ng
+                                 sum5(h) = sum5(h) + f(n) * sigs(xyz(i,j,k),g,h)
+                              END DO
+                           END DO
+
+                           sigtr(xyz(i,j,k),g) = sum1 / sumx
+                           siga(xyz(i,j,k),g)  = sum2 / sumx
+                           nuf(xyz(i,j,k),g)   = sum3 / sumx
+                           sigf(xyz(i,j,k),g)  = sum4 / sumx
+                           DO h = 1, ng
+                              sigs(xyz(i,j,k),g,h) = sum5(h) / sumx
+                           END DO
+! WRITE(ounit,*) sigtr(xyz(i,j,k+1),g), sigtr(xyz(i,j,k),g), sigtr(xyz(i,j,k-1),g)
+! WRITE(ounit,*) siga(xyz(i,j,k+1),g), siga(xyz(i,j,k),g), siga(xyz(i,j,k-1),g)
+! WRITE(ounit,*) nuf(xyz(i,j,k+1),g), nuf(xyz(i,j,k),g), nuf(xyz(i,j,k-1),g)
+! WRITE(ounit,*) sigf(xyz(i,j,k+1),g), sigf(xyz(i,j,k),g), sigf(xyz(i,j,k-1),g)
+! STOP
+
+                       END DO
+                       DEALLOCATE(a, b, c, dx, f)
+                    END IF
 
                     EXIT
                 END IF
@@ -2256,14 +2409,6 @@ DO j = 1, nyy
                     END DO
                 END DO
 
-                D(xyz(i,j,k),:) = 1.d0/(3.d0*sigtr(xyz(i,j,k),:))
-                DO g = 1, ng
-                    dumx = 0.0
-                    DO h= 1, ng
-                        IF (g /= h) dumx = dumx + sigs(xyz(i,j,k),g,h)
-                    END DO
-                    sigr(xyz(i,j,k),g) =  siga(xyz(i,j,k),g) + dumx
-                END DO
             END DO
         END IF
     END DO
@@ -2272,6 +2417,37 @@ END DO
 
 END SUBROUTINE crod_updt
 
+
+SUBROUTINE TridiaSolve(a,b,c,d,x)
+!
+! Purpose:
+!    To solve tridiagonal matrix
+!
+
+IMPLICIT NONE
+
+REAL, DIMENSION(:), INTENT(INOUT) :: a, b, c, d
+REAL, DIMENSION(:), INTENT(OUT) :: x
+
+INTEGER :: i, n
+
+n = SIZE(d)
+
+! Gauss Elimination
+c(1) = c(1)/b(1)
+d(1) = d(1)/b(1)
+DO i = 2, n
+    c(i) = c(i) / (b(i) - a(i) * c(i-1))
+    d(i) = (d(i) - a(i) * d(i-1)) / (b(i) - a(i) * c(i-1))
+END DO
+
+! Back Substitution
+x(n) = d(n)
+DO i = n-1, 1, -1
+    x(i) = d(i) - c(i) * x(i+1)
+END DO
+
+END SUBROUTINE TridiaSolve
 
 
 SUBROUTINE inp_ejct (xbunit)
