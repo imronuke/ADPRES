@@ -107,7 +107,7 @@ REAL, DIMENSION(:), ALLOCATABLE :: tmove    ! Time when CR bank starts moving
 REAL, DIMENSION(:), ALLOCATABLE :: bspeed   ! CR bank movement speed
 INTEGER, DIMENSION(:), ALLOCATABLE :: mdir     ! To indicate CR movement direction (0=do not move, 1=down, 2 = up)
 LOGICAL :: negxs = .FALSE.                      ! To activate warning for first time
-INTEGER :: cusp = 1
+INTEGER :: cusp = 0
 
 ! Boron Concentration
 REAL :: bcon       ! Boron concentration in ppm

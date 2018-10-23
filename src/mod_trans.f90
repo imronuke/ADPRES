@@ -255,7 +255,7 @@ DO i = 1, imax
     END DO
 
     !Calculate amplitude function
-    CALL point(t1, t2, hp, rho, A, beta, amp)
+    CALL point(tstep1, hp, rho, A, beta, amp)
 
     WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, amp, (bpos(n), n = 1, nb)
 
@@ -322,7 +322,7 @@ DO i = 1, imax
     END DO
 
     !Calculate amplitude function
-    CALL point(t1, t2, hp, rho, A, beta, amp)
+    CALL point(tstep2, hp, rho, A, beta, amp)
 
     WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, amp, (bpos(n), n = 1, nb)
 
@@ -465,7 +465,7 @@ DO i = 1, imax
     END DO
 
     !Calculate amplitude function
-    CALL point(t1, t2, hp, rho, A, beta, amp)
+    CALL point(tstep1, hp, rho, A, beta, amp)
 
     ! Calculate node power distribution
     CALL powdis(npow)
@@ -547,7 +547,7 @@ DO i = 1, imax
     END DO
 
     !Calculate amplitude function
-    CALL point(t1, t2, hp, rho, A, beta, amp)
+    CALL point(tstep2, hp, rho, A, beta, amp)
 
     ! Calculate node power distribution
     CALL powdis(npow)
@@ -579,7 +579,7 @@ END SUBROUTINE trod_eject
 
 
 
-SUBROUTINE point(ti, tf, h, xrho, xA, xbet, xamp)
+SUBROUTINE point(ht, h, xrho, xA, xbet, xamp)
 
 !
 ! Purpose:
@@ -590,7 +590,7 @@ USE sdata, ONLY: nf, lamb
 
 IMPLICIT NONE
 
-REAL, INTENT(IN) :: ti, tf, h              ! Initial time, final time, time increment
+REAL, INTENT(IN) :: ht, h                  ! Macro time step, micro time step
 REAL, INTENT(IN) :: xrho, xA               ! reactivity and neutron generation time
 REAL, DIMENSION(:), INTENT(IN) :: xbet     ! delayed neutron fraction
 REAL, INTENT(INOUT) :: xamp                ! amplitude function
@@ -601,7 +601,7 @@ REAL :: k1, k2, k3, k4
 REAL :: xtbet
 
 
-itot = INT((tf - ti) / h)
+itot = INT(ht / h)
 DO i = 1, itot
 
     !!!Calculate Power for time step = i

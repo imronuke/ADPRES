@@ -2313,39 +2313,34 @@ DO j = 1, nyy
                            !Calculate fluxes
                            CALL TridiaSolve(a, b, c, dx, f)
 
-                           ! WRITE(ounit,*) 0, f0(xyz(i,j,k+1),g)
-                           ! DO n = 1, nmax
-                           !    WRITE(ounit,*) n, f(n)
-                           ! END DO
-                           ! WRITE(ounit,*) nmax+1, f0(xyz(i,j,k-1),g)
-
                            ! Calculate homogenized CXs
                            sumx = 0.
                            sum1 = 0.; sum2 = 0.; sum3 = 0.; sum4 = 0.; sum5 = 0.
                            DO n = 1, n1
-                              sumx = sumx + f(n)
+                              sumx = sumx + f(n) * del1
                               sum1 = sum1 + f(n) * (sigtr(xyz(i,j,k),g) &
-                                   + dsigtr(mat(xyz(i,j,k)),g))
+                                   + dsigtr(mat(xyz(i,j,k)),g)) * del1
                               sum2 = sum2 + f(n) * (siga(xyz(i,j,k),g) &
-                                   + dsiga(mat(xyz(i,j,k)),g))
+                                   + dsiga(mat(xyz(i,j,k)),g)) * del1
                               sum3 = sum3 + f(n) * (nuf(xyz(i,j,k),g) &
-                                   + dnuf(mat(xyz(i,j,k)),g))
+                                   + dnuf(mat(xyz(i,j,k)),g)) * del1
                               sum4 = sum4 + f(n) * (sigf(xyz(i,j,k),g) &
-                                   + dsigf(mat(xyz(i,j,k)),g))
+                                   + dsigf(mat(xyz(i,j,k)),g)) * del1
                               DO h = 1, ng
                                  sum5(h) = sum5(h) + f(n) * (sigs(xyz(i,j,k),g,h) &
-                                      + dsigs(mat(xyz(i,j,k)),g,h))
+                                      + dsigs(mat(xyz(i,j,k)),g,h)) * del1
                               END DO
                            END DO
 
                            DO n = n1+1, nmax
-                              sumx = sumx + f(n)
-                              sum1 = sum1 + f(n) * sigtr(xyz(i,j,k),g)
-                              sum2 = sum2 + f(n) * siga(xyz(i,j,k),g)
-                              sum3 = sum3 + f(n) * nuf(xyz(i,j,k),g)
-                              sum4 = sum4 + f(n) * sigf(xyz(i,j,k),g)
+                              sumx = sumx + f(n) * del2
+                              sum1 = sum1 + f(n) * sigtr(xyz(i,j,k),g) * del2
+                              sum2 = sum2 + f(n) * siga(xyz(i,j,k),g) * del2
+                              sum3 = sum3 + f(n) * nuf(xyz(i,j,k),g) * del2
+                              sum4 = sum4 + f(n) * sigf(xyz(i,j,k),g) * del2
                               DO h = 1, ng
-                                 sum5(h) = sum5(h) + f(n) * sigs(xyz(i,j,k),g,h)
+                                 sum5(h) = sum5(h) + f(n) &
+                                         * sigs(xyz(i,j,k),g,h) * del2
                               END DO
                            END DO
 
@@ -2356,11 +2351,6 @@ DO j = 1, nyy
                            DO h = 1, ng
                               sigs(xyz(i,j,k),g,h) = sum5(h) / sumx
                            END DO
-! WRITE(ounit,*) sigtr(xyz(i,j,k+1),g), sigtr(xyz(i,j,k),g), sigtr(xyz(i,j,k-1),g)
-! WRITE(ounit,*) siga(xyz(i,j,k+1),g), siga(xyz(i,j,k),g), siga(xyz(i,j,k-1),g)
-! WRITE(ounit,*) nuf(xyz(i,j,k+1),g), nuf(xyz(i,j,k),g), nuf(xyz(i,j,k-1),g)
-! WRITE(ounit,*) sigf(xyz(i,j,k+1),g), sigf(xyz(i,j,k),g), sigf(xyz(i,j,k-1),g)
-! STOP
 
                        END DO
                        DEALLOCATE(a, b, c, dx, f)
