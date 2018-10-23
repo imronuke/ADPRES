@@ -1856,8 +1856,6 @@ DO g= 1, ng
     END DO
 END DO
 
-!STOP
-
 ! Normalize to 1.0
 tpow = 0.
 DO n = 1, nnod
