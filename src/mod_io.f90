@@ -2502,6 +2502,12 @@ IF (tdiv < tstep1) THEN
     STOP
 END IF
 
+! tdiv must be bigger than ttot
+IF (tdiv < ttot) THEN
+    WRITE(ounit,*) 'THEN TIME WHEN SECOND TIME STEP STARTS SHALL BE GREATER THAN TOTAL TIME'
+    STOP
+END IF
+
 ! Read beta (delayed neutron fraction)
 READ(xbunit, *, IOSTAT=ios) ind, ln, (iBeta(i), i = 1, nf)
 message = ' error in reading delayed netron fraction (beta)'
