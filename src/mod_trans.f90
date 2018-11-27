@@ -56,7 +56,8 @@ SUBROUTINE kinet_par(dsigr, dnuf, dsigs, sf, xA, xrho)
 !    To calculate kinetic parameters
 !
 
-USE sdata, ONLY: ng, nnod, nuf, chi, velo, nf, iBeta, sigs
+USE sdata, ONLY: ng, nnod, chi, velo, nf, iBeta, vdel, nod, xdel, ydel, zdel, &
+ix, iy, iz
 USE nodal, ONLY: Integrate
 
 IMPLICIT NONE
@@ -68,13 +69,13 @@ REAL, INTENT(OUT) :: xA, xrho
 INTEGER :: n, i, g, h
 REAL, DIMENSION(nnod) :: vdum, vdum2, vdum3, vdum4, vdum5
 REAL, DIMENSION(nnod,ng) :: yvdum
-REAL :: F2, rho2
+REAL :: F2, F, fiss, scat, leak, remo
 
 ! Calculate F
 vdum = 0.
 DO g = 1, ng
     DO n = 1, nnod
-        vdum(n) = vdum(n) + nuf(n,g) * sf(n,g)
+        vdum(n) = vdum(n) + dnuf(n,g) * sf(n,g)
     END DO
 END DO
 
@@ -112,27 +113,33 @@ END DO
 
 
 ! Calculate reactivity (rho)
-vdum2 = 0.; vdum3 = 0.; vdum4 = 0.
+vdum2 = 0.
 DO g = 1, ng
     DO n = 1, nnod
         vdum2(n) = vdum2(n) + dnuf(n,g) * sf(n,g)
-        vdum3(n) = vdum3(n) + af(n,g) * dsigr(n,g) * sf(n,g)
     END DO
 END DO
 
+F = 0.
 DO g = 1, ng
-      vdum5 = 0.
-    DO h = 1, ng
-        DO n = 1, nnod
-            vdum5(n) = vdum5(n) + dsigs(n,h,g) * sf(n,h)
-        END DO
-    END DO
-    DO n = 1, nnod
-        vdum4(n) = vdum4(n) + af(n,g) * (vdum5(n) + chi(n,g) * vdum2(n))
-    END DO
+   vdum5 = 0.
+   DO h = 1, ng
+      DO n = 1, nnod
+         vdum5(n) = vdum5(n) + dsigs(n,h,g) * sf(n,h)
+      END DO
+  END DO
+  DO n = 1, nnod
+     remo = af(n,g) * dsigr(n,g) * sf(n,g) * vdel(n)
+     fiss = af(n,g) * chi(n,g) * vdum2(n) * vdel(n)
+     scat = af(n,g) * vdum5(n) * vdel(n)
+     leak = af(n,g) * nod(n,g)%L(1) * ydel(iy(n)) * zdel(iz(n)) &
+     + af(n,g) * nod(n,g)%L(2) * xdel(ix(n)) * zdel(iz(n)) &
+     + af(n,g) * nod(n,g)%L(3) * xdel(ix(n)) * ydel(iy(n))
+     F = F + fiss + scat - leak - remo
+  END DO
 END DO
 
-xrho = Integrate(vdum4 - vdum3) / F2
+xrho = F / F2
 
 END SUBROUTINE kinet_par
 
@@ -151,17 +158,11 @@ USE sdata, ONLY: ng, nnod, sigr, nuf, sigs, f0, &
                  ix, iy, iz, zdel,Ke, &
                  bcon, ftem, mtem, cden, &
                  fbpos, bpos, tmove, bspeed, mdir, &
-                 nout, nac, nb
+                 nout, nac, nb, xnuf, dnuf
 USE InpOutp, ONLY: XS_updt, bther, ounit
 USE nodal, ONLY: nodal_coup4, outer4
 
 IMPLICIT NONE
-
-REAL, DIMENSION(nnod,ng) ::  dsigr, dnuf
-REAL, DIMENSION(nnod,ng,ng) :: dsigs
-
-REAL, DIMENSION(nnod,ng) ::  osigr, onuf
-REAL, DIMENSION(nnod,ng,ng) :: osigs
 
 REAL :: A, rho
 
@@ -178,13 +179,26 @@ CALL adj_calc()
 CALL nodal_coup4()
 CALL outer4(0)
 
+! If K-EFF NOT EQUAL TO 1.0
+IF (ABS(Ke - 1.) > 1.e-5) THEN
+   WRITE(ounit, *)
+   WRITE(ounit, '(A46,F9.6)') '  INITIAL MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
+   WRITE(ounit, *) '  WARNING: THE STEADY STATE K-EFF IS NOT EQUAL TO 1.0'
+   WRITE(ounit, *) '  AND NOW IT IS FORCED TO 1.0BY MODIFYING THE nu*sigf CROSS SECTIONS '
+   WRITE(ounit, *)
+   DO i = 1, 10
+      CALL outer4(0)
+      IF (ABS(Ke-1.0) < 1.e-5) EXIT
+      xnuf = xnuf / Ke
+      dnuf = dnuf / Ke
+      CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+   END DO
+   IF (i == 10) STOP "K-EFF STILL NOT EQUAL TO ONE. ADPRES IS STOPPING"
+END IF
 
-! Save old sigr, nuf and sigs
-osigr = sigr; onuf = nuf; osigs = sigs
-dsigr = 0.; dnuf = 0.; dsigs = 0.
 
 ! Calculate intgral kinet parameters at t = 0
-CALL kinet_par(dsigr, dnuf, dsigs, f0, A, rho)
+CALL kinet_par(sigr, nuf, sigs, f0, A, rho)
 
 ! Calculate Initial precursor density
 amp = 1.
@@ -241,13 +255,8 @@ DO i = 1, imax
     CALL nodal_coup4()
     CALL outer4(0)
 
-    ! Calculate xsec changes after rod is ejected
-    dsigr = sigr - osigr
-    dnuf = nuf - onuf
-    dsigs = sigs - osigs
-
     ! Calculate intgral kinet parameters
-    CALL kinet_par(dsigr, dnuf, dsigs, f0, A, rho)
+    CALL kinet_par(sigr, nuf, sigs, f0, A, rho)
 
     tbeta = 0.
     DO j = 1, nf
@@ -308,13 +317,8 @@ DO i = 1, imax
     CALL nodal_coup4()
     CALL outer4(0)
 
-    ! Calculate xsec changes after rod is ejected
-    dsigr = sigr - osigr
-    dnuf = nuf - onuf
-    dsigs = sigs - osigs
-
     ! Calculate intgral kinet parameters
-    CALL kinet_par(dsigr, dnuf, dsigs, f0, A, rho)
+    CALL kinet_par(sigr, nuf, sigs, f0, A, rho)
 
     tbeta = 0.
     DO j = 1, nf
@@ -351,19 +355,13 @@ USE sdata, ONLY: ng, nnod, sigr, nuf, sigs, f0, &
                  ix, iy, iz, zdel,Ke, &
                  bcon, ftem, mtem, cden, &
                  fbpos, bpos, tmove, bspeed, mdir, &
-                 nout, nac, nb, npow, ppow, pow, node_nf
+                 nout, nac, nb, npow, ppow, pow, node_nf, xnuf, dnuf
 USE InpOutp, ONLY: XS_updt, bther, ounit
 USE nodal, ONLY: nodal_coup4, outer4, powdis
 USE th, ONLY: th_iter, th_trans3
 !, par_ave_f, par_max, par_ave
 
 IMPLICIT NONE
-
-REAL, DIMENSION(nnod,ng) ::  dsigr, dnuf
-REAL, DIMENSION(nnod,ng,ng) :: dsigs
-
-REAL, DIMENSION(nnod,ng) ::  osigr, onuf
-REAL, DIMENSION(nnod,ng,ng) :: osigs
 
 REAL, DIMENSION(nnod) :: pline       ! Linear power density
 REAL, DIMENSION(nnod,ng) :: fl
@@ -382,14 +380,28 @@ ALLOCATE(npow(nnod))
 
 ! Calculate forward flux at t=0
 CALL th_iter(0)
+
+! If K-EFF NOT EQUAL TO 1.0
+IF (ABS(Ke - 1.) > 1.e-5) THEN
+   WRITE(ounit, *)
+   WRITE(ounit, '(A46,F9.6)') '  INITIAL MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
+   WRITE(ounit, *) '  WARNING: THE STEADY STATE K-EFF IS NOT EQUAL TO 1.0'
+   WRITE(ounit, *) '  AND NOW IT IS FORCED TO 1.0BY MODIFYING THE nu*sigf CROSS SECTIONS '
+   WRITE(ounit, *)
+   DO i = 1, 10
+      CALL outer4(0)
+      IF (ABS(Ke-1.0) < 1.e-5) EXIT
+      xnuf = xnuf / Ke
+      dnuf = dnuf / Ke
+      CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+   END DO
+   IF (i == 10) STOP "K-EFF STILL NOT EQUAL TO ONE. ADPRES IS STOPPING"
+END IF
+
 fl = f0
 
 !Initial amplitude function
 amp = 1.
-
-! Save old sigr, nuf and sigs
-osigr = sigr; onuf = nuf; osigs = sigs
-dsigr = 0.; dnuf = 0.; dsigs = 0.
 
 WRITE(ounit, *)
 WRITE(ounit, *) " TRANSIENT RESULTS :"
@@ -402,7 +414,7 @@ WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') 0, 0., 0., amp*ppow*0.01, (bpo
 CALL adj_calc()
 
 ! Calculate intgral kinet parameters at t = 0
-CALL kinet_par(dsigr, dnuf, dsigs, fl, A, rho)
+CALL kinet_par(sigr, nuf, sigs, fl, A, rho)
 
 ! Calculate Initial precursor density
 DO j = 1, nf
@@ -451,13 +463,8 @@ DO i = 1, imax
     CALL nodal_coup4()
     CALL outer4(0)
 
-    ! Calculate xsec changes after rod is ejected
-    dsigr = sigr - osigr
-    dnuf = nuf - onuf
-    dsigs = sigs - osigs
-
     ! Calculate intgral kinet parameters
-    CALL kinet_par(dsigr, dnuf, dsigs, f0, A, rho)
+    CALL kinet_par(sigr, nuf, sigs, f0, A, rho)
 
     tbeta = 0.
     DO j = 1, nf
@@ -533,13 +540,8 @@ DO i = 1, imax
     CALL nodal_coup4()
     CALL outer4(0)
 
-    ! Calculate xsec changes after rod is ejected
-    dsigr = sigr - osigr
-    dnuf = nuf - onuf
-    dsigs = sigs - osigs
-
     ! Calculate intgral kinet parameters
-    CALL kinet_par(dsigr, dnuf, dsigs, f0, A, rho)
+    CALL kinet_par(sigr, nuf, sigs, f0, A, rho)
 
     tbeta = 0.
     DO j = 1, nf

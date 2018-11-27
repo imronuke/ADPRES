@@ -39,7 +39,7 @@ SUBROUTINE th_iter(ind)
 
   IMPLICIT NONE
 
-  INTEGER, INTENT(IN), OPTIONAL :: ind    ! if iteration reaching th_iter: ind = 0 => stop
+  INTEGER, INTENT(IN), OPTIONAL :: ind    ! if iteration reaching th_iter and ind = 0 then STOP
   REAL, DIMENSION(nnod) :: pline
   REAL, DIMENSION(nnod) :: otem
   INTEGER :: n, niter
