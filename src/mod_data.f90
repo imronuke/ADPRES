@@ -52,6 +52,8 @@ END TYPE
 TYPE(NODE_DATA), DIMENSION(:,:), ALLOCATABLE :: nod
 
 REAL, DIMENSION(:,:), ALLOCATABLE :: f0, fx1, fy1, fz1, fx2, fy2, fz2      ! Flux and Flux moments
+REAL, DIMENSION(:), ALLOCATABLE :: fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2      ! Fission source moments
+REAL, DIMENSION(:,:), ALLOCATABLE :: c0, cx1, cy1, cz1, cx2, cy2, cz2  ! neutron precusor density
 
 TYPE :: STAGGERED
     INTEGER :: smax, smin                             ! imax and imin along x and y direction for staggered nodes
@@ -117,8 +119,8 @@ REAL, DIMENSION(:,:,:), ALLOCATABLE :: csigs                      ! Used only fo
 
 ! Transient parameters
 INTEGER, PARAMETER :: nf = 6                       ! Number of delaye dneutron precusor family
-REAL, DIMENSION(nf) :: ibeta, lamb                 ! beta and precusor decay constant
-! REAL, DIMENSION(:,:), ALLOCATABLE :: iC            ! neutron precusor density
+REAL, DIMENSION(nf) :: ibeta, lamb                 ! beta (delayed neutron fraction) and precusor decay constant
+REAL :: tbeta                                      ! total beta
 REAL, DIMENSION(:), ALLOCATABLE :: velo            ! Neutron velocity
 REAL :: ttot                                       ! TOTAL SIMULATION TIME
 REAL :: tstep1                                     ! FIRST TIME STEP

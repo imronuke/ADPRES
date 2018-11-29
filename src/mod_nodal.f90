@@ -22,7 +22,8 @@ SUBROUTINE outer4(popt)
 
 
 USE sdata, ONLY: ng, nnod, ystag, nout, serc, ferc, fer, ser, &
-                 f0, fx1, fy1, fz1, fx2, fy2, fz2, Ke, nac
+                 f0, fx1, fy1, fz1, fx2, fy2, fz2, Ke, nac, &
+                 fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 USE InpOutp, ONLY: ounit
 
 IMPLICIT NONE
@@ -30,9 +31,7 @@ IMPLICIT NONE
 INTEGER, OPTIONAL, INTENT(IN) :: popt
 
 REAL :: Keo                                    !Old Multiplication factor (Keff)
-REAL, DIMENSION(nnod) :: fs0, fs0c             !New and old fission source, and scattering source
-REAL, DIMENSION(nnod) :: fsx1, fsy1, fsz1
-REAL, DIMENSION(nnod) :: fsx2, fsy2, fsz2      ! Fission source moments
+REAL, DIMENSION(nnod) :: fs0c                  !old fission source
 REAL, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
 REAL, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 REAL, DIMENSION(nnod) :: ss0                   ! Scattering source
@@ -129,6 +128,7 @@ END IF
 
 IF (opt) WRITE(ounit,*)
 IF (opt) WRITE(ounit, '(A36,F9.6)') 'MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
+
 
 END SUBROUTINE outer4
 
@@ -326,6 +326,93 @@ WRITE(ounit,*)
 WRITE(ounit, '(A36,F9.6)') 'MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
 
 END SUBROUTINE outer4Fx
+
+
+SUBROUTINE outertr (nmax, ht, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+
+!
+! Purpose:
+!    To perform outer iteration for transient
+
+USE sdata, ONLY: ng, nnod, ystag, serc, ferc, &
+                 f0, fx1, fy1, fz1, fx2, fy2, fz2, Ke, nac, &
+                 fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
+USE InpOutp, ONLY: ounit
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: nmax
+REAL, INTENT(IN) :: ht
+REAL, DIMENSION(:,:), INTENT(IN) :: ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2
+
+REAL, DIMENSION(nnod) :: fs0c                  !old fission source
+REAL, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c,fsx2c, fsy2c, fsz2c
+REAL, DIMENSION(nnod) :: ss0                   ! Scattering source
+REAL, DIMENSION(nnod) :: ssx1, ssy1, ssz1,ssx2, ssy2, ssz2      ! Scattering source moments
+REAL :: ser, Ker, fer                          ! Fission source and Keff error
+REAL :: domiR
+INTEGER :: h, g
+INTEGER :: p, npos
+
+REAL, DIMENSION(nnod) :: errn, erro
+
+! Initialize fission source
+fs0  = 0.d0
+fsx1 = 0.d0; fsy1 = 0.d0; fsz1 = 0.d0
+fsx2 = 0.d0; fsy2 = 0.d0; fsz2 = 0.d0
+
+DO g= 1, ng
+    CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
+END DO
+
+errn = 1.d0
+
+!Start outer iteration
+DO p=1, nmax
+    fs0c  = fs0
+    fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
+    fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
+    fs0  = 0.d0
+    fsx1 = 0.d0; fsy1 = 0.d0; fsz1 = 0.d0
+    fsx2 = 0.d0; fsy2 = 0.d0; fsz2 = 0.d0
+    erro = errn
+    DO g = 1, ng
+
+        !!!Calculate Scattering source
+        CALL SSrc(g, ss0, ssx1, ssy1, ssz1, ssx2, ssy2, ssz2)
+
+        !!!Calculate total source
+        CALL TSrcTr(g,  fs0c, fsx1c, fsy1c, fsz1c,&
+                              fsx2c, fsy2c, fsz2c, &
+                        ss0 , ssx1 , ssy1 , ssz1 , &
+                              ssx2 , ssy2 , ssz2, &
+                        ht, ft(:,g), ftx1(:,g), fty1(:,g), ftz1(:,g), &
+                        ftx2(:,g), fty2(:,g), ftz2(:,g))
+
+        !!!Inner Iteration
+        CALL inner4(g, fer)
+
+        !!!Calculate fission source for next outer iteration
+        CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
+    END DO
+
+    errn = fs0 - fs0c
+
+    IF (MOD(p,nac) == 0) THEN
+        domiR = Integrate(ABS(errn)) / Integrate(ABS(erro))
+        npos = MAXLOC(ABS(erro),1)
+        IF (erro(npos) * errn(npos) < 0.d0) domiR = -domiR
+        fs0 = fs0 + domiR / (1.d0 - domiR) * errn
+    END IF
+
+    CALL RelE(fs0, fs0c, ser)                      ! Search maximum point wise fission source Relative Error
+
+    IF ((ser < serc) .AND. (fer < ferc)) EXIT
+END DO
+
+WRITE(*,*) p
+
+END SUBROUTINE outertr
 
 
 
@@ -657,6 +744,7 @@ f0(n,g)  = ( nod(n,g)%Q(1)          &
                  - nod(n,g)%L(2)/ydel(iy(n))   &
                  - nod(n,g)%L(3)/zdel(iz(n)))  &
                  / sigr(n,g)
+IF (f0(n,g) < 0.) f0(n,g) = 0.
 
 ! Set parameters Tx, Ty and Tz
 Tx = nod(n,g)%jo(1) - nod(n,g)%ji(1) &
@@ -1286,6 +1374,62 @@ END DO
 END SUBROUTINE TSrcFx
 
 
+SUBROUTINE TSrcTr(gt, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
+                      s0,  sx1,  sy1,  sz1,  sx2,  sy2 , sz2, &
+                      h, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+!
+! Purpose:
+!   To update total source for transient calcs.
+!
+
+USE sdata, ONLY: nod, chi, nnod, tbeta, velo, lamb, iBeta, nf, &
+ct, ctx1, cty1, ctz1, ctx2, cty2, ctz2
+USE InpOutp, ONLY: ounit
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: gt
+REAL, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2
+REAL, DIMENSION(:), INTENT(IN) :: s0, sx1, sy1, sz1, sx2, sy2, sz2
+REAL, INTENT(IN) :: h
+REAL, DIMENSION(:), INTENT(IN) :: ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2
+
+REAL :: dt, dtx1, dty1, dtz1, dtx2, dty2, dtz2, lat, dfis
+INTEGER :: n, i
+
+DO n = 1, nnod
+     dt = 0.; dtx1 = 0.; dty1 = 0.; dtz1 = 0.; dtx2 = 0.; dty2 = 0.; dtz2 = 0.
+     dfis = 0.
+     DO i = 1, nf
+        lat = 1. + lamb(i) * h
+        dt = dt  + lamb(i) * ct(i,n) / lat
+        dtx1 = dtx1 + lamb(i) * ctx1(i,n) / lat
+        dty1 = dty1 + lamb(i) * cty1(i,n) / lat
+        dtz1 = dtz1 + lamb(i) * ctz1(i,n) / lat
+        dtx2 = dtx2 + lamb(i) * ctx2(i,n) / lat
+        dty2 = dty2 + lamb(i) * cty2(i,n) / lat
+        dtz2 = dtz2 + lamb(i) * ctz2(i,n) / lat
+        dfis = dfis + chi(n,gt) * iBeta(i) * lamb(i) * h / lat
+    END DO
+
+    nod(n,gt)%Q(1) = ((1. - tbeta) * chi(n,gt) + dfis) * sf0(n)  + s0(n) &
+    + chi(n,gt) * dt + ft(n) / (velo(gt) * h)
+    nod(n,gt)%Q(2) = ((1. - tbeta) * chi(n,gt) + dfis) * sfx1(n) + sx1(n) &
+    + chi(n,gt) * dtx1 + ftx1(n) / (velo(gt) * h)
+    nod(n,gt)%Q(3) = ((1. - tbeta) * chi(n,gt) + dfis) * sfy1(n) + sy1(n) &
+    + chi(n,gt) * dty1 + fty1(n) / (velo(gt) * h)
+    nod(n,gt)%Q(4) = ((1. - tbeta) * chi(n,gt) + dfis) * sfz1(n) + sz1(n) &
+    + chi(n,gt) * dtz1 + ftz1(n) / (velo(gt) * h)
+    nod(n,gt)%Q(5) = ((1. - tbeta) * chi(n,gt) + dfis) * sfx2(n) + sx2(n) &
+    + chi(n,gt) * dtx2 + ftx2(n) / (velo(gt) * h)
+    nod(n,gt)%Q(6) = ((1. - tbeta) * chi(n,gt) + dfis) * sfy2(n) + sy2(n) &
+    + chi(n,gt) * dty2 + fty2(n) / (velo(gt) * h)
+    nod(n,gt)%Q(7) = ((1. - tbeta) * chi(n,gt) + dfis) * sfz2(n) + sz2(n) &
+    + chi(n,gt) * dtz2 + ftz2(n) / (velo(gt) * h)
+END DO
+
+END SUBROUTINE TSrcTr
+
 
 SUBROUTINE TSrcAd(gt, Keff, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
                           s0,  sx1,  sy1,  sz1,  sx2,  sy2 , sz2   )
@@ -1874,6 +2018,40 @@ END DO
 
 
 END SUBROUTINE PowDis
+
+
+SUBROUTINE PowDis2 (tpow)
+
+!
+! Purpose:
+!    To calculate power distribution
+!
+
+
+USE sdata, ONLY: ng, nnod, nuf, sigf, f0, vdel, mode
+USE InpOutp, ONLY: ounit
+
+IMPLICIT NONE
+
+REAL, INTENT(OUT) :: tpow
+
+REAL, DIMENSION(nnod) :: p
+INTEGER :: g, n
+
+p = 0.d0
+DO g= 1, ng
+    DO n= 1, nnod
+        p(n) = p(n) + f0(n,g) * sigf(n,g) * vdel(n)
+    END DO
+END DO
+
+
+tpow = 0.
+DO n = 1, nnod
+    tpow = tpow + p(n)
+END DO
+
+END SUBROUTINE PowDis2
 
 
 SUBROUTINE forward()
