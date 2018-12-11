@@ -54,6 +54,7 @@ TYPE(NODE_DATA), DIMENSION(:,:), ALLOCATABLE :: nod
 REAL, DIMENSION(:,:), ALLOCATABLE :: f0, fx1, fy1, fz1, fx2, fy2, fz2      ! Flux and Flux moments
 REAL, DIMENSION(:), ALLOCATABLE :: fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2      ! Fission source moments
 REAL, DIMENSION(:,:), ALLOCATABLE :: c0, cx1, cy1, cz1, cx2, cy2, cz2  ! neutron precusor density
+REAL, DIMENSION(:,:), ALLOCATABLE :: ct, ctx1, cty1, ctz1, ctx2, cty2, ctz2 ! previous neutron precusor density
 
 TYPE :: STAGGERED
     INTEGER :: smax, smin                             ! imax and imin along x and y direction for staggered nodes

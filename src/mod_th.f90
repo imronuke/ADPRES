@@ -350,6 +350,7 @@ n = SIZE(d)
 ! Gauss Elimination
 c(1) = c(1)/b(1)
 d(1) = d(1)/b(1)
+
 DO i = 2, n
     c(i) = c(i) / (b(i) - a(i) * c(i-1))
     d(i) = (d(i) - a(i) * d(i-1)) / (b(i) - a(i) * c(i-1))

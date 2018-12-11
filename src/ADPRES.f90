@@ -3,7 +3,7 @@ PROGRAM main
 USE sdata, ONLY: mode, negxs
 USE InpOutp, ONLY: ounit, inp_read, bwrst, w_rst, bther
 USE nodal, ONLY: forward, adjoint, fixedsrc, init
-USE trans, ONLY: rod_eject2
+USE trans, ONLY: rod_eject2, trod_eject
 USE th, ONLY: cbsearch, cbsearcht
 
 IMPLICIT NONE
@@ -26,7 +26,7 @@ SELECT CASE(mode)
         IF (bther == 0) THEN
             CALL rod_eject2()
   	    ELSE
-  		      CALL rod_eject2()
+  		      CALL trod_eject()
   		  END IF
     CASE('BCSEARCH')
   	    IF (bther == 0) THEN
