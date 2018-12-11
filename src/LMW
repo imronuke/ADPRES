@@ -23,7 +23,7 @@ LMW  TRANSIENT
 10.0 5*20.0          !y-direction assembly size in cm
 1    5*2             !y-direction assembly division
 10*20.0              !z-direction size  in cm (from bottom to top)
-10*2                 !z-direction assembly division
+10*4                 !z-direction assembly division
 2                    !np number of planar type
 1  8*2  1            !planar assignment (from bottom to top)
 ! Planar_Reg 1
@@ -70,7 +70,7 @@ LMW  TRANSIENT
 ! Final Bank Pos (steps)     Starts Move (seconds)     Speed (steps/seconds)
      60.                       7.5                     3.0    ! Bank 1
      180.                       0.0                     3.0    ! Bank 2
-60.  0.25  60.  0.25            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
+5.  0.25  5.  0.25            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
 0.00025    0.00138    0.00122    0.00265    0.00083    0.00017           !beta
 0.01270    0.03170    0.11500    0.31100    1.40000    3.87000           !decay constants
 1.25E7    2.5E5     ! Neutron velocity
