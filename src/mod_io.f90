@@ -754,17 +754,17 @@ CALL er_message(ounit, ios, ln, message)
 !x-direction
 nxx=0
 DO i= 1,nx
-nxx = nxx+xdiv(i)
+   nxx = nxx+xdiv(i)
 END DO
 !y-direction
 nyy=0
 DO j= 1,ny
-nyy = nyy+ydiv(j)
+   nyy = nyy+ydiv(j)
 END DO
 !z-direction
 nzz=0
 DO k= 1,nz
-nzz = nzz+zdiv(k)
+   nzz = nzz+zdiv(k)
 END DO
 
 ! Limit values of nxx, nyy and nzz

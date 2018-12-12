@@ -127,6 +127,7 @@ REAL :: ttot                                       ! TOTAL SIMULATION TIME
 REAL :: tstep1                                     ! FIRST TIME STEP
 REAL :: tstep2                                     ! SECOND TIME STEP
 REAL :: tdiv                                       ! WHEN SECOND TIME STEP APPLY
+REAL, DIMENSION(:,:), ALLOCATABLE :: omeg           ! Frequency transformation constant
 
 ! Thermal-hydraulics parameters
 REAL :: pow                                        ! Reactor power for given geometry (watt)
