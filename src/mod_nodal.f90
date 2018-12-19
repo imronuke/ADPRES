@@ -141,7 +141,8 @@ SUBROUTINE outer4th(maxn)
 
 
 USE sdata, ONLY: ng, nnod, ystag, serc, ferc, fer, ser, &
-                 f0, fx1, fy1, fz1, fx2, fy2, fz2, Ke, nac
+                 f0, fx1, fy1, fz1, fx2, fy2, fz2, Ke, nac, &
+                 fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 USE InpOutp, ONLY: ounit
 
 IMPLICIT NONE
@@ -149,9 +150,7 @@ IMPLICIT NONE
 INTEGER, INTENT(IN) :: maxn
 
 REAL :: Keo                                    !Old Multiplication factor (Keff)
-REAL, DIMENSION(nnod) :: fs0, fs0c             !New and old fission source, and scattering source
-REAL, DIMENSION(nnod) :: fsx1, fsy1, fsz1
-REAL, DIMENSION(nnod) :: fsx2, fsy2, fsz2      ! Fission source moments
+REAL, DIMENSION(nnod) :: fs0c                  !Old fission source
 REAL, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
 REAL, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 REAL, DIMENSION(nnod) :: ss0                   ! Scattering source
@@ -236,14 +235,13 @@ SUBROUTINE outer4Fx
 !    To perform fixed-source outer iteration
 
 USE sdata, ONLY: ng, nnod, ystag, nout, serc, ferc, &
-                 f0, fx1, fy1, fz1, fx2, fy2, fz2, Ke, nac
+                 f0, fx1, fy1, fz1, fx2, fy2, fz2, Ke, nac, &
+                 fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 USE InpOutp, ONLY: ounit
 
 IMPLICIT NONE
 
-REAL, DIMENSION(nnod) :: fs0, fs0c             !New and old fission source, and scattering source
-REAL, DIMENSION(nnod) :: fsx1, fsy1, fsz1
-REAL, DIMENSION(nnod) :: fsx2, fsy2, fsz2      ! Fission source moments
+REAL, DIMENSION(nnod) :: fs0c                  !Old fission source
 REAL, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
 REAL, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 REAL, DIMENSION(nnod) :: ss0                   ! Scattering source
@@ -356,15 +354,6 @@ INTEGER :: p, npos
 
 REAL, DIMENSION(nnod) :: errn, erro
 
-! Initialize fission source
-fs0  = 0.d0
-fsx1 = 0.d0; fsy1 = 0.d0; fsz1 = 0.d0
-fsx2 = 0.d0; fsy2 = 0.d0; fsz2 = 0.d0
-
-DO g= 1, ng
-    CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
-END DO
-
 errn = 1.d0
 
 !Start outer iteration
@@ -415,7 +404,7 @@ WRITE(*,*) p
 END SUBROUTINE outertr
 
 
-SUBROUTINE outertf (nmax, tx, ht, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+SUBROUTINE outertf (nmax, ht, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
 
 !
 ! Purpose:
@@ -429,7 +418,7 @@ USE InpOutp, ONLY: ounit
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: nmax
-REAL, INTENT(IN) :: tx, ht
+REAL, INTENT(IN) :: ht
 REAL, DIMENSION(:,:), INTENT(IN) :: ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2
 
 REAL, DIMENSION(nnod) :: fs0c                  !old fission source
@@ -442,15 +431,6 @@ INTEGER :: h, g
 INTEGER :: p, npos
 
 REAL, DIMENSION(nnod) :: errn, erro
-
-! Initialize fission source
-fs0  = 0.d0
-fsx1 = 0.d0; fsy1 = 0.d0; fsz1 = 0.d0
-fsx2 = 0.d0; fsy2 = 0.d0; fsz2 = 0.d0
-
-DO g= 1, ng
-    CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
-END DO
 
 errn = 1.d0
 
@@ -473,7 +453,7 @@ DO p=1, nmax
                               fsx2c, fsy2c, fsz2c, &
                         ss0 , ssx1 , ssy1 , ssz1 , &
                               ssx2 , ssy2 , ssz2, &
-                        tx, ht, ft(:,g), ftx1(:,g), fty1(:,g), ftz1(:,g), &
+                        ht, ft(:,g), ftx1(:,g), fty1(:,g), ftz1(:,g), &
                         ftx2(:,g), fty2(:,g), ftz2(:,g))
 
         !!!Inner Iteration
@@ -797,7 +777,8 @@ IMPLICIT NONE
 INTEGER, INTENT(IN) :: bc, nt, gt, side
 
 IF (bc == 0) THEN
-    nod(nt,gt)%ji(side) = -nod(nt,gt)%jo(side)
+    ! nod(nt,gt)%ji(side) = -nod(nt,gt)%jo(side)
+    nod(nt,gt)%ji(side) = 0.d0
 ELSE IF (bc == 1) THEN
     nod(nt,gt)%ji(side) = 0.d0
 ELSE
@@ -915,7 +896,6 @@ f0(nt,gt)  = ( nod(nt,gt)%Q(1)          &
                  / sigr(nt,gt)
 
 END SUBROUTINE FluxUpd2
-
 
 
 SUBROUTINE TLUpd (n, g, L)
@@ -1257,7 +1237,6 @@ L(7) = ( r2zx/xdel(ix(n))+r2zy/ydel(iy(n)) ) / 20.d0
 END SUBROUTINE TLUpd
 
 
-
 SUBROUTINE FSrc(gt, s, sx1, sy1, sz1, sx2, sy2, sz2)
 !
 ! Purpose:
@@ -1519,7 +1498,7 @@ END SUBROUTINE TSrcTr
 
 SUBROUTINE TSrcT(gt, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
                       s0,  sx1,  sy1,  sz1,  sx2,  sy2 , sz2, &
-                      tx, h, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+                      h, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
 !
 ! Purpose:
 !   To update total source for transient calcs. with exponetial transformation
@@ -1535,7 +1514,6 @@ INTEGER, INTENT(IN) :: gt
 REAL, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2
 REAL, DIMENSION(:), INTENT(IN) :: s0, sx1, sy1, sz1, sx2, sy2, sz2
 REAL, INTENT(IN) :: h
-REAL, INTENT(IN) :: tx
 REAL, DIMENSION(:), INTENT(IN) :: ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2
 
 REAL :: dt, dtx1, dty1, dtz1, dtx2, dty2, dtz2, lat, dfis
@@ -1960,7 +1938,7 @@ SUBROUTINE RelE(newF, oldF, rel)
 
   !
   ! Purpose:
-  !    To calculate Relative error
+  !    To calculate Max Relative error
 
 USE sdata, ONLY: nnod
 
@@ -1975,14 +1953,13 @@ INTEGER :: n
 rel = 0.
 
 DO n= 1, nnod
-    IF (newF(n) /= 0.d0) THEN
+    IF (ABS(newF(n)) > 1.e-10) THEN
         error = ABS(newF(n) - oldF(n)) / ABS(newF(n))
         IF (error > rel) rel = error
     END IF
 END DO
 
 END SUBROUTINE RelE
-
 
 
 SUBROUTINE MultF(k)
@@ -2045,7 +2022,8 @@ SUBROUTINE Init()
 
 
 USE sdata, ONLY: ng, nod, nnod, Ke, &
-                 f0, fx1, fy1, fz1, fx2, fy2, fz2
+                 f0, fx1, fy1, fz1, fx2, fy2, fz2, &
+                 fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 USE InpOutp, ONLY: ounit, brrst, runit, ounit
 
 IMPLICIT NONE
@@ -2115,6 +2093,9 @@ ELSE
     END DO
 END IF
 
+! Allocate fission source
+ALLOCATE (fs0(nnod), fsx1(nnod), fsy1(nnod), fsz1(nnod))
+ALLOCATE (fsx2(nnod), fsy2(nnod), fsz2(nnod))
 
 END SUBROUTINE Init
 
@@ -2164,7 +2145,7 @@ END DO
 END SUBROUTINE PowDis
 
 
-SUBROUTINE PowDis2 (fx,tpow)
+SUBROUTINE PowTot (fx,tpow)
 
 !
 ! Purpose:
@@ -2196,7 +2177,7 @@ DO n = 1, nnod
     tpow = tpow + p(n)
 END DO
 
-END SUBROUTINE PowDis2
+END SUBROUTINE PowTot
 
 
 SUBROUTINE forward()

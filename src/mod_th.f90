@@ -350,7 +350,6 @@ n = SIZE(d)
 ! Gauss Elimination
 c(1) = c(1)/b(1)
 d(1) = d(1)/b(1)
-
 DO i = 2, n
     c(i) = c(i) / (b(i) - a(i) * c(i-1))
     d(i) = (d(i) - a(i) * d(i-1)) / (b(i) - a(i) * c(i-1))
@@ -789,8 +788,7 @@ USE nodal, ONLY: nodal_coup4, outer4, powdis
 
 IMPLICIT NONE
 
-INTEGER :: rKe  ! Rounded Keff
-REAL  :: bc, bc1, bc2     ! Boron Concentration
+REAL  :: bc, bc1, bc2, bcon     ! Boron Concentration
 REAL :: ke1, ke2
 INTEGER :: n
 
@@ -806,46 +804,45 @@ WRITE(ounit,*)
 WRITE(ounit,*) '  Itr  Boron Concentration          K-EFF    FLUX REL. ERROR' &
                //'   FISS. SOURCE REL. ERROR'
 WRITE(ounit,*) ' -----------------------------------------------------------' &
-              // '--------------------------'
+            // '--------------------------'
 
-CALL XS_updt(rbcon, ftem, mtem, cden, bpos)
+bcon = rbcon
+CALL XS_updt(bcon, ftem, mtem, cden, bpos)
 CALL nodal_coup4()
 CALL outer4(0)
-rKe = NINT(Ke * 100000)
-bc1 = rbcon
+bc1 = bcon
 ke1 = Ke
 
-WRITE(ounit,'(I5, F15.2, F23.5, ES15.5, ES17.5)') 1, bc1, Ke1, ser, fer
+WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') 1, bc1, Ke1, ser, fer
 
-bc2 = rbcon + (Ke - 1.) * rbcon
-CALL XS_updt(bc2, ftem, mtem, cden, bpos)
+bcon = bcon + (Ke - 1.) * bcon   ! Guess next critical boron concentration
+CALL XS_updt(bcon, ftem, mtem, cden, bpos)
 CALL nodal_coup4()
 CALL outer4(0)
-rKe = NINT(Ke * 100000)
+bc2 = bcon
 ke2 = Ke
 
-WRITE(ounit,'(I5, F15.2, F23.5, ES15.5, ES17.5)') 2, bc2, Ke2, ser, fer
+WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') 2, bc2, Ke2, ser, fer
 
 n = 3
 DO
-	bc = bc2 + (1.0 - ke2) / (ke1 - ke2) * (bc1 - bc2)
-	CALL XS_updt(bc, ftem, mtem, cden, bpos)
-    CALL nodal_coup4()
-    CALL outer4(0)
-	rKe = NINT(Ke * 100000)
+	bcon = bc2 + (1.0 - ke2) / (ke1 - ke2) * (bc1 - bc2)
+  CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+  CALL nodal_coup4()
+  CALL outer4(0)
 	bc1 = bc2
-	bc2 = bc
+	bc2 = bcon
 	ke1 = ke2
 	ke2 = ke
-    WRITE(ounit,'(I5, F15.1, F23.5, ES15.5, ES17.5)') n, bc, Ke, ser, fer
-	IF ((rKe == 100000) .AND. (ser < 1.e-2) .AND. (fer < 1.e-2)) EXIT
+  WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') n, bcon, Ke, ser, fer
+	IF ((ABS(Ke - 1.0) < 1.e-5) .AND. (ser < 1.e-5) .AND. (fer < 1.e-5)) EXIT
 	n = n + 1
-	IF (bc > 2999. .AND. bc < 3000.) THEN
+	IF (bcon > 2999. .AND. bcon < 3000.) THEN
 	    WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION EXCEEDS THE LIMIT(3000 ppm)'
 		WRITE(ounit,*) '  ADPRES IS STOPPING'
 	    STOP
 	END IF
-	IF (bc > 0. .AND. bc < 1.) THEN
+	IF (bcon > 0. .AND. bcon < 1.) THEN
 	    WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION IS NOT FOUND (LESS THAN ZERO)'
 		WRITE(ounit,*) '  ADPRES IS STOPPING'
 	    STOP
@@ -857,8 +854,8 @@ DO
 	END IF
 END DO
 
+ALLOCATE(npow(nnod))
 IF (aprad == 1 .OR. apaxi == 1) THEN
-    ALLOCATE(npow(nnod))
 	CALL PowDis(npow)
 END IF
 
@@ -867,7 +864,6 @@ IF (aprad == 1) CALL AsmPow(npow)
 IF (apaxi == 1) CALL AxiPow(npow)
 
 IF (afrad == 1) CALL AsmFlux(f0, 1.e0)
-
 
 END SUBROUTINE cbsearch
 
@@ -886,7 +882,6 @@ USE nodal, ONLY: powdis, nodal_coup4, outer4
 
 IMPLICIT NONE
 
-INTEGER :: rKe  ! Rounded Keff
 REAL  :: bc1, bc2    ! Boron Concentration
 REAL :: ke1, ke2
 INTEGER :: n
@@ -910,7 +905,6 @@ ALLOCATE(npow(nnod))
 
 bcon = rbcon
 CALL th_iter()  ! Start thermal hydarulic iteration with current paramters
-rKe = NINT(Ke * 100000)
 bc1 = bcon
 ke1 = Ke
 
@@ -926,18 +920,13 @@ WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') 2, bc2, Ke2, ser, fer,
 n = 3
 DO
 	bcon = bc2 + (1.0 - ke2) / (ke1 - ke2) * (bc1 - bc2)
-	IF ((rKe > 99900) .AND. (rKe < 100100)) THEN
-	    CALL th_iter()
-	ELSE
-	    CALL th_iter()
-	END IF
-	rKe = NINT(Ke * 100000)
+	CALL th_iter()
 	bc1 = bc2
 	bc2 = bcon
 	ke1 = ke2
 	ke2 = ke
-    WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') n, bcon, Ke, ser, fer, th_err
-	IF ((rKe == 100000) .AND. (ser < 1.e-5) .AND. (fer < 1.e-5)) EXIT
+  WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') n, bcon, Ke, ser, fer, th_err
+	IF ((ABS(Ke - 1.0) < 1.e-5) .AND. (ser < 1.e-5) .AND. (fer < 1.e-5)) EXIT
 	n = n + 1
 	IF (bcon > 2999. .AND. bcon < 3000.) THEN
 	    WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION EXCEEDS THE LIMIT(3000 ppm)'

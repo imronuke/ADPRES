@@ -70,7 +70,7 @@ LMW  TRANSIENT
 ! Final Bank Pos (steps)     Starts Move (seconds)     Speed (steps/seconds)
      60.                       7.5                     3.0    ! Bank 1
      180.                       0.0                     3.0    ! Bank 2
-60.  0.25  60.  0.25            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
+3.  0.25  1.  0.5            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
 0.00025    0.00138    0.00122    0.00265    0.00083    0.00017           !beta
 0.01270    0.03170    0.11500    0.31100    1.40000    3.87000           !decay constants
 1.25E7    2.5E5     ! Neutron velocity

@@ -80,9 +80,9 @@ NEACRP Problem
 
 ! CONTROL CARD
 %CROD
-7    228                     ! Number of CR banks and max number of banks
+7   228                       ! Number of CR banks and max number of banks
 37.7 1.5942237                ! Zero step pos. (cm) and cm/step (total 228 steps)
-0.   0.  0.  228.   0.   0.  0.           ! CR Bank pos.
+150.00  200.00  150.00  200.00  200.00  200.00  200.00           ! CR Bank pos.
  1  0  2  0  0  0  3  0  0
  0  4  0  0  0  6  0  0  0
  2  0  5  0  6  0  6  0  0
@@ -118,9 +118,9 @@ NEACRP Problem
 -2.19926E-02  2.55875E-02  -2.82319E-03  -3.70238E-14  0.0  0.00000E+00    !COMP 11
 1
 
-! BORON CONCENTRATION
+! CRITICAL BORON SEARCH CARD
 %BCON
-561.85  1200.2  ! Boron concentration ref. in ppm
+1186.28  1200.2  ! Boron concentration ref. in ppm
 ! CX change per unit ppm change of Boron concentration
 !  sigtr          siga         nu*sigf       sigf      sigs_g1   sigs_g2
 6.11833E-08  1.87731E-07  0.00000E+00  0.00000E+00  0.0  7.91457E-10
@@ -229,11 +229,10 @@ NEACRP Problem
 9.24925E-01  3.49853E-02  4.20693E-02  5.52387E-13  0.0  0.00000E+00    !COMP 10
 1.29463E-01  1.79499E-03  1.04291E-03  1.18534E-14  0.0  2.78259E-02
 9.08456E-01  3.61032E-02  4.33215E-02  5.68857E-13  0.0  0.00000E+00    !COMP 11
-1
 
 ! THERMAL-HYDRAULIC CARD
 %THER
-0.0001                                 ! Percent power in %
+100.                                   ! Percent power in %
 693.75e6                               ! Reactor thermal power for quarter geometry in Watt
 559.15  82.12102                       ! Inlet coolant temp. (Kelvin) and Fuel Assembly Mass flow rate (kg/s)
 4.11950E-03  6.8E-05  5.71E-04  1.2655E-2 ! Fuel meat rad., gap thinkness, cladding thinkness and pin picth (m)
@@ -242,15 +241,15 @@ NEACRP Problem
 1
 
 %EJCT
-! Final Bank Pos (steps)     Starts Move (seconds)     Speed (steps/seconds)
-     228.                     0.0                     2280.0    ! Bank 1
-     0.                       0.0                     0.0       ! Bank 2
-     0.                       0.0                     0.0       ! Bank 3
-     228.                     0.0                     0.0       ! Bank 4
-     0.                       0.0                     0.0       ! Bank 5
-     0.                       0.0                     0.0       ! Bank 6
-     0.                       0.0                     0.0       ! Bank 7
-0.6  0.01  0.6  0.1            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
+! Final Bank Pos (steps)   Starts Move (seconds)   Speed (steps/seconds)
+   150.                     0.0                     0.0       ! Bank 1
+   200.                     0.0                     0.0       ! Bank 2
+   228.                     0.0                     780.0     ! Bank 3
+   200.                     0.0                     0.0       ! Bank 4
+   200.                     0.0                     0.0       ! Bank 5
+   200.                     0.0                     0.0       ! Bank 6
+   200.                     0.0                     0.0       ! Bank 7
+0.6  0.01  0.6  0.01            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
 0.0002584 0.00152 0.0013908 0.0030704 0.001102 0.0002584 !beta
 0.0128  0.0318  0.119   0.3181  1.4027  3.9286           !decay constants
 2.8E7    4.4E5     ! Neutron velocity

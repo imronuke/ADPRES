@@ -36,62 +36,62 @@ NEACRP Problem
 
 ! GEOMETRY CARD
 %GEOM
-9 9 18               !nx, ny, nz
-10.803   8*21.606    !x-direction assembly size in cm
-  1         8*2      !x-direction assembly divided 2x2
-8*21.606 10.803      !y-direction assembly size in cm
-  8*2       1        !y-direction assembly divided 2x2
+17 9 18               !nx, ny, nz
+17*21.606             !x-direction assembly size in cm
+  17*2                !x-direction assembly divided 2x2
+8*21.606 10.803       !y-direction assembly size in cm
+  8*2       1         !y-direction assembly divided 2x2
 30.  7.7  11.0  15.0  10*30.0  2*12.8  8.0  30.      !z-direction size  in cm (from bottom to top)
 18*1                 !z-direction assembly divided into 20 cm each
 3                    !np number of planar type
 1  2  15*3  1        !planar assignment (from bottom to top)
 ! Planar_Reg 1
- 1  1  1  1  1  1  1  1  2
- 1  1  1  1  1  1  1  1  2
- 1  1  1  1  1  1  1  3  2
- 1  1  1  1  1  1  1  2  0
- 1  1  1  1  1  1  3  2  0
- 1  1  1  1  1  3  2  0  0
- 1  1  1  1  3  2  0  0  0
- 1  1  3  2  2  0  0  0  0
- 2  2  2  0  0  0  0  0  0
+2  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  2
+2  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  2
+2  3  1  1  1  1  1  1  1  1  1  1  1  1  1  3  2
+0  2  1  1  1  1  1  1  1  1  1  1  1  1  1  2  0
+0  2  3  1  1  1  1  1  1  1  1  1  1  1  3  2  0
+0  0  2  3  1  1  1  1  1  1  1  1  1  3  2  0  0
+0  0  0  2  3  1  1  1  1  1  1  1  3  2  0  0  0
+0  0  0  0  2  2  3  1  1  1  3  2  2  0  0  0  0
+0  0  0  0  0  0  2  2  2  2  2  0  0  0  0  0  0
 ! Planar_Reg 2
- 4  5  4  5  4  5  4  6  2
- 5  4  5  4  5  4  6  6  2
- 4  5  4  5  4  5  6  3  2
- 5  4  5  4  5  6  6  2  0
- 4  5  4  5  4  6  3  2  0
- 5  4  5  6  6  3  2  0  0
- 4  6  6  6  3  2  0  0  0
- 6  6  3  2  2  0  0  0  0
- 2  2  2  0  0  0  0  0  0
+2  6  4  5  4  5  4  5  4  5  4  5  4  5  4  6  2
+2  6  6  4  5  4  5  4  5  4  5  4  5  4  6  6  2
+2  3  6  5  4  5  4  5  4  5  4  5  4  5  6  3  2
+0  2  6  6  5  4  5  4  5  4  5  4  5  6  6  2  0
+0  2  3  6  4  5  4  5  4  5  4  5  4  6  3  2  0
+0  0  2  3  6  6  5  4  5  4  5  6  6  3  2  0  0
+0  0  0  2  3  6  6  6  4  6  6  6  3  2  0  0  0
+0  0  0  0  2  2  3  6  6  6  3  2  2  0  0  0  0
+0  0  0  0  0  0  2  2  2  2  2  0  0  0  0  0  0
 ! Planar_Reg 3
- 4  9  4  9  4  7  4  6  2
- 9  4  8  4  8  4 11  6  2
- 4  8  4  8  4  8  6  3  2
- 9  4  8  4  8 10  6  2  0
- 4  8  4  8  4  6  3  2  0
- 7  4  8 10  6  3  2  0  0
- 4 11  6  6  3  2  0  0  0
- 6  6  3  2  2  0  0  0  0
- 2  2  2  0  0  0  0  0  0
+2  6  4  7  4  9  4  9  4  9  4  9  4  7  4  6  2
+2  6 11  4  8  4  8  4  9  4  8  4  8  4 11  6  2
+2  3  6  8  4  8  4  8  4  8  4  8  4  8  6  3  2
+0  2  6 10  8  4  8  4  9  4  8  4  8 10  6  2  0
+0  2  3  6  4  8  4  8  4  8  4  8  4  6  3  2  0
+0  0  2  3  6 10  8  4  7  4  8 10  6  3  2  0  0
+0  0  0  2  3  6  6 11  4 11  6  6  3  2  0  0  0
+0  0  0  0  2  2  3  6  6  6  3  2  2  0  0  0  0
+0  0  0  0  0  0  2  2  2  2  2  0  0  0  0  0  0
 ! Boundary conditions (east), (west), (north), (south), (bottom), (top)
-1 2 2 1 1 1
+1 1 2 1 1 1
 
 ! CONTROL CARD
 %CROD
-7    228                      ! Number of CR banks and max number of banks
+8  228.                        ! Number of CR banks and max number of banks
 37.7 1.5942237                ! Zero step pos. (cm) and cm/step (total 228 steps)
-100.00  200.00  100.00  200.00  200.00  200.00  200.00           ! CR Bank pos.
- 1  0  2  0  0  0  3  0  0
- 0  4  0  0  0  6  0  0  0
- 2  0  5  0  6  0  6  0  0
- 0  0  0  4  0  0  0  0  0
- 0  0  6  0  7  0  0  0  0
- 0  6  0  0  0  0  0  0  0
- 3  0  6  0  0  0  0  0  0
- 0  0  0  0  0  0  0  0  0
- 0  0  0  0  0  0  0  0  0
+0.  0.  0.  228.  0.  228.  0.  0.           ! CR Bank pos.
+0  0  3  0  0  0  2  0  1  0  2  0  0  0  8  0  0
+0  0  0  6  0  0  0  4  0  4  0  0  0  6  0  0  0
+0  0  6  0  6  0  5  0  2  0  5  0  6  0  6  0  0
+0  0  0  0  0  4  0  0  0  0  0  4  0  0  0  0  0
+0  0  0  0  7  0  6  0  0  0  6  0  7  0  0  0  0
+0  0  0  0  0  0  0  6  0  6  0  0  0  0  0  0  0
+0  0  0  0  0  0  6  0  3  0  6  0  0  0  0  0  0
+0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0
+0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0
 ! CX changes
 !  sigtr        siga        nu*sigf      sigf      sigs_g1   sigs_g2
  3.73220E-03  2.47770E-03 -1.02786E-04 -3.77989E-05  0.0 -3.19253E-03
@@ -120,7 +120,7 @@ NEACRP Problem
 
 ! CRITICAL BORON SEARCH CARD
 %BCON
-1158.2  1200.2  !Boron concentration ref. in ppm
+1134.9  1200.2  !Boron concentration ref. in ppm
 ! CX change per unit ppm change of Boron concentration
 !  sigtr          siga         nu*sigf       sigf      sigs_g1   sigs_g2
  6.11833E-08  1.87731E-07  0.00000E+00  0.00000E+00  0.0  7.91457E-10
@@ -230,12 +230,11 @@ NEACRP Problem
 9.24925E-01  3.49853E-02  4.20693E-02  1.72298E-02  0.0  0.00000E+00    /COMP 10
 1.29463E-01  1.79499E-03  1.04291E-03  3.68921E-04  0.0  2.78259E-02
 9.08456E-01  3.61032E-02  4.33215E-02  1.77435E-02  0.0  0.00000E+00    /COMP 11
-1
 
 ! THERMAL-HYDRAULIC CARD
 %THER
-100.                                   ! Percent power in %
-693.75e6                               ! Reactor thermal power for quarter geometry in Watt
+0.0001                                 ! Percent power in %
+1387.5e6                               ! Reactor thermal power for quarter geometry in Watt
 559.15  82.12102                       ! Inlet coolant temp. (Kelvin) and Fuel Assembly Mass flow rate (kg/s)
 4.11950E-03  6.8E-05  5.71E-04  1.2655E-2 ! Fuel meat rad., gap thinkness, cladding thinkness and pin picth (m)
 264  25                                ! Number of fuel pin and guide tubes
@@ -243,15 +242,16 @@ NEACRP Problem
 1
 
 %EJCT
-! Final Bank Pos (steps)   Starts Move (seconds)   Speed (steps/seconds)
-   228.                     0.0                     1280.0    ! Bank 1
-   200.                     0.0                     0.0       ! Bank 2
-   100.                     0.0                     0.0       ! Bank 3
-   200.                     0.0                     0.0       ! Bank 4
-   200.                     0.0                     0.0       ! Bank 5
-   200.                     0.0                     0.0       ! Bank 6
-   200.                     0.0                     0.0       ! Bank 7
-2.  0.01  1.0  0.1            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
+! Final Bank Pos (steps)     Starts Move (seconds)     Speed (steps/seconds)
+     0.                       0.0                     0.0       ! Bank 1
+     0.                       0.0                     0.0       ! Bank 2
+     0.                       0.0                     0.0       ! Bank 3
+     228.                     0.0                     0.0       ! Bank 4
+     0.                       0.0                     0.0       ! Bank 5
+     228.                     0.0                     0.0       ! Bank 6
+     0.                       0.0                     0.0       ! Bank 7
+     228.                     0.0                  2280.0       ! Bank 8
+5.  0.01  1.0  0.1            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
 0.0002584 0.00152 0.0013908 0.0030704 0.001102 0.0002584 !beta
 0.0128  0.0318  0.119   0.3181  1.4027  3.9286           !decay constants
 2.8E7    4.4E5     ! Neutron velocity

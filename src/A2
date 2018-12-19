@@ -1,10 +1,11 @@
-! CALCULATION MODE CARD
+! CRITICAL BORON CONCENTRATION SEARCH CALCULATION
+! FOR PWR NEACRP BENCHMARK
 %MODE
-RODEJECT
+BCSEARCH
 
 ! CASE CARD
 %CASE
-NEACRP Problem
+NEACRP Critical Boron Concentration Search - Case A2
 10.803 CM NODE SIZE
 
 ! XSEC CARD
@@ -119,8 +120,8 @@ NEACRP Problem
 1
 
 ! CRITICAL BORON SEARCH CARD
-%BCON
-1158.2  1200.2  !Boron concentration ref. in ppm
+%CBCS
+1200.2  !Boron concentration ref. in ppm
 ! CX change per unit ppm change of Boron concentration
 !  sigtr          siga         nu*sigf       sigf      sigs_g1   sigs_g2
  6.11833E-08  1.87731E-07  0.00000E+00  0.00000E+00  0.0  7.91457E-10
@@ -231,27 +232,3 @@ NEACRP Problem
 1.29463E-01  1.79499E-03  1.04291E-03  3.68921E-04  0.0  2.78259E-02
 9.08456E-01  3.61032E-02  4.33215E-02  1.77435E-02  0.0  0.00000E+00    /COMP 11
 1
-
-! THERMAL-HYDRAULIC CARD
-%THER
-100.                                   ! Percent power in %
-693.75e6                               ! Reactor thermal power for quarter geometry in Watt
-559.15  82.12102                       ! Inlet coolant temp. (Kelvin) and Fuel Assembly Mass flow rate (kg/s)
-4.11950E-03  6.8E-05  5.71E-04  1.2655E-2 ! Fuel meat rad., gap thinkness, cladding thinkness and pin picth (m)
-264  25                                ! Number of fuel pin and guide tubes
-0.019                                  ! FRACTION OF HEAT DEPOSITED IN COOLANT
-1
-
-%EJCT
-! Final Bank Pos (steps)   Starts Move (seconds)   Speed (steps/seconds)
-   228.                     0.0                     1280.0    ! Bank 1
-   200.                     0.0                     0.0       ! Bank 2
-   100.                     0.0                     0.0       ! Bank 3
-   200.                     0.0                     0.0       ! Bank 4
-   200.                     0.0                     0.0       ! Bank 5
-   200.                     0.0                     0.0       ! Bank 6
-   200.                     0.0                     0.0       ! Bank 7
-2.  0.01  1.0  0.1            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
-0.0002584 0.00152 0.0013908 0.0030704 0.001102 0.0002584 !beta
-0.0128  0.0318  0.119   0.3181  1.4027  3.9286           !decay constants
-2.8E7    4.4E5     ! Neutron velocity
