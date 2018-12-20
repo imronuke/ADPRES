@@ -536,21 +536,19 @@ CALL getent(tin, enti)
 DO k = 1, nzz
     DO j = 1, nyy
         DO i = ystag(j)%smin, ystag(j)%smax
-        !WRITE(ounit,*) cflow , node_nf(i,j), i, j
-        !IF (node_nf(i,j) < 2) STOP
 
             cpline = heatf(xyz(i,j,k)) * pi * dia  &
                    + cf * xpline(xyz(i,j,k)) * 100.                             ! Coolant Linear power densisty (W/m)
-            !WRITE(*,*) i, j, k, cpline/100.
+
             IF (k == 1) THEN                                                    ! Calculate coolant enthalpy and
                 ent(xyz(i,j,k)) = enti + cpline * zdel(k) * 0.01 / cflow        ! corresponding temp and density
                 CALL gettd(0.5 * (enti + ent(xyz(i,j,k))), &
-                           mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tc)          ! Get corresponding temp and density
+                           mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tc)      ! Get corresponding temp and density
             ELSE
                 ent(xyz(i,j,k)) = ent(xyz(i,j,k-1)) &
                                 + cpline * zdel(k) * 0.01 / cflow
                 CALL gettd(0.5 * (ent(xyz(i,j,k-1)) + ent(xyz(i,j,k))), &
-                          mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tc)           ! Get corresponding temp and density
+                          mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tc)       ! Get corresponding temp and density
             END IF
 
             hs = geths(cden(xyz(i,j,k)))
