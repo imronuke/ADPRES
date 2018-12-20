@@ -17,7 +17,7 @@ This command shall produce executable file 'adpres'
 
 ## How to run a test
 
-Copy some sample inputs file from folder 'smpl' into the folder where the executable file is located, then type this command
+Copy some sample inputs file from folder [smpl](https://github.com/imronuke/ADPRES/tree/master/smpl) into the folder where the executable file is located, then type this command
 
 ```
 ./adpres
@@ -28,10 +28,10 @@ then type the input file name. It will produce output file with out extension
 ## How accurate is ADPRES
 
 ADPRES has been tested for both static and transient reactor problems
-* [IAEA 3D PWR](https://engineering.purdue.edu/PARCS/Code/TestSuite/CalculationMode/StandAloneMode/Eigenvalue/IAEA3DPWR)  benchmark. A static PWR benchmark.
-* [DVP BWR benchmark]
-* [LMW benchmark]
-* [NEACRP transient benchmark]
+* [IAEA 3D PWR](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D)  benchmark. A static PWR benchmark.
+* [DVP BWR](https://github.com/imronuke/ADPRES/blob/master/smpl/DVP) benchmark. A static BWR bechmark with discontinuity factors
+* [LMW](https://github.com/imronuke/ADPRES/blob/master/smpl/LMW) benchmark. Reactor transient benchmark withouth TH feedbacks.
+* [NEACRP 3D PWR Core transient](https://github.com/imronuke/ADPRES/tree/master/smpl/NEACRP_TRANS) bechmark. PWR transient benchmark with TH feedbacks.
 
 
 ## How to cite
