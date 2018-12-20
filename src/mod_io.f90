@@ -3155,7 +3155,7 @@ SUBROUTINE inp_ther (xbunit)
 USE sdata, ONLY: pow, tin, nx, ny, nxx, nyy, ystag, &
                  rf, tg, tc, ppitch, cf, dia, cflow, dh, pi, &
                  farea, xdiv, ydiv, ystag, node_nf, nm, nt, rdel, rpos, &
-                 nnod, tfm, ppow, ent, heatf, thunit
+                 nnod, tfm, ppow, ent, heatf, ntem, stab, thunit
 
 IMPLICIT NONE
 
@@ -3272,9 +3272,12 @@ ALLOCATE(rdel(nt), rpos(nt+2))
 DO i = 1, nm
     rdel(i) = dum
 END DO
+
+! Fuel pin mesh size
 rdel(nm+1) = tg
 rdel(nm+2) = tc
 
+! Fuel pin mesh position
 rpos(1) = 0.5 * rdel(1)
 DO i = 2, nt-2
     rpos(i) = rpos(i-1) + 0.5 * (rdel(i-1) + rdel(i))
@@ -3302,6 +3305,14 @@ IF (iost /= 0) THEN
     1091 FORMAT    (2X, 'Steam Table Open Failed--status', I6)
     STOP
 END IF
+
+! Save steam table data to stab
+DO i = 1, ntem
+   READ(thunit,*) stab(i,1), stab(i,2), stab(i,3), &
+                  stab(i,4), stab(i,5), stab(i,6)
+END DO
+
+CLOSE(UNIT=thunit)
 
 !! THER PRINT OPTION
 READ(xbunit, *, IOSTAT=ios) ind, ln, popt

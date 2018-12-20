@@ -239,6 +239,16 @@
    232: 1.29463E-01  1.79499E-03  1.04291E-03  3.68921E-04  0.0  2.78259E-02                                
    233: 9.08456E-01  3.61032E-02  4.33215E-02  1.77435E-02  0.0  0.00000E+00    /COMP 11                    
    234: 1                                                                                                   
+   235:                                                                                                     
+   236: ! THERMAL-HYDRAULIC CARD                                                                            
+   237: %THER                                                                                               
+   238: 100.                                   ! Percent power in %                                         
+   239: 693.75e6                               ! Reactor thermal power for quarter geometry in Watt         
+   240: 559.15  82.12102                       ! Inlet coolant temp. (Kelvin) and Fuel Assembly Mass flow ra
+   241: 4.11950E-03  6.8E-05  5.71E-04  1.2655E-2 ! Fuel meat rad., gap thinkness, cladding thinkness and pi
+   242: 264  25                                ! Number of fuel pin and guide tubes                         
+   243: 0.019                                  ! FRACTION OF HEAT DEPOSITED IN COOLANT                      
+   244: 1                                                                                                   
   ========================================INPUT DATA   ENDS HERE=====================================
 
 
@@ -481,7 +491,7 @@
 
             >>>>       READING COOLANT DENSITY      <<<<
             --------------------------------------------
-  AVERAGE COOLANT DENSITY   :  0.7464
+  AVERAGE COOLANT DENSITY   :  0.7464  (USED AS GUESS)
   COOLANT DENSITY REFERENCE :  0.7125
 
   MATERIAL CX CHANGES PER COOLANT DENSITY CHANGES : 
@@ -692,4 +702,116 @@
   ...Control Rods Insertion card is sucessfully read...
 
 
+            >>>>   READING THERMAL-HYDRAULIC DATA   <<<<
+            --------------------------------------------
+  REACTOR PERCENT POWER (%)                :    100.00000
+  REACTOR POWER (Watt)                     :   6.9375E+08
+  COOLANT INLET TEMPERATURE (Kelvin)       :   5.5915E+02
+  FUEL ASSEMBLY MASS FLOW RATE (Kg/s)      :   8.2121E+01
+  FUEL MEAT RADIUS (m)                     :   4.1195E-03
+  GAP THICKNESS (m)                        :   6.8000E-05
+  CLAD THICKNESS (m)                       :   5.7100E-04
+  PIN PITCH(m)                             :   1.2655E-02
+  FRACTION OF HEAT DEPOSITED IN COOL.      :   1.9000E-02
+
+  ...Thermal-hydraulic Card is sucessfully read...
+
+
   **********************************  STOP READING INPUT  *******************************************
+
+
+  ================================================================================================
+                        CRITICAL BORON CONCENTRATION SEARCH
+  ================================================================================================
+
+   Itr  Boron Concentration          K-EFF    FLUX REL. ERROR   FISS. SOURCE REL. ERROR    DOPPLER ERROR
+  ------------------------------------------------------------------------------------------------------
+    1        1200.20                0.99585     6.23399E-06          6.33626E-06           8.05664E-03
+    2        1195.22                0.99633     6.82567E-06          6.45177E-06           6.46973E-03
+    3        1157.67                1.00001     5.45795E-06          5.33539E-06           5.00488E-03
+    4        1157.82                1.00000     7.76863E-06          6.71546E-06           5.98145E-03
+
+
+     Radial Power Distribution
+   ==============================
+           1       2       3       4       5       6       7       8       9
+     9   0.894   1.012   1.148   1.112   1.172   1.121   0.836   0.732        
+     8   1.012   1.115   1.162   1.185   1.149   1.088   0.945   0.586        
+     7   1.148   1.162   1.195   1.167   1.129   1.010   0.922                
+     6   1.112   1.185   1.167   1.138   1.033   0.984   0.655                
+     5   1.172   1.149   1.129   1.033   0.918   0.723                        
+     4   1.121   1.088   1.010   0.984   0.723                                
+     3   0.836   0.945   0.922   0.655                                        
+     2   0.732   0.586                                                        
+     1                                                                        
+
+   MAX POS.       Maximum Value
+  (  7,  3)          1.195
+
+
+     Axial Power Density Distribution
+   ====================================
+
+     Plane Number        Power      Height
+    -----------------------------------------
+        18  (TOP)        0.000      427.30
+        17               0.020      397.30
+        16               0.041      389.30
+        15               0.080      376.50
+        14               0.198      363.70
+        13               0.430      333.70
+        12               0.684      303.70
+        11               0.956      273.70
+        10               1.263      243.70
+         9               1.624      213.70
+         8               1.998      183.70
+         7               2.224      153.70
+         6               2.198      123.70
+         5               1.802       93.70
+         4               1.221       63.70
+         3               0.771       48.70
+         2               0.488       37.70
+         1  (BOTTOM)     0.000       30.00
+
+   MAX POS.       Maximum Value
+    (  7)             2.224
+
+
+     Radial Flux Distribution
+   ==============================
+    Group :   1
+             1          2          3          4          5          6          7          8          9
+     9   2.041E-02  2.211E-02  2.423E-02  2.430E-02  2.469E-02  2.311E-02  1.880E-02  1.296E-02  1.880E-03 
+     8   2.211E-02  2.350E-02  2.463E-02  2.498E-02  2.434E-02  2.290E-02  1.888E-02  1.051E-02  1.403E-03 
+     7   2.423E-02  2.463E-02  2.522E-02  2.473E-02  2.374E-02  2.167E-02  1.671E-02  3.864E-03  3.555E-04 
+     6   2.430E-02  2.498E-02  2.473E-02  2.389E-02  2.196E-02  1.934E-02  1.170E-02  1.691E-03            
+     5   2.469E-02  2.434E-02  2.374E-02  2.196E-02  1.895E-02  1.282E-02  3.231E-03  3.660E-04            
+     4   2.311E-02  2.290E-02  2.167E-02  1.934E-02  1.282E-02  3.355E-03  4.530E-04                       
+     3   1.880E-02  1.888E-02  1.671E-02  1.170E-02  3.231E-03  4.530E-04                                  
+     2   1.296E-02  1.051E-02  3.864E-03  1.691E-03  3.660E-04                                             
+     1   1.880E-03  1.403E-03  3.555E-04                                                                   
+
+    Group :   2
+             1          2          3          4          5          6          7          8          9
+     9   2.152E-02  2.043E-02  2.761E-02  2.246E-02  2.830E-02  2.271E-02  2.014E-02  1.278E-02  8.353E-04 
+     8   2.043E-02  2.684E-02  2.344E-02  2.855E-02  2.320E-02  2.620E-02  1.645E-02  1.014E-02  6.233E-04 
+     7   2.761E-02  2.344E-02  2.875E-02  2.353E-02  2.714E-02  2.025E-02  1.594E-02  1.544E-03  1.430E-04 
+     6   2.246E-02  2.855E-02  2.353E-02  2.732E-02  2.071E-02  1.696E-02  1.125E-02  7.463E-04            
+     5   2.830E-02  2.320E-02  2.714E-02  2.071E-02  2.193E-02  1.243E-02  1.298E-03  1.472E-04            
+     4   2.271E-02  2.620E-02  2.025E-02  1.696E-02  1.243E-02  1.351E-03  1.815E-04                       
+     3   2.014E-02  1.645E-02  1.594E-02  1.125E-02  1.298E-03  1.815E-04                                  
+     2   1.278E-02  1.014E-02  1.544E-03  7.463E-04  1.472E-04                                             
+     1   8.353E-04  6.233E-04  1.430E-04                                                                   
+
+
+   HEAT FLUX HOT CHANNEL FACTOR :  2.246
+
+  AVERAGE DOPPLER TEMPERATURE     :   719.1 K (  446.0 C)
+  MAX FUEL CENTERLINE TEMPERATURE :  1960.9 K ( 1687.7 C)
+  AVERAGE MODERATOR TEMPERATURE   :   576.1 K (  302.9 C)
+  MAXIMUM MODERATOR TEMPERATURE   :   603.7 K (  330.5 C)
+
+   WARNING: SOME NEGATIVE CXs (DUE TO CR INSERTION) ARE SUPPRESSED TO ZERO IN SUBROUTINE CROD_UPDT
+
+
+ Total time :    8.31485271      seconds
