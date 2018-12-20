@@ -52,6 +52,9 @@ END TYPE
 TYPE(NODE_DATA), DIMENSION(:,:), ALLOCATABLE :: nod
 
 REAL, DIMENSION(:,:), ALLOCATABLE :: f0, fx1, fy1, fz1, fx2, fy2, fz2      ! Flux and Flux moments
+REAL, DIMENSION(:), ALLOCATABLE :: fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2      ! Fission source moments
+REAL, DIMENSION(:,:), ALLOCATABLE :: c0, cx1, cy1, cz1, cx2, cy2, cz2  ! neutron precusor density
+REAL, DIMENSION(:,:), ALLOCATABLE :: ct, ctx1, cty1, ctz1, ctx2, cty2, ctz2 ! previous neutron precusor density
 
 TYPE :: STAGGERED
     INTEGER :: smax, smin                             ! imax and imin along x and y direction for staggered nodes
@@ -117,19 +120,19 @@ REAL, DIMENSION(:,:,:), ALLOCATABLE :: csigs                      ! Used only fo
 
 ! Transient parameters
 INTEGER, PARAMETER :: nf = 6                       ! Number of delaye dneutron precusor family
-REAL, DIMENSION(nf) :: ibeta, lamb                 ! beta and precusor decay constant
-! REAL, DIMENSION(:,:), ALLOCATABLE :: iC            ! neutron precusor density
+REAL, DIMENSION(nf) :: ibeta, lamb                 ! beta (delayed neutron fraction) and precusor decay constant
+REAL :: tbeta                                      ! total beta
 REAL, DIMENSION(:), ALLOCATABLE :: velo            ! Neutron velocity
 REAL :: ttot                                       ! TOTAL SIMULATION TIME
 REAL :: tstep1                                     ! FIRST TIME STEP
 REAL :: tstep2                                     ! SECOND TIME STEP
 REAL :: tdiv                                       ! WHEN SECOND TIME STEP APPLY
+REAL, DIMENSION(:,:), ALLOCATABLE :: omeg          ! Exponential transformation constant
 
 ! Thermal-hydraulics parameters
 REAL :: pow                                        ! Reactor power for given geometry (watt)
 REAL :: ppow                                       ! Reactor percent power in percent
 REAL :: tpow                                       ! Total reactor power
-! REAL, DIMENSION(:), ALLOCATABLE :: efis            ! Amount of Energy per fission
 REAL, DIMENSION(:), ALLOCATABLE :: npow            ! nodes power (watt)
 REAL :: tin                                        ! coolant inlet temperature (kelvin)
 REAL :: cflow                                      ! Sub-channel mass flow rate (kg/s)
@@ -145,10 +148,13 @@ REAL, DIMENSION(:), ALLOCATABLE :: rpos            ! mesh position
 REAL :: th_err                                     ! Doppler error
 REAL, DIMENSION(:), ALLOCATABLE :: ent             ! Coolant Enthalpy (J/Kg)
 REAL, DIMENSION(:), ALLOCATABLE :: heatf           ! Heat flux (W/m2)
-REAL :: cpres = 155.0                              ! Core pressure in Bar
-INTEGER :: th_niter = 20                                ! Maximum number of thermal-hydraulics iteration
+INTEGER :: th_niter = 20                           ! Maximum number of thermal-hydraulics iteration
 INTEGER, PARAMETER :: thunit = 300                 ! Unit number to open steam table file
 REAL, PARAMETER :: pi = 3.14159265
+
+! Steam Table data
+INTEGER, PARAMETER:: ntem = 16   ! Number of temperature in steam table
+REAL, DIMENSION(ntem,6) :: stab  ! Steam table matrix
 
 
 END MODULE sdata

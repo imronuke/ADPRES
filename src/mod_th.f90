@@ -4,24 +4,9 @@ IMPLICIT NONE
 
 SAVE
 
-REAL :: kv   ! Water kinematic viscosity  (10e-6 m2/s)
+REAL :: kv   ! Water kinematic viscosity
 REAL :: Pr  !Prandtl Number
 REAL :: tc  ! Thermal conductivity (W/mK)
-
-INTEGER, PARAMETER:: npres = 2   ! Number of pressure data in steam table
-INTEGER, PARAMETER:: npres2 = 3   ! Number of pressure data for Prandtl number
-INTEGER, PARAMETER:: ntem = 16   ! Number of temperature in steam table
-INTEGER, PARAMETER:: ntem2 = 7   ! Number of temperature in steam table for Prandtl number
-TYPE :: WATER_DATA
-    REAL :: press   ! Pressure
-    REAL, DIMENSION(ntem) :: tem  ! TEMPERATURE
-    REAL, DIMENSION(ntem) :: dens  ! density
-    REAL, DIMENSION(ntem) :: enth  ! Enthalpy
-    REAL, DIMENSION(ntem) :: tcon  ! thermal conductivity
-    REAL, DIMENSION(ntem) :: pran  ! Prandtl Numbers
-    REAL, DIMENSION(ntem) :: kinvis  ! kinematic viscosity
-END TYPE
-TYPE(WATER_DATA) :: wdata  ! water thermophysical data
 
 CONTAINS
 
@@ -32,7 +17,7 @@ SUBROUTINE th_iter(ind)
   !    To do thermal-hydrailics iteration
   !
 
-  USE sdata, ONLY: nnod, ftem, mtem, cden, bcon, bpos, npow, pow, ppow, nout, nac,  &
+  USE sdata, ONLY: nnod, ftem, mtem, cden, bcon, bpos, npow, pow, ppow,  &
                    zdel, node_nf, ix, iy, iz, th_err, node_nf, ix, iy, iz, th_niter
   USE nodal, ONLY: nodal_coup4, outer4th, PowDis
   USE InpOutp, ONLY: XS_updt, ounit
@@ -96,7 +81,7 @@ SUBROUTINE par_ave_f(par, ave)
 !    To calculate average fuel temp (only for active core)
 !
 
-USE sdata, ONLY: vdel, nnod, ystag, xyz, nzz, nyy
+USE sdata, ONLY: vdel, ystag, xyz, nzz, nyy
 
 IMPLICIT NONE
 
@@ -126,7 +111,7 @@ SUBROUTINE par_ave(par, ave)
 !    To calculate average moderator temp (only for radially active core)
 !
 
-USE sdata, ONLY: vdel, nnod, ystag, xyz, nzz, nyy
+USE sdata, ONLY: vdel, ystag, xyz, nzz, nyy
 
 IMPLICIT NONE
 
@@ -150,19 +135,18 @@ ave = dum / dum2
 END SUBROUTINE par_ave
 
 
-SUBROUTINE par_max(par, pmax, ti, tj, tk)
+SUBROUTINE par_max(par, pmax)
 !
 ! Purpose:
 !    To calculate maximum fuel tem, coolant tem, and density
 !
 
-USE sdata, ONLY: nnod, ystag, xyz, nzz, nyy
+USE sdata, ONLY: ystag, xyz, nzz, nyy
 
 IMPLICIT NONE
 
 REAL, DIMENSION(:), INTENT(IN) :: par
 REAL, INTENT(OUT) :: pmax
-INTEGER, INTENT(OUT) :: ti, tj, tk
 INTEGER :: i, j, k
 
 pmax = 0.
@@ -171,9 +155,6 @@ DO k = 1, nzz
         DO i = ystag(j)%smin, ystag(j)%smax
             IF (par(xyz(i,j,k)) > pmax) THEN
                 pmax = par(xyz(i,j,k))
-                ti = i
-                tj = j
-                tk = k
             END IF
         END DO
     END DO
@@ -188,15 +169,16 @@ SUBROUTINE getent(t,ent)
 !    To get enthalpy for given coolant temp. from steam table
 !
 
-USE sdata, ONLY: thunit
+USE sdata, ONLY: stab, ntem
 USE InpOutp, ONLY : ounit
 
 IMPLICIT NONE
 
 REAL, INTENT(IN) :: t
 REAL, INTENT(OUT) :: ent
-REAL :: t1, rho1, ent1
-REAL :: t2, rho2, ent2
+REAL :: t1, ent1
+REAL :: t2, ent2
+INTEGER :: i
 
 IF ((t < 473.15) .OR. (t > 617.91)) THEN
     WRITE(ounit,*) '  Coolant temp. : ', t
@@ -205,13 +187,11 @@ IF ((t < 473.15) .OR. (t > 617.91)) THEN
     STOP
 END IF
 
-REWIND(thunit)
-
-READ(thunit,*) t2, rho2, ent2
-DO
+t2 = stab(1,1); ent2 = stab(1,3)
+DO i = 2, ntem
     t1 = t2
     ent1 = ent2
-    READ(thunit,*) t2, rho2, ent2
+    t2 = stab(i,1); ent2 = stab(i,3)
     IF ((t >= t1) .AND. (t <= t2)) THEN
         ent = ent1 + (t - t1) / (t2 - t1) * (ent2 - ent1)
         EXIT
@@ -228,7 +208,7 @@ SUBROUTINE gettd(ent,t,rho,prx,kvx,tcx)
 !    To get enthalpy for given coolant temp. from steam table
 !
 
-USE sdata, ONLY: thunit
+USE sdata, ONLY: stab, ntem
 USE InpOutp, ONLY : ounit
 
 IMPLICIT NONE
@@ -239,6 +219,8 @@ REAL :: t1, rho1, ent1, kv1, pr1, tc1
 REAL :: t2, rho2, ent2, kv2, pr2, tc2
 REAL :: ratx
 
+INTEGER :: i
+
 IF ((ent < 858341.5) .OR. (ent > 1624307.1)) THEN
     WRITE(ounit,*) '  Enthalpy. : ', ent
     WRITE(ounit,*) '  ERROR : ENTHALPY IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
@@ -246,17 +228,17 @@ IF ((ent < 858341.5) .OR. (ent > 1624307.1)) THEN
     STOP
 END IF
 
-REWIND(thunit)
-
-READ(thunit,*) t2, rho2, ent2, pr2, kv2, tc2
-DO
+t2 = stab(1,1); rho2 = stab(1,2); ent2 = stab(1,3)
+pr2 = stab(1,4); kv2 = stab(1,5); tc2 = stab(1,6)
+DO i = 2, ntem
     t1 = t2
     ent1 = ent2
     rho1 = rho2
     pr1 = pr2
     kv1 = kv2
     tc1 = tc2
-    READ(thunit,*) t2, rho2, ent2, pr2, kv2, tc2
+    t2 = stab(i,1); rho2 = stab(i,2); ent2 = stab(i,3)
+    pr2 = stab(i,4); kv2 = stab(i,5); tc2 = stab(i,6)
     IF ((ent >= ent1) .AND. (ent <= ent2)) THEN
         ratx = (ent - ent1) / (ent2 - ent1)
         t   = t1   + ratx * (t2 - t1)
@@ -388,139 +370,6 @@ geths = (tc / dh) * Nu                        ! Calculate heat transfer coeffici
 END FUNCTION geths
 
 
-SUBROUTINE th_trans4(xpline, h)
-
-!
-! Purpose:
-!    To perform fuel pin thermal transient
-!
-
-USE sdata, ONLY: mtem, cden, ftem, tin, xyz, cflow, nyy, nzz, cf, ent, heatf, nnod, &
-                 ystag, tfm, nt, nf, rpos, rdel, tg, rf, farea, dia, pi, node_nf, zdel, ystag
-USE InpOutp, ONLY : ounit
-
-IMPLICIT NONE
-
-REAL, DIMENSION(:), INTENT(IN) :: xpline    ! Linear Power Density (W/cm)
-REAL, INTENT(IN) :: h                       ! Time step
-
-INTEGER :: i, j, k, n
-REAL :: hs, hg = 1.e4, kt           ! coolant heat transfer coef., gap heat transfer coef, and thermal conductivity
-REAL :: alpha = 0.7
-REAL :: xa, xc, tem, tem2
-REAL :: pdens                       ! Fuel pin power density channel
-REAL :: fdens = 10.412e3            ! UO2 density (kg/m3)
-REAL :: cdens = 6.6e3               ! Cladding density (kg/m3)
-REAL :: cp                          ! Specific heat capacity
-REAL :: eta, alp, beta
-REAL :: mdens, cpline, vol
-REAL :: enti
-REAL, DIMENSION(nnod) :: entp        ! previous enthalpy
-
-CALL getent(tin, enti)
-entp = ent
-
-DO k = 1, nzz
-    DO j = 1, nyy
-        DO i = ystag(j)%smin, ystag(j)%smax
-
-            mdens = cden(xyz(i,j,k)) * 1000.                                    ! Coolant density (kg/m3)
-            cpline = heatf(xyz(i,j,k)) * pi * dia  &
-                  + cf * xpline(xyz(i,j,k)) * 100.                              ! Coolant Linear power densisty (W/m)
-            vol   = farea * zdel(k) * 0.01
-            eta = 0.5 * mdens * vol / h
-            IF (k == 1) THEN                                                    ! Calculate coolant enthalpy
-                ent(xyz(i,j,k)) = (cpline * zdel(k) * 0.01 &
-                                - cflow * (ent(xyz(i,j,k)) - enti) &
-                                + eta * ent(xyz(i,j,k))) / eta
-                CALL gettd(0.5 * (enti + ent(xyz(i,j,k))), mtem(xyz(i,j,k)), &
-                          cden(xyz(i,j,k)), Pr, kv, tc)                             ! Get corresponding temp and density
-            ELSE
-              ent(xyz(i,j,k)) = (cpline * zdel(k) * 0.01 &
-                              - cflow * (ent(xyz(i,j,k)) - entp(xyz(i,j,k-1))) &
-                              + eta * (ent(xyz(i,j,k)) + entp(xyz(i,j,k-1)) &
-                              - ent(xyz(i,j,k-1)))) / eta
-                CALL gettd(0.5 * (ent(xyz(i,j,k-1)) + ent(xyz(i,j,k))), &
-                           mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tc)          ! Get corresponding temp and density
-            END IF
-
-
-            hs = geths(cden(xyz(i,j,k)))                                               ! Calculate heat transfer coef
-            pdens = (1. - cf) * 100. * xpline(xyz(i,j,k)) / (pi * rf**2)                ! Fuel pin Power Density (W/m3)
-
-            ! Calculate tridiagonal matrix: a, b, c and source: d
-            ! For nt=1 [FUEL CENTERLINE]
-            tem = 0.5 * (tfm(xyz(i,j,k),1) + tfm(xyz(i,j,k),2))                        ! Average temp. to get thermal conductivity
-            kt = getkf(tem)                                                            ! Get thermal conductivity
-            cp = getcpf(tfm(xyz(i,j,k),1))                                                           ! Get specific heat capacity
-            eta = fdens * cp * rpos(1)**2 / (2. * h)
-            xc  = kt * rpos(1) / rdel(1)
-            tfm(xyz(i,j,k),1) = pdens * 0.5 * rpos(1)**2 / eta &
-                              + xc * tfm(xyz(i,j,k),2)  / eta &
-                              - xc * tfm(xyz(i,j,k),1)  / eta &
-                              + tfm(xyz(i,j,k),1)
-
-            DO n = 2, nt-2
-                tem = 0.5 * (tfm(xyz(i,j,k),n) + tfm(xyz(i,j,k),n+1))
-                kt = getkf(tem)
-                cp = getcpf(tfm(xyz(i,j,k),n))
-                eta = fdens * cp * (rpos(n)**2 - rpos(n-1)**2) / (2. * h)
-                xa = xc
-                xc = kt * rpos(n) / rdel(n)
-                tfm(xyz(i,j,k),n) = pdens * 0.5 * (rpos(n)**2 - rpos(n-1)**2) / eta &
-                                  + xa * tfm(xyz(i,j,k),n-1)  / eta &
-                                  + xc * tfm(xyz(i,j,k),n+1)  / eta &
-                                  - (xa + xc) * tfm(xyz(i,j,k),n)  / eta &
-                                  + tfm(xyz(i,j,k),n)
-            END DO
-
-            ! For nt-1 [FUEL SURFACE]
-            cp = getcpf(tfm(xyz(i,j,k),nt-1))
-            eta = fdens * cp * (rf**2 - rpos(nt-2)**2) / (2. * h)
-            xa = xc
-            xc = hg * rpos(nt)   ! This is position of inner clad
-            tfm(xyz(i,j,k),nt-1) = pdens * 0.5 * (rf**2 - rpos(nt-2)**2) / eta &
-                                 + xa * tfm(xyz(i,j,k),nt-2)  / eta &
-                                 + xc * tfm(xyz(i,j,k),nt)  / eta &
-                                 - (xa + xc) * tfm(xyz(i,j,k),nt-1)  / eta &
-                                 + tfm(xyz(i,j,k),nt-1)
-
-            ! For nt [INNER CLAD]
-            tem = 0.5 * (tfm(xyz(i,j,k),nt) + tfm(xyz(i,j,k),nt+1))
-            kt = getkc(tem)      ! For cladding
-            cp = getcpc(tfm(xyz(i,j,k),nt))
-            eta = cdens * cp * (rpos(nt+1)**2 - rpos(nt)**2) / (2. * h)
-            xa = xc
-            xc = kt * rpos(nt+1) / rdel(nt)
-            tfm(xyz(i,j,k),nt) = xa * tfm(xyz(i,j,k),nt-1)  / eta &
-                               + xc * tfm(xyz(i,j,k),nt+1)  / eta &
-                               - (xa + xc) * tfm(xyz(i,j,k),nt)  / eta &
-                               + tfm(xyz(i,j,k),nt)
-
-            ! For nt+1  [OUTER CLAD]
-            cp = getcpc(tfm(xyz(i,j,k),nt+1))
-            eta = cdens * cp * (rpos(nt+2)**2 - rpos(nt+1)**2) / (2. * h)
-            xa = xc
-            xc = hs * rpos(nt+2)
-            tfm(xyz(i,j,k),nt+1) = hs * rpos(nt+2) * mtem(xyz(i,j,k)) / eta &
-                                 + xa * tfm(xyz(i,j,k),nt)  / eta &
-                                 - (xa + xc) * tfm(xyz(i,j,k),nt+1)  / eta &
-                                 + tfm(xyz(i,j,k),nt+1)
-
-            ! Get lumped fuel temp
-            ftem(xyz(i,j,k)) = (1.-alpha) * tfm(xyz(i,j,k), 1) &
-                             + alpha * tfm(xyz(i,j,k), nt-1)
-
-            ! Calculate heat flux
-            heatf(xyz(i,j,k)) = hs * (tfm(xyz(i,j,k), nt+1) - mtem(xyz(i,j,k)))
-
-        END DO
-    END DO
-END DO
-
-END SUBROUTINE th_trans4
-
-
 SUBROUTINE th_trans3(xpline, h)
 
 !
@@ -529,8 +378,7 @@ SUBROUTINE th_trans3(xpline, h)
 !
 
 USE sdata, ONLY: mtem, cden, ftem, tin, xyz, cflow, nyy, nzz, cf, ent, heatf, nnod, &
-                 ystag, tfm, nt, nf, rpos, rdel, tg, rf, farea, dia, pi, node_nf, zdel, ystag
-USE InpOutp, ONLY : ounit
+                 ystag, tfm, nt, rpos, rdel, rf, farea, dia, pi, zdel, ystag
 
 IMPLICIT NONE
 
@@ -546,7 +394,7 @@ REAL :: pdens                       ! Fuel pin power density channel
 REAL :: fdens = 10.412e3            ! UO2 density (kg/m3)
 REAL :: cdens = 6.6e3               ! Cladding density (kg/m3)
 REAL :: cp                          ! Specific heat capacity
-REAL :: eta, alp, beta
+REAL :: eta
 REAL :: mdens, cpline, vol
 REAL :: enti
 REAL, DIMENSION(nnod) :: entp        ! previous enthalpy
@@ -668,15 +516,13 @@ SUBROUTINE th_upd2(xpline)
 !
 
 USE sdata, ONLY: mtem, cden, ftem, tin, xyz, cflow, nyy, nzz, cf, ent, heatf, &
-                 ystag, tfm, nt, nf, rpos, rdel, tg, rf, pi, node_nf, zdel, dia, ystag
-USE InpOutp, ONLY : ounit
+                 ystag, tfm, nt, rpos, rdel, rf, pi, zdel, dia, ystag
 
 IMPLICIT NONE
 
 REAL, DIMENSION(:), INTENT(IN) :: xpline    ! Linear Power Density (W/cm)
 
 INTEGER :: i, j, k, n
-REAL :: cp
 REAL, DIMENSION(nt+1) :: a, b, c, d
 REAL :: hs, hg = 1.e4, kt
 REAL :: alp = 0.7
@@ -690,21 +536,19 @@ CALL getent(tin, enti)
 DO k = 1, nzz
     DO j = 1, nyy
         DO i = ystag(j)%smin, ystag(j)%smax
-        !WRITE(ounit,*) cflow , node_nf(i,j), i, j
-        !IF (node_nf(i,j) < 2) STOP
 
             cpline = heatf(xyz(i,j,k)) * pi * dia  &
                    + cf * xpline(xyz(i,j,k)) * 100.                             ! Coolant Linear power densisty (W/m)
-            !WRITE(*,*) i, j, k, cpline/100.
+
             IF (k == 1) THEN                                                    ! Calculate coolant enthalpy and
                 ent(xyz(i,j,k)) = enti + cpline * zdel(k) * 0.01 / cflow        ! corresponding temp and density
                 CALL gettd(0.5 * (enti + ent(xyz(i,j,k))), &
-                           mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tc)          ! Get corresponding temp and density
+                           mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tc)      ! Get corresponding temp and density
             ELSE
                 ent(xyz(i,j,k)) = ent(xyz(i,j,k-1)) &
                                 + cpline * zdel(k) * 0.01 / cflow
                 CALL gettd(0.5 * (ent(xyz(i,j,k-1)) + ent(xyz(i,j,k))), &
-                          mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tc)           ! Get corresponding temp and density
+                          mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tc)       ! Get corresponding temp and density
             END IF
 
             hs = geths(cden(xyz(i,j,k)))
@@ -781,15 +625,14 @@ SUBROUTINE cbsearch()
 !    To search critical boron concentration
 !
 
-USE sdata, ONLY: Ke, rbcon, ftem, mtem, cden, bpos, nnod, ng, f0, fer, ser, &
+USE sdata, ONLY: Ke, rbcon, ftem, mtem, cden, bpos, nnod, f0, fer, ser, &
                  aprad, apaxi, afrad, npow
 USE InpOutp, ONLY: ounit, XS_updt, AsmFlux, AsmPow, AxiPow
 USE nodal, ONLY: nodal_coup4, outer4, powdis
 
 IMPLICIT NONE
 
-INTEGER :: rKe  ! Rounded Keff
-REAL  :: bc, bc1, bc2     ! Boron Concentration
+REAL  :: bc1, bc2, bcon     ! Boron Concentration
 REAL :: ke1, ke2
 INTEGER :: n
 
@@ -805,60 +648,59 @@ WRITE(ounit,*)
 WRITE(ounit,*) '  Itr  Boron Concentration          K-EFF    FLUX REL. ERROR' &
                //'   FISS. SOURCE REL. ERROR'
 WRITE(ounit,*) ' -----------------------------------------------------------' &
-              // '--------------------------'
+            // '--------------------------'
 
-CALL XS_updt(rbcon, ftem, mtem, cden, bpos)
+bcon = rbcon
+CALL XS_updt(bcon, ftem, mtem, cden, bpos)
 CALL nodal_coup4()
 CALL outer4(0)
-rKe = NINT(Ke * 100000)
-bc1 = rbcon
+bc1 = bcon
 ke1 = Ke
 
-WRITE(ounit,'(I5, F15.2, F23.5, ES15.5, ES17.5)') 1, bc1, Ke1, ser, fer
+WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') 1, bc1, Ke1, ser, fer
 
-bc2 = rbcon + (Ke - 1.) * rbcon
-CALL XS_updt(bc2, ftem, mtem, cden, bpos)
+bcon = bcon + (Ke - 1.) * bcon   ! Guess next critical boron concentration
+CALL XS_updt(bcon, ftem, mtem, cden, bpos)
 CALL nodal_coup4()
 CALL outer4(0)
-rKe = NINT(Ke * 100000)
+bc2 = bcon
 ke2 = Ke
 
-WRITE(ounit,'(I5, F15.2, F23.5, ES15.5, ES17.5)') 2, bc2, Ke2, ser, fer
+WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') 2, bc2, Ke2, ser, fer
 
 n = 3
 DO
-	bc = bc2 + (1.0 - ke2) / (ke1 - ke2) * (bc1 - bc2)
-	CALL XS_updt(bc, ftem, mtem, cden, bpos)
-    CALL nodal_coup4()
-    CALL outer4(0)
-	rKe = NINT(Ke * 100000)
-	bc1 = bc2
-	bc2 = bc
-	ke1 = ke2
-	ke2 = ke
-    WRITE(ounit,'(I5, F15.1, F23.5, ES15.5, ES17.5)') n, bc, Ke, ser, fer
-	IF ((rKe == 100000) .AND. (ser < 1.e-2) .AND. (fer < 1.e-2)) EXIT
-	n = n + 1
-	IF (bc > 2999. .AND. bc < 3000.) THEN
-	    WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION EXCEEDS THE LIMIT(3000 ppm)'
-		WRITE(ounit,*) '  ADPRES IS STOPPING'
-	    STOP
-	END IF
-	IF (bc > 0. .AND. bc < 1.) THEN
-	    WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION IS NOT FOUND (LESS THAN ZERO)'
-		WRITE(ounit,*) '  ADPRES IS STOPPING'
-	    STOP
-	END IF
-	IF (n == 30) THEN
-	    WRITE(ounit,*) '  MAXIMUM ITERATION FOR CRITICAL BORON SEARCH IS REACHING MAXIMUM'
-		WRITE(ounit,*) '  ADPRES IS STOPPING'
-	    STOP
-	END IF
+    bcon = bc2 + (1.0 - ke2) / (ke1 - ke2) * (bc1 - bc2)
+  CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+  CALL nodal_coup4()
+  CALL outer4(0)
+    bc1 = bc2
+    bc2 = bcon
+    ke1 = ke2
+    ke2 = ke
+  WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') n, bcon, Ke, ser, fer
+    IF ((ABS(Ke - 1.0) < 1.e-5) .AND. (ser < 1.e-5) .AND. (fer < 1.e-5)) EXIT
+    n = n + 1
+    IF (bcon > 2999. .AND. bcon < 3000.) THEN
+        WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION EXCEEDS THE LIMIT(3000 ppm)'
+        WRITE(ounit,*) '  ADPRES IS STOPPING'
+        STOP
+    END IF
+    IF (bcon > 0. .AND. bcon < 1.) THEN
+        WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION IS NOT FOUND (LESS THAN ZERO)'
+        WRITE(ounit,*) '  ADPRES IS STOPPING'
+        STOP
+    END IF
+    IF (n == 30) THEN
+        WRITE(ounit,*) '  MAXIMUM ITERATION FOR CRITICAL BORON SEARCH IS REACHING MAXIMUM'
+        WRITE(ounit,*) '  ADPRES IS STOPPING'
+        STOP
+    END IF
 END DO
 
+ALLOCATE(npow(nnod))
 IF (aprad == 1 .OR. apaxi == 1) THEN
-    ALLOCATE(npow(nnod))
-	CALL PowDis(npow)
+    CALL PowDis(npow)
 END IF
 
 IF (aprad == 1) CALL AsmPow(npow)
@@ -866,7 +708,6 @@ IF (aprad == 1) CALL AsmPow(npow)
 IF (apaxi == 1) CALL AxiPow(npow)
 
 IF (afrad == 1) CALL AsmFlux(f0, 1.e0)
-
 
 END SUBROUTINE cbsearch
 
@@ -878,18 +719,17 @@ SUBROUTINE cbsearcht()
 !    To search critical boron concentration with thermal feedback
 !
 
-USE sdata, ONLY: Ke, ftem, mtem, cden, bpos, bcon, rbcon, npow, nnod, &
+USE sdata, ONLY: Ke, ftem, mtem, bcon, rbcon, npow, nnod, &
                  f0, ser, fer, tfm, aprad, apaxi, afrad, npow, th_err
 USE InpOutp, ONLY: ounit, XS_updt, AsmFlux, AsmPow, AxiPow, getfq
 USE nodal, ONLY: powdis, nodal_coup4, outer4
 
 IMPLICIT NONE
 
-INTEGER :: rKe  ! Rounded Keff
 REAL  :: bc1, bc2    ! Boron Concentration
 REAL :: ke1, ke2
 INTEGER :: n
-REAL :: tf, tm, maxtf, maxtm, maxfcl, cd, fz
+REAL :: tf, tm, maxtf, maxtm, maxfcl
 
 WRITE(ounit,*)
 WRITE(ounit,*)
@@ -909,7 +749,6 @@ ALLOCATE(npow(nnod))
 
 bcon = rbcon
 CALL th_iter()  ! Start thermal hydarulic iteration with current paramters
-rKe = NINT(Ke * 100000)
 bc1 = bcon
 ke1 = Ke
 
@@ -924,39 +763,34 @@ WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') 2, bc2, Ke2, ser, fer,
 
 n = 3
 DO
-	bcon = bc2 + (1.0 - ke2) / (ke1 - ke2) * (bc1 - bc2)
-	IF ((rKe > 99900) .AND. (rKe < 100100)) THEN
-	    CALL th_iter()
-	ELSE
-	    CALL th_iter()
-	END IF
-	rKe = NINT(Ke * 100000)
-	bc1 = bc2
-	bc2 = bcon
-	ke1 = ke2
-	ke2 = ke
+    bcon = bc2 + (1.0 - ke2) / (ke1 - ke2) * (bc1 - bc2)
+    CALL th_iter()
+    bc1 = bc2
+    bc2 = bcon
+    ke1 = ke2
+    ke2 = ke
     WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') n, bcon, Ke, ser, fer, th_err
-	IF ((rKe == 100000) .AND. (ser < 1.e-5) .AND. (fer < 1.e-5)) EXIT
-	n = n + 1
-	IF (bcon > 2999. .AND. bcon < 3000.) THEN
-	    WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION EXCEEDS THE LIMIT(3000 ppm)'
-		WRITE(ounit,*) '  ADPRES IS STOPPING'
-	    STOP
-	END IF
-	IF (bcon > 0. .AND. bcon < 1.) THEN
-	    WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION IS NOT FOUND (LESS THAN ZERO)'
-		WRITE(ounit,*) '  ADPRES IS STOPPING'
-	    STOP
-	END IF
-	IF (n == 30) THEN
-	    WRITE(ounit,*) '  MAXIMUM ITERATION FOR CRITICAL BORON SEARCH IS REACHING MAXIMUM'
-		WRITE(ounit,*) '  ADPRES IS STOPPING'
-	    STOP
-	END IF
+    IF ((ABS(Ke - 1.0) < 1.e-5) .AND. (ser < 1.e-5) .AND. (fer < 1.e-5)) EXIT
+    n = n + 1
+    IF (bcon > 2999. .AND. bcon < 3000.) THEN
+        WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION EXCEEDS THE LIMIT(3000 ppm)'
+        WRITE(ounit,*) '  ADPRES IS STOPPING'
+        STOP
+    END IF
+    IF (bcon > 0. .AND. bcon < 1.) THEN
+        WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION IS NOT FOUND (LESS THAN ZERO)'
+        WRITE(ounit,*) '  ADPRES IS STOPPING'
+        STOP
+    END IF
+    IF (n == 30) THEN
+        WRITE(ounit,*) '  MAXIMUM ITERATION FOR CRITICAL BORON SEARCH IS REACHING MAXIMUM'
+        WRITE(ounit,*) '  ADPRES IS STOPPING'
+        STOP
+    END IF
 END DO
 
 IF (aprad == 1 .OR. apaxi == 1) THEN
-	CALL PowDis(npow)
+    CALL PowDis(npow)
 END IF
 
 IF (aprad == 1) CALL AsmPow(npow)
@@ -965,20 +799,20 @@ IF (apaxi == 1) CALL AxiPow(npow)
 
 IF (afrad == 1) CALL AsmFlux(f0, 1.e0)
 
-! CALL par_ave_f(ftem, tf)
-! CALL par_ave(mtem, tm)
+CALL par_ave_f(ftem, tf)
+CALL par_ave(mtem, tm)
 
-! CALL par_max(ftem, maxtf)
-! CALL par_max(tfm(:,1), maxfcl)
-! CALL par_max(mtem, maxtm)
-! CALL getfq(npow)
+CALL par_max(ftem, maxtf)
+CALL par_max(tfm(:,1), maxfcl)
+CALL par_max(mtem, maxtm)
+CALL getfq(npow)
 
 ! Write Output
-! WRITE(ounit,*)
-! WRITE(ounit, 5001) tf, tf-273.15
-! WRITE(ounit, 5002)  maxfcl, maxfcl-273.15
-! WRITE(ounit, 5003) tm, tm-273.15
-! WRITE(ounit, 5004) maxtm, maxtm-273.15
+WRITE(ounit,*)
+WRITE(ounit, 5001) tf, tf-273.15
+WRITE(ounit, 5002)  maxfcl, maxfcl-273.15
+WRITE(ounit, 5003) tm, tm-273.15
+WRITE(ounit, 5004) maxtm, maxtm-273.15
 
 5001 FORMAT(2X, 'AVERAGE DOPPLER TEMPERATURE     : ', F7.1, ' K (', F7.1, ' C)')
 5002 FORMAT(2X, 'MAX FUEL CENTERLINE TEMPERATURE : ', F7.1, ' K (', F7.1, ' C)')

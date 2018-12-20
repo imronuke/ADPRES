@@ -189,13 +189,13 @@ IF (mode == 'BCSEARCH' .AND. bcbcs == 1) THEN
 ELSE IF (mode == 'BCSEARCH' .AND. bcbcs /= 1) THEN
     WRITE(ounit,*) '   ERROR: CALCULATION MODE IS CRITICAL BORON CONCENTRATION SEARCH'
     WRITE(ounit,1041) 'CBCS', 'CRITICAL BORON CONCENTRATION SEARCH'
-	STOP
+    STOP
 ELSE IF (mode /= 'BCSEARCH' .AND. bcbcs == 1) THEN
     WRITE(ounit,*) '   ERROR: CBCS CARD IS NOT NECESSARY FOR THIS CALCULATION MODE'
-	STOP
+    STOP
 ELSE IF (mode == 'BCSEARCH' .AND. bbcon == 1) THEN
     WRITE(ounit,*) '   ERROR: BCON CARD MUST NOT PRESENT FOR THIS CALCULATION MODE'
-	STOP
+    STOP
 ELSE
     CONTINUE
 END IF
@@ -241,20 +241,20 @@ IF (bther == 1 .AND. bftem == 1 .AND. (bmtem ==1 .OR. bcden == 1)) THEN
     CALL inp_ther (uther)
 ELSE IF (bther == 1 .AND. mode == 'FORWARD') THEN
     WRITE(ounit,*)'   ERROR: %THER CARD NOT VALID FOR FORWARD CALCULATION MODE'
-	STOP
+    STOP
 ELSE IF (bther == 1 .AND. mode == 'FIXEDSRC') THEN
     WRITE(ounit,*)'   ERROR: %THER CARD NOT VALID FOR FIXED SOURCE CALCULATION MODE'
-	STOP
+    STOP
 ELSE IF (bther == 1 .AND. mode == 'ADJOINT') THEN
     WRITE(ounit,*)'   ERROR: %THER CARD NOT VALID FOR ADJOINT CALCULATION MODE'
-	STOP
+    STOP
 ELSE IF (bther == 0) THEN
     CONTINUE
 ELSE
     WRITE(ounit,*)'   ERROR: WHEN %THER CARD PRESENT %FTEM AND,' // &
-	              'AT LEAST ONE OF THE FOLLOWING CARDS MUST PRESENT'
-	WRITE(ounit,*)'   1. %MTEM   2. %CDEN'
-	STOP
+                  'AT LEAST ONE OF THE FOLLOWING CARDS MUST PRESENT'
+    WRITE(ounit,*)'   1. %MTEM   2. %CDEN'
+    STOP
 END IF
 
 !CARD ADF
@@ -354,7 +354,7 @@ IMPLICIT NONE
 INTEGER, INTENT(IN) :: inunit, buffer
 
 INTEGER :: ln                  ! line number
-INTEGER :: eof, comm, per
+INTEGER :: eof, comm
 
 OPEN (UNIT=buffer, STATUS='SCRATCH', ACTION='READWRITE')
 
@@ -618,7 +618,7 @@ DO i= 1, nmat
         IF (xsigf(i,g) > 0.) ccsigf = .FALSE.
 
 
-        xD(i,g) = 1.d0/(3.d0*xsigtr(i,g))
+        xD(i,g) = 1./(3.*xsigtr(i,g))
         dum = 0.0
         DO h= 1, ng
             IF (g /= h) dum = dum + xsigs(i,g,h)
@@ -754,17 +754,17 @@ CALL er_message(ounit, ios, ln, message)
 !x-direction
 nxx=0
 DO i= 1,nx
-nxx = nxx+xdiv(i)
+   nxx = nxx+xdiv(i)
 END DO
 !y-direction
 nyy=0
 DO j= 1,ny
-nyy = nyy+ydiv(j)
+   nyy = nyy+ydiv(j)
 END DO
 !z-direction
 nzz=0
 DO k= 1,nz
-nzz = nzz+zdiv(k)
+   nzz = nzz+zdiv(k)
 END DO
 
 ! Limit values of nxx, nyy and nzz
@@ -833,7 +833,7 @@ INTEGER, INTENT(IN) :: xbunit
 
 INTEGER :: ln, ios
 
-INTEGER :: i, j, k, lx, ly, lz, xtot, ytot, ztot, n, g
+INTEGER :: i, j, k, lx, ly, lz, xtot, ytot, ztot
 CHARACTER(LEN=2), DIMENSION(nxx, nyy) :: mmap
 INTEGER, PARAMETER :: xm = 36
 INTEGER :: ip, ipr, kp
@@ -1150,12 +1150,12 @@ n = 0
 DO k = 1, nzz
     DO j = nyy, 1, -1
         DO i = ystag(j)%smin, ystag(j)%smax
-                n = n + 1
-                ix(n) = i
-                iy(n) = j
-                iz(n) = k
-                xyz(i,j,k) = n
-                mat(n) = mnum(i,j,k)
+             n = n + 1
+             ix(n) = i
+             iy(n) = j
+             iz(n) = k
+             xyz(i,j,k) = n
+             mat(n) = mnum(i,j,k)
         END DO
     END DO
 END DO
@@ -1208,10 +1208,10 @@ REAL, DIMENSION(:), INTENT(IN) :: xcden  ! Provided coolant density
 REAL, DIMENSION(:), INTENT(IN) :: xbpos  ! Provided control rod bank position
 
 CALL base_updt()
- IF (bbcon == 1 .OR. bcbcs == 1) CALL bcon_updt(xbcon)
- IF (bftem == 1) CALL ftem_updt(xftem)
- IF (bmtem == 1) CALL mtem_updt(xmtem)
- IF (bcden == 1) CALL cden_updt(xcden)
+IF (bbcon == 1 .OR. bcbcs == 1) CALL bcon_updt(xbcon)
+IF (bftem == 1) CALL ftem_updt(xftem)
+IF (bmtem == 1) CALL mtem_updt(xmtem)
+IF (bcden == 1) CALL cden_updt(xcden)
 IF (bcrod == 1) CALL crod_updt(xbpos)
 CALL Dsigr_updt()
 
@@ -1260,7 +1260,7 @@ USE sdata, ONLY: nnod, ng, sigtr, siga,  &
 
 IMPLICIT NONE
 
-INTEGER :: n, i, g, h
+INTEGER :: i, g, h
 REAL :: dum
 
 DO i = 1, nnod
@@ -1284,9 +1284,8 @@ SUBROUTINE inp_esrc (xbunit)
 !    To read extra sources if any
 !
 
-USE sdata, ONLY: exsrc, ng, nx, ny, nz, nnod, ystag, &
-                 xdiv, ydiv, zdiv, xyz, ix, iy, iz, &
-                 xdel, ydel, zdel, nxx, nyy, nzz
+USE sdata, ONLY: exsrc, ng, nx, ny, nz, &
+                 xdiv, ydiv, zdiv, xyz, nnod
 
 IMPLICIT NONE
 
@@ -1339,7 +1338,7 @@ DO n = 1, nsrc
     DO g = 1, ng
         summ = summ + spec(g)
     END DO
-    IF (summ /= 1.d0) THEN
+    IF ((summ - 1.) < 1.e-5) THEN
         WRITE(ounit,*) 'TOTAL SOURCE SPECTRUM AT LINE', ln, ' IS NOT EQUAL TO 1.0'
         STOP
     END IF
@@ -1575,7 +1574,7 @@ SUBROUTINE inp_adf (xbunit)
 !    To read ADF values if any
 
 USE sdata, ONLY: ADF_TYPE, ng, nmat, nx, ny, nz, nxx, nyy, nzz, &
-                 nnod, xdiv, ydiv, zdiv, xyz, ix, iy, iz, ystag, xstag, al
+                 xdiv, ydiv, zdiv, xyz, ystag, xstag, al
 
 IMPLICIT NONE
 
@@ -1586,7 +1585,7 @@ TYPE(ADF_TYPE), DIMENSION(nx,ny,nz,ng) :: xdc
 TYPE(ADF_TYPE), DIMENSION(nxx,nyy,nzz,ng) :: xxdc
 TYPE(ADF_TYPE), DIMENSION(nxx,nyy,nzz,ng) :: xxal
 
-INTEGER :: g, i, j, k, n
+INTEGER :: g, i, j, k
 INTEGER :: rot, x1, x2, y1, y2, z1, z2
 INTEGER :: xtot, ytot, ztot
 INTEGER :: lz, ly, lx
@@ -1684,7 +1683,7 @@ IF (ios == 0 .AND. zp >=1) THEN
         DO j = 1, ny
             DO i = 1, nx
                 !!! If ADF > 0, Convert ADF to character
-                IF (xdc(i,j,zp,g)%dc(1) == 0.) THEN
+                IF ((xdc(i,j,zp,g)%dc(1) - 0.) < 1.e-5) THEN
                     cadf(i,j) = '      '
                 ELSE
                     WRITE (cadf(i,j),'(F6.4)') xdc(i,j,zp,g)%dc(1)
@@ -1716,7 +1715,7 @@ IF (ios == 0 .AND. zp >=1) THEN
         DO j = 1, ny
             DO i = 1, nx
                 !!! If ADF > 0, Convert ADF to character
-                IF (xdc(i,j,zp,g)%dc(2) == 0.) THEN
+                IF ((xdc(i,j,zp,g)%dc(2) - 0.) < 1.e-5)  THEN
                     cadf(i,j) = '      '
                 ELSE
                     WRITE (cadf(i,j),'(F6.4)') xdc(i,j,zp,g)%dc(2)
@@ -1748,7 +1747,7 @@ IF (ios == 0 .AND. zp >=1) THEN
         DO j = 1, ny
             DO i = 1, nx
                 !!! If ADF > 0, Convert ADF to character
-                IF (xdc(i,j,zp,g)%dc(3) == 0.) THEN
+                IF ((xdc(i,j,zp,g)%dc(3) - 0.) < 1.e-5) THEN
                     cadf(i,j) = '      '
                 ELSE
                     WRITE (cadf(i,j),'(F6.4)') xdc(i,j,zp,g)%dc(3)
@@ -1780,7 +1779,7 @@ IF (ios == 0 .AND. zp >=1) THEN
         DO j = 1, ny
             DO i = 1, nx
                 !!! If ADF > 0, Convert ADF to character
-                IF (xdc(i,j,zp,g)%dc(4) == 0.) THEN
+                IF ((xdc(i,j,zp,g)%dc(4) - 0.) < 1.e-5) THEN
                     cadf(i,j) = '      '
                 ELSE
                     WRITE (cadf(i,j),'(F6.4)') xdc(i,j,zp,g)%dc(4)
@@ -1812,7 +1811,7 @@ IF (ios == 0 .AND. zp >=1) THEN
         DO j = 1, ny
             DO i = 1, nx
                 !!! If ADF > 0, Convert ADF to character
-                IF (xdc(i,j,zp,g)%dc(5) == 0.) THEN
+                IF ((xdc(i,j,zp,g)%dc(5) - 0.) < 1.e-5) THEN
                     cadf(i,j) = '      '
                 ELSE
                     WRITE (cadf(i,j),'(F6.4)') xdc(i,j,zp,g)%dc(5)
@@ -1844,7 +1843,7 @@ IF (ios == 0 .AND. zp >=1) THEN
         DO j = 1, ny
             DO i = 1, nx
                 !!! If ADF > 0, Convert ADF to character
-                IF (xdc(i,j,zp,g)%dc(6) == 0.) THEN
+                IF ((xdc(i,j,zp,g)%dc(6) - 0.) < 1.e-5) THEN
                     cadf(i,j) = '      '
                 ELSE
                     WRITE (cadf(i,j),'(F6.4)') xdc(i,j,zp,g)%dc(6)
@@ -1927,17 +1926,17 @@ DO g = 1, ng
         DO j = 1, nyy
             DO i = ystag(j)%smin, ystag(j)%smax
                 IF (i /= ystag(j)%smax) xxal(i,j,k,g)%dc(1) = &
-                0.5d0 * (1.d0 - xxdc(i,j,k,g)%dc(1) / xxdc(i+1,j,k,g)%dc(2))
+                0.50 * (1.0 - xxdc(i,j,k,g)%dc(1) / xxdc(i+1,j,k,g)%dc(2))
                 IF (i /= ystag(j)%smin) xxal(i,j,k,g)%dc(2) = &
-                0.5d0 * (1.d0 - xxdc(i,j,k,g)%dc(2) / xxdc(i-1,j,k,g)%dc(1))
+                0.50 * (1.0 - xxdc(i,j,k,g)%dc(2) / xxdc(i-1,j,k,g)%dc(1))
                 IF (j /= xstag(i)%smax) xxal(i,j,k,g)%dc(3) = &
-                0.5d0 * (1.d0 - xxdc(i,j,k,g)%dc(3) / xxdc(i,j+1,k,g)%dc(4))
+                0.50 * (1.0 - xxdc(i,j,k,g)%dc(3) / xxdc(i,j+1,k,g)%dc(4))
                 IF (j /= xstag(i)%smin) xxal(i,j,k,g)%dc(4) = &
-                0.5d0 * (1.d0 - xxdc(i,j,k,g)%dc(4) / xxdc(i,j-1,k,g)%dc(3))
+                0.50 * (1.0 - xxdc(i,j,k,g)%dc(4) / xxdc(i,j-1,k,g)%dc(3))
                 IF (k /= nzz) xxal(i,j,k,g)%dc(5) = &
-                0.5d0 * (1.d0 - xxdc(i,j,k,g)%dc(5) / xxdc(i,j,k+1,g)%dc(6))
+                0.50 * (1.0 - xxdc(i,j,k,g)%dc(5) / xxdc(i,j,k+1,g)%dc(6))
                 IF (k /= 1) xxal(i,j,k,g)%dc(6) = &
-                0.5d0 * (1.d0 - xxdc(i,j,k,g)%dc(6) / xxdc(i,j,k-1,g)%dc(5))
+                0.50 * (1.0 - xxdc(i,j,k,g)%dc(6) / xxdc(i,j,k-1,g)%dc(5))
             END DO
         END DO
     END DO
@@ -2007,8 +2006,8 @@ SUBROUTINE inp_crod (xbunit)
 ! Purpose:
 !    To read control rod position
 
-USE sdata, ONLY: nx, ny, nzz, nmat, ng, xdiv, ydiv, &
-                 nxx, nyy, nzz, mode, bpos, nb, &
+USE sdata, ONLY: nx, ny, nmat, ng, xdiv, ydiv, &
+                 nxx, nyy, bpos, nb, &
                  dsigtr, dsiga, dnuf, dsigf, dsigs
 
 IMPLICIT NONE
@@ -2018,11 +2017,10 @@ INTEGER, INTENT(IN) :: xbunit
 INTEGER :: ln   !Line number
 INTEGER :: ios  ! IOSTAT status
 
-INTEGER :: i, j, k, g, h
-REAL :: dum, dumx
+INTEGER :: i, j, g, h
 INTEGER, DIMENSION(nx, ny) :: bmap       ! Radial control rod bank map (assembly wise)
 INTEGER :: popt
-INTEGER :: xtot, ytot, kt, ly, lx
+INTEGER :: xtot, ytot, ly, lx
 INTEGER, DIMENSION(ng) :: group
 INTEGER, DIMENSION(:), ALLOCATABLE :: bank
 
@@ -2179,15 +2177,15 @@ SUBROUTINE crod_updt (bpos)
 ! Purpose: TO UPDATE AND CALCUALTE VOLUME WEIGHTED HOMOGENIZED CX FOR RODDED NODE
 !
 
-USE sdata, ONLY: ng, nxx, nyy, nzz, xyz, zdel, nnod, mat, nod, cusp, f0, &
-                 sigtr, siga, nuf, sigf, sigs, D, sigr, &
+USE sdata, ONLY: ng, nxx, nyy, nzz, xyz, zdel, mat, nod, cusp, f0, &
+                 sigtr, siga, nuf, sigf, sigs, &
                  dsigtr, dsiga, dnuf, dsigf, dsigs, negxs
 
 IMPLICIT NONE
 
 REAL, DIMENSION(:), INTENT(IN) :: bpos
 
-INTEGER ::i, j, k, g, h, kt
+INTEGER ::i, j, k, g, h
 REAL :: rodh, vfrac
 REAL :: dum, dumx
 
@@ -2446,7 +2444,7 @@ SUBROUTINE inp_ejct (xbunit)
 ! Purpose:
 !    To read rod ejection input
 
-USE sdata, ONLY: nf, ng, lamb, iBeta, velo, nnod, nb, &
+USE sdata, ONLY: nf, ng, lamb, iBeta, velo, nb, &
                  ttot, tstep1, tdiv, tstep2, bpos, fbpos, tmove, &
                  bspeed, mdir
 
@@ -2457,7 +2455,7 @@ INTEGER, INTENT(IN) :: xbunit
 INTEGER :: ln   !Line number
 INTEGER :: ios  ! IOSTAT status
 
-INTEGER :: i, g, n
+INTEGER :: i, g
 INTEGER :: popt
 INTEGER, DIMENSION(nb) :: bank
 CHARACTER(LEN=4) :: cnb         ! number of bank (character type)
@@ -2578,7 +2576,7 @@ SUBROUTINE inp_cbcs (xbunit)
 ! Purpose:
 !    To read boron concentration for bc search
 
-USE sdata, ONLY: nmat, ng, nnod, rbcon, &
+USE sdata, ONLY: nmat, ng, rbcon, &
                  csigtr, csiga, cnuf, csigf, csigs
 
 
@@ -2592,7 +2590,6 @@ INTEGER :: ios  ! IOSTAT status
 INTEGER :: i, g, h
 INTEGER :: popt
 INTEGER, DIMENSION(ng) :: group
-REAL :: dum
 
 WRITE(ounit,*)
 WRITE(ounit,*)
@@ -2612,36 +2609,36 @@ ALLOCATE(csigs (nmat,ng,ng))
 
 ! Read CX changes per ppm born change
 DO i = 1, nmat
-	DO g= 1, ng
+    DO g= 1, ng
         READ(xbunit, *, IOSTAT=ios) ind, ln, csigtr(i,g), &
-		csiga(i,g), cnuf(i,g), csigf(i,g), (csigs(i,g,h), h = 1, ng)
-		message = ' error in reading macro xs changes per ppm boron changes'
-		CALL er_message(ounit, ios, ln, message)
-	END DO
+        csiga(i,g), cnuf(i,g), csigf(i,g), (csigs(i,g,h), h = 1, ng)
+        message = ' error in reading macro xs changes per ppm boron changes'
+        CALL er_message(ounit, ios, ln, message)
+    END DO
 END DO
 
 !! BCON PRINT OPTION
 READ(xbunit, *, IOSTAT=ios) ind, ln, popt
 IF (ios == 0 .AND. popt > 0) THEN
 
-	WRITE(ounit,1422) rbcon
+    WRITE(ounit,1422) rbcon
 
-	WRITE(ounit,*)
-	WRITE(ounit,*) ' MATERIAL CX CHANGES PER PPM BORON CHANGES : '
+    WRITE(ounit,*)
+    WRITE(ounit,*) ' MATERIAL CX CHANGES PER PPM BORON CHANGES : '
     DO i= 1, nmat
        WRITE(ounit,1429) i
-	    WRITE(ounit,1431)'GROUP', 'TRANSPORT', 'ABSORPTION', &
-	    'NU*FISS', 'FISSION'
+        WRITE(ounit,1431)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+        'NU*FISS', 'FISSION'
         DO g= 1, ng
-		    WRITE(ounit,1430) g, csigtr(i,g), csiga(i,g), &
-		    cnuf(i,g), csigf(i,g)
-			group(g) = g
-	    END DO
-	    WRITE(ounit,*)'  --SCATTERING MATRIX--'
-	    WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
-	    DO g= 1, ng
-	        WRITE(ounit,1435)g, (csigs(i,g,h), h=1,ng)
-	    END DO
+            WRITE(ounit,1430) g, csigtr(i,g), csiga(i,g), &
+            cnuf(i,g), csigf(i,g)
+            group(g) = g
+        END DO
+        WRITE(ounit,*)'  --SCATTERING MATRIX--'
+        WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
+        DO g= 1, ng
+            WRITE(ounit,1435)g, (csigs(i,g,h), h=1,ng)
+        END DO
     END DO
 END IF
 
@@ -2665,7 +2662,7 @@ SUBROUTINE inp_bcon (xbunit)
 ! Purpose:
 !    To read boron concentration
 
-USE sdata, ONLY: nmat, ng, nnod, bcon, rbcon, &
+USE sdata, ONLY: nmat, ng, bcon, rbcon, &
                  csigtr, csiga, cnuf, csigf, csigs
 
 IMPLICIT NONE
@@ -2678,7 +2675,6 @@ INTEGER :: ios  ! IOSTAT status
 INTEGER :: i, g, h
 INTEGER :: popt
 INTEGER, DIMENSION(ng) :: group
-REAL :: dum
 
 WRITE(ounit,*)
 WRITE(ounit,*)
@@ -2698,37 +2694,37 @@ ALLOCATE(cnuf  (nmat,ng))
 ALLOCATE(csigf (nmat,ng))
 ALLOCATE(csigs (nmat,ng,ng))
 DO i = 1, nmat
-	DO g= 1, ng
+    DO g= 1, ng
         READ(xbunit, *, IOSTAT=ios) ind, ln, csigtr(i,g), &
-		csiga(i,g), cnuf(i,g), csigf(i,g), (csigs(i,g,h), h = 1, ng)
-		message = ' error in reading macro xs changes per ppm boron changes'
-		CALL er_message(ounit, ios, ln, message)
-	END DO
+        csiga(i,g), cnuf(i,g), csigf(i,g), (csigs(i,g,h), h = 1, ng)
+        message = ' error in reading macro xs changes per ppm boron changes'
+        CALL er_message(ounit, ios, ln, message)
+    END DO
 END DO
 
 !! BCON PRINT OPTION
 READ(xbunit, *, IOSTAT=ios) ind, ln, popt
 IF (ios == 0 .AND. popt > 0) THEN
 
-	WRITE(ounit,1221) bcon
-	WRITE(ounit,1222) rbcon
+    WRITE(ounit,1221) bcon
+    WRITE(ounit,1222) rbcon
 
-	WRITE(ounit,*)
-	WRITE(ounit,*) ' MATERIAL CX CHANGES PER PPM BORON CHANGES : '
+    WRITE(ounit,*)
+    WRITE(ounit,*) ' MATERIAL CX CHANGES PER PPM BORON CHANGES : '
     DO i= 1, nmat
        WRITE(ounit,1229) i
-	    WRITE(ounit,1231)'GROUP', 'TRANSPORT', 'ABSORPTION', &
-	    'NU*FISS', 'FISSION'
+        WRITE(ounit,1231)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+        'NU*FISS', 'FISSION'
         DO g= 1, ng
-		    WRITE(ounit,1230) g, csigtr(i,g), csiga(i,g), &
-		    cnuf(i,g), csigf(i,g)
-			group(g) = g
-	    END DO
-	    WRITE(ounit,*)'  --SCATTERING MATRIX--'
-	    WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
-	    DO g= 1, ng
-	        WRITE(ounit,1235)g, (csigs(i,g,h), h=1,ng)
-	    END DO
+            WRITE(ounit,1230) g, csigtr(i,g), csiga(i,g), &
+            cnuf(i,g), csigf(i,g)
+            group(g) = g
+        END DO
+        WRITE(ounit,*)'  --SCATTERING MATRIX--'
+        WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
+        DO g= 1, ng
+            WRITE(ounit,1235)g, (csigs(i,g,h), h=1,ng)
+        END DO
     END DO
 END IF
 
@@ -2760,18 +2756,17 @@ IMPLICIT NONE
 
 REAL, INTENT(IN) :: bcon
 INTEGER :: i, g, h
-REAL :: dum
 
 DO i = 1, nnod
     DO g = 1, ng
         sigtr(i,g) = sigtr(i,g) + csigtr(mat(i),g) * (bcon - rbcon)
-		siga(i,g)  = siga(i,g)  + csiga(mat(i),g)  * (bcon - rbcon)
-		nuf(i,g)   = nuf(i,g)   + cnuf(mat(i),g)   * (bcon - rbcon)
-		sigf(i,g)  = sigf(i,g)  + csigf(mat(i),g)  * (bcon - rbcon)
-		DO h = 1, ng
-		    sigs(i,g,h) = sigs(i,g,h) + csigs(mat(i),g,h) * (bcon - rbcon)
-		END DO
-	END DO
+        siga(i,g)  = siga(i,g)  + csiga(mat(i),g)  * (bcon - rbcon)
+        nuf(i,g)   = nuf(i,g)   + cnuf(mat(i),g)   * (bcon - rbcon)
+        sigf(i,g)  = sigf(i,g)  + csigf(mat(i),g)  * (bcon - rbcon)
+        DO h = 1, ng
+            sigs(i,g,h) = sigs(i,g,h) + csigs(mat(i),g,h) * (bcon - rbcon)
+        END DO
+    END DO
 END DO
 
 
@@ -2785,7 +2780,7 @@ SUBROUTINE inp_ftem (xbunit)
 ! Purpose:
 !    To read fuel temperature
 
-USE sdata, ONLY: nmat, ng, nnod, mode, ftem, rftem, &
+USE sdata, ONLY: nmat, ng, nnod, ftem, rftem, &
                  fsigtr, fsiga, fnuf, fsigf, fsigs
 
 IMPLICIT NONE
@@ -2799,7 +2794,6 @@ REAL :: cftem
 INTEGER :: i, g, h
 INTEGER :: popt
 INTEGER, DIMENSION(ng) :: group
-REAL :: dum
 
 WRITE(ounit,*)
 WRITE(ounit,*)
@@ -2818,41 +2812,41 @@ IF (bther == 0) ftem = cftem
 ! Read CX changes fuel temperature change
 ALLOCATE(fsigtr(nmat,ng), fsiga(nmat,ng), fnuf(nmat,ng), fsigf(nmat,ng), fsigs(nmat,ng,ng))
 DO i = 1, nmat
-	DO g= 1, ng
+    DO g= 1, ng
         READ(xbunit, *, IOSTAT=ios) ind, ln, fsigtr(i,g), &
-		fsiga(i,g), fnuf(i,g), fsigf(i,g), (fsigs(i,g,h), h = 1, ng)
-		message = ' error in reading macro xs changes per fuel temperature changes'
-		CALL er_message(ounit, ios, ln, message)
-	END DO
+        fsiga(i,g), fnuf(i,g), fsigf(i,g), (fsigs(i,g,h), h = 1, ng)
+        message = ' error in reading macro xs changes per fuel temperature changes'
+        CALL er_message(ounit, ios, ln, message)
+    END DO
 END DO
 
 !! FTEM PRINT OPTION
 READ(xbunit, *, IOSTAT=ios) ind, ln, popt
 IF (ios == 0 .AND. popt > 0) THEN
 
-	IF (bther == 0) THEN
-	    WRITE(ounit,1241) cftem
-	ELSE
-	    WRITE(ounit,1256) cftem
-	END IF
-	WRITE(ounit,1242) rftem
+    IF (bther == 0) THEN
+        WRITE(ounit,1241) cftem
+    ELSE
+        WRITE(ounit,1256) cftem
+    END IF
+    WRITE(ounit,1242) rftem
 
-	WRITE(ounit,*)
-	WRITE(ounit,*) ' MATERIAL CX CHANGES PER FUEL TEMPERATURE CHANGES : '
+    WRITE(ounit,*)
+    WRITE(ounit,*) ' MATERIAL CX CHANGES PER FUEL TEMPERATURE CHANGES : '
     DO i= 1, nmat
        WRITE(ounit,1249) i
-	    WRITE(ounit,1251)'GROUP', 'TRANSPORT', 'ABSORPTION', &
-	    'NU*FISS', 'FISSION'
+        WRITE(ounit,1251)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+        'NU*FISS', 'FISSION'
         DO g= 1, ng
-		    WRITE(ounit,1250) g, fsigtr(i,g), fsiga(i,g), &
-		    fnuf(i,g), fsigf(i,g)
-			group(g) = g
-	    END DO
-	    WRITE(ounit,*)'  --SCATTERING MATRIX--'
-	    WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
-	    DO g= 1, ng
-	        WRITE(ounit,1255)g, (fsigs(i,g,h), h=1,ng)
-	    END DO
+            WRITE(ounit,1250) g, fsigtr(i,g), fsiga(i,g), &
+            fnuf(i,g), fsigf(i,g)
+            group(g) = g
+        END DO
+        WRITE(ounit,*)'  --SCATTERING MATRIX--'
+        WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
+        DO g= 1, ng
+            WRITE(ounit,1255)g, (fsigs(i,g,h), h=1,ng)
+        END DO
     END DO
 END IF
 
@@ -2885,19 +2879,18 @@ IMPLICIT NONE
 
 REAL, DIMENSION(:), INTENT(IN) :: ftem
 INTEGER :: i, g, h
-REAL :: dum
 
 
 DO i = 1, nnod
     DO g = 1, ng
         sigtr(i,g) = sigtr(i,g) + fsigtr(mat(i),g) * (SQRT(ftem(i))- SQRT(rftem))
-		    siga(i,g)  = siga(i,g)  + fsiga(mat(i),g)  * (SQRT(ftem(i)) - SQRT(rftem))
-		    nuf(i,g)   = nuf(i,g)   + fnuf(mat(i),g)   * (SQRT(ftem(i)) - SQRT(rftem))
-		    sigf(i,g)  = sigf(i,g)  + fsigf(mat(i),g)  * (SQRT(ftem(i)) - SQRT(rftem))
-		    DO h = 1, ng
-		       sigs(i,g,h) = sigs(i,g,h) + fsigs(mat(i),g,h) * (SQRT(ftem(i)) - SQRT(rftem))
-		    END DO
-	  END DO
+            siga(i,g)  = siga(i,g)  + fsiga(mat(i),g)  * (SQRT(ftem(i)) - SQRT(rftem))
+            nuf(i,g)   = nuf(i,g)   + fnuf(mat(i),g)   * (SQRT(ftem(i)) - SQRT(rftem))
+            sigf(i,g)  = sigf(i,g)  + fsigf(mat(i),g)  * (SQRT(ftem(i)) - SQRT(rftem))
+            DO h = 1, ng
+               sigs(i,g,h) = sigs(i,g,h) + fsigs(mat(i),g,h) * (SQRT(ftem(i)) - SQRT(rftem))
+            END DO
+      END DO
 END DO
 
 
@@ -2910,7 +2903,7 @@ SUBROUTINE inp_mtem (xbunit)
 ! Purpose:
 !    To read moderator temperature
 
-USE sdata, ONLY: nmat, ng, nnod, mode, mtem, rmtem, &
+USE sdata, ONLY: nmat, ng, nnod, mtem, rmtem, &
                  msigtr, msiga, mnuf, msigf, msigs
 
 IMPLICIT NONE
@@ -2924,7 +2917,6 @@ REAL :: cmtem
 INTEGER :: i, g, h
 INTEGER :: popt
 INTEGER, DIMENSION(ng) :: group
-REAL :: dum
 
 WRITE(ounit,*)
 WRITE(ounit,*)
@@ -2943,41 +2935,41 @@ IF (bther == 0) mtem = cmtem
 ! Read CX changes per moderator temperature change
 ALLOCATE(msigtr(nmat,ng), msiga(nmat,ng), mnuf(nmat,ng), msigf(nmat,ng), msigs(nmat,ng,ng))
 DO i = 1, nmat
-	DO g= 1, ng
+    DO g= 1, ng
         READ(xbunit, *, IOSTAT=ios) ind, ln, msigtr(i,g), &
-		msiga(i,g), mnuf(i,g), msigf(i,g), (msigs(i,g,h), h = 1, ng)
-		message = ' error in reading macro xs changes per Moderator temperature changes'
-		CALL er_message(ounit, ios, ln, message)
-	END DO
+        msiga(i,g), mnuf(i,g), msigf(i,g), (msigs(i,g,h), h = 1, ng)
+        message = ' error in reading macro xs changes per Moderator temperature changes'
+        CALL er_message(ounit, ios, ln, message)
+    END DO
 END DO
 
 !! MTEM PRINT OPTION
 READ(xbunit, *, IOSTAT=ios) ind, ln, popt
 IF (ios == 0 .AND. popt > 0) THEN
 
-	IF (bther == 0) THEN
-	    WRITE(ounit,1261) cmtem
-	ELSE
-	    WRITE(ounit,1276) cmtem
-	END IF
-	WRITE(ounit,1262) rmtem
+    IF (bther == 0) THEN
+        WRITE(ounit,1261) cmtem
+    ELSE
+        WRITE(ounit,1276) cmtem
+    END IF
+    WRITE(ounit,1262) rmtem
 
-	WRITE(ounit,*)
-	WRITE(ounit,*) ' MATERIAL CX CHANGES PER MODERATOR TEMPERATURE CHANGES : '
+    WRITE(ounit,*)
+    WRITE(ounit,*) ' MATERIAL CX CHANGES PER MODERATOR TEMPERATURE CHANGES : '
     DO i= 1, nmat
        WRITE(ounit,1269) i
-	    WRITE(ounit,1271)'GROUP', 'TRANSPORT', 'ABSORPTION', &
-	    'NU*FISS', 'FISSION'
+        WRITE(ounit,1271)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+        'NU*FISS', 'FISSION'
         DO g= 1, ng
-		    WRITE(ounit,1270) g, msigtr(i,g), msiga(i,g), &
-		    mnuf(i,g), msigf(i,g)
-			group(g) = g
-	    END DO
-	    WRITE(ounit,*)'  --SCATTERING MATRIX--'
-	    WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
-	    DO g= 1, ng
-	        WRITE(ounit,1275)g, (msigs(i,g,h), h=1,ng)
-	    END DO
+            WRITE(ounit,1270) g, msigtr(i,g), msiga(i,g), &
+            mnuf(i,g), msigf(i,g)
+            group(g) = g
+        END DO
+        WRITE(ounit,*)'  --SCATTERING MATRIX--'
+        WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
+        DO g= 1, ng
+            WRITE(ounit,1275)g, (msigs(i,g,h), h=1,ng)
+        END DO
     END DO
 END IF
 
@@ -3011,19 +3003,18 @@ IMPLICIT NONE
 
 REAL, DIMENSION(:), INTENT(IN) :: mtem
 INTEGER :: i, g, h
-REAL :: dum
 
 
 DO i = 1, nnod
     DO g = 1, ng
         sigtr(i,g) = sigtr(i,g) + msigtr(mat(i),g) * (mtem(i) - rmtem)
-		siga(i,g)  = siga(i,g)  + msiga(mat(i),g)  * (mtem(i) - rmtem)
-		nuf(i,g)   = nuf(i,g)   + mnuf(mat(i),g)   * (mtem(i) - rmtem)
-		sigf(i,g)  = sigf(i,g)  + msigf(mat(i),g)  * (mtem(i) - rmtem)
-		DO h = 1, ng
-		    sigs(i,g,h) = sigs(i,g,h) + msigs(mat(i),g,h) * (mtem(i) - rmtem)
-		END DO
-	END DO
+        siga(i,g)  = siga(i,g)  + msiga(mat(i),g)  * (mtem(i) - rmtem)
+        nuf(i,g)   = nuf(i,g)   + mnuf(mat(i),g)   * (mtem(i) - rmtem)
+        sigf(i,g)  = sigf(i,g)  + msigf(mat(i),g)  * (mtem(i) - rmtem)
+        DO h = 1, ng
+            sigs(i,g,h) = sigs(i,g,h) + msigs(mat(i),g,h) * (mtem(i) - rmtem)
+        END DO
+    END DO
 END DO
 
 
@@ -3036,7 +3027,7 @@ SUBROUTINE inp_cden (xbunit)
 ! Purpose:
 !    To read Coolant Density
 
-USE sdata, ONLY: nmat, ng, nnod, mode, cden, rcden, &
+USE sdata, ONLY: nmat, ng, nnod, cden, rcden, &
                  lsigtr, lsiga, lnuf, lsigf, lsigs
 
 IMPLICIT NONE
@@ -3050,7 +3041,6 @@ REAL :: ccden
 INTEGER :: i, g, h
 INTEGER :: popt
 INTEGER, DIMENSION(ng) :: group
-REAL :: dum
 
 WRITE(ounit,*)
 WRITE(ounit,*)
@@ -3069,41 +3059,41 @@ cden = ccden
 ! Read CX changes per Coolant Density change
 ALLOCATE(lsigtr(nmat,ng), lsiga(nmat,ng), lnuf(nmat,ng), lsigf(nmat,ng), lsigs(nmat,ng,ng))
 DO i = 1, nmat
-	DO g= 1, ng
+    DO g= 1, ng
         READ(xbunit, *, IOSTAT=ios) ind, ln, lsigtr(i,g), &
-		lsiga(i,g), lnuf(i,g), lsigf(i,g), (lsigs(i,g,h), h = 1, ng)
-		message = ' error in reading macro xs changes per Coolant Density changes'
-		CALL er_message(ounit, ios, ln, message)
-	END DO
+        lsiga(i,g), lnuf(i,g), lsigf(i,g), (lsigs(i,g,h), h = 1, ng)
+        message = ' error in reading macro xs changes per Coolant Density changes'
+        CALL er_message(ounit, ios, ln, message)
+    END DO
 END DO
 
 !! CDEN PRINT OPTION
 READ(xbunit, *, IOSTAT=ios) ind, ln, popt
 IF (ios == 0 .AND. popt > 0) THEN
 
-	IF (bther == 0) THEN
-	    WRITE(ounit,1361) ccden
-	ELSE
-	    WRITE(ounit,1376) ccden
-	END IF
-	WRITE(ounit,1362) rcden
+    IF (bther == 0) THEN
+        WRITE(ounit,1361) ccden
+    ELSE
+        WRITE(ounit,1376) ccden
+    END IF
+    WRITE(ounit,1362) rcden
 
-	WRITE(ounit,*)
-	WRITE(ounit,*) ' MATERIAL CX CHANGES PER COOLANT DENSITY CHANGES : '
+    WRITE(ounit,*)
+    WRITE(ounit,*) ' MATERIAL CX CHANGES PER COOLANT DENSITY CHANGES : '
     DO i= 1, nmat
        WRITE(ounit,1369) i
-	    WRITE(ounit,1371)'GROUP', 'TRANSPORT', 'ABSORPTION', &
-	    'NU*FISS', 'FISSION'
+        WRITE(ounit,1371)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+        'NU*FISS', 'FISSION'
         DO g= 1, ng
-		    WRITE(ounit,1370) g, lsigtr(i,g), lsiga(i,g), &
-		    lnuf(i,g), lsigf(i,g)
-			group(g) = g
-	    END DO
-	    WRITE(ounit,*)'  --SCATTERING MATRIX--'
-	    WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
-	    DO g= 1, ng
-	        WRITE(ounit,1375)g, (lsigs(i,g,h), h=1,ng)
-	    END DO
+            WRITE(ounit,1370) g, lsigtr(i,g), lsiga(i,g), &
+            lnuf(i,g), lsigf(i,g)
+            group(g) = g
+        END DO
+        WRITE(ounit,*)'  --SCATTERING MATRIX--'
+        WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
+        DO g= 1, ng
+            WRITE(ounit,1375)g, (lsigs(i,g,h), h=1,ng)
+        END DO
     END DO
 END IF
 
@@ -3138,19 +3128,18 @@ IMPLICIT NONE
 
 REAL, DIMENSION(:), INTENT(IN) :: cden
 INTEGER :: i, g, h
-REAL :: dum
 
 
 DO i = 1, nnod
     DO g = 1, ng
         sigtr(i,g) = sigtr(i,g) + lsigtr(mat(i),g) * (cden(i) - rcden)
-		siga(i,g)  = siga(i,g)  + lsiga(mat(i),g)  * (cden(i) - rcden)
-		nuf(i,g)   = nuf(i,g)   + lnuf(mat(i),g)   * (cden(i) - rcden)
-		sigf(i,g)  = sigf(i,g)  + lsigf(mat(i),g)  * (cden(i) - rcden)
-		DO h = 1, ng
-		    sigs(i,g,h) = sigs(i,g,h) + lsigs(mat(i),g,h) * (cden(i) - rcden)
-		END DO
-	END DO
+        siga(i,g)  = siga(i,g)  + lsiga(mat(i),g)  * (cden(i) - rcden)
+        nuf(i,g)   = nuf(i,g)   + lnuf(mat(i),g)   * (cden(i) - rcden)
+        sigf(i,g)  = sigf(i,g)  + lsigf(mat(i),g)  * (cden(i) - rcden)
+        DO h = 1, ng
+            sigs(i,g,h) = sigs(i,g,h) + lsigs(mat(i),g,h) * (cden(i) - rcden)
+        END DO
+    END DO
 END DO
 
 
@@ -3164,9 +3153,9 @@ SUBROUTINE inp_ther (xbunit)
 !    To read thermalhydraulics parameters input
 
 USE sdata, ONLY: pow, tin, nx, ny, nxx, nyy, ystag, &
-                 xdel, ydel, rf, tg, tc, ppitch, cf, dia, cflow, dh, pi, &
-				 farea, xdiv, ydiv, ystag, node_nf, nm, nt, rdel, rpos, &
-				 nnod, tfm, ppow, ent, heatf, thunit
+                 rf, tg, tc, ppitch, cf, dia, cflow, dh, pi, &
+                 farea, xdiv, ydiv, ystag, node_nf, nm, nt, rdel, rpos, &
+                 nnod, tfm, ppow, ent, heatf, ntem, stab, thunit
 
 IMPLICIT NONE
 
@@ -3179,8 +3168,8 @@ INTEGER :: i, j, iost
 INTEGER :: nfpin, ngt                              ! Number of fuel pin and guide tubes
 
 INTEGER :: ly, lx, ytot, xtot
-REAL :: tflow, cmflow
-REAL, DIMENSION(nx,ny) :: area, aflow
+REAL :: cmflow
+REAL, DIMENSION(nx,ny) :: area
 REAL :: barea, div
 
 REAL :: dum
@@ -3215,11 +3204,11 @@ CALL er_message(ounit, ios, ln, message)
 ! Check gap and clad thickness
 IF (tg > 0.25 * rf) THEN
     WRITE(ounit,*) '  ERROR: GAP THICKNESS IS TO LARGE (> 0.25*rf)'
-	STOP
+    STOP
 END IF
 IF (tc > 0.25 * rf) THEN
     WRITE(ounit,*) '  ERROR: CLADDING THICKNESS IS TO LARGE (> 0.25*rf)'
-	STOP
+    STOP
 END IF
 
 ! Read Number of fuel pins and guide tubes
@@ -3248,9 +3237,9 @@ cflow = cmflow / REAL(nfpin)
 barea = 0.
 DO j = 1, ny
     DO i = 1, nx
-	    area(i,j) = xsize(i)*ysize(j)             ! assembly area
-		IF (area(i,j) > barea) barea = area(i,j)  ! barea => largest assembly area for ref.
-	END DO
+        area(i,j) = xsize(i)*ysize(j)             ! assembly area
+        IF (area(i,j) > barea) barea = area(i,j)  ! barea => largest assembly area for ref.
+    END DO
 END DO
 
 ALLOCATE(node_nf(nxx, nyy))
@@ -3258,19 +3247,19 @@ node_nf = 0.
 
 ytot = 0
 DO j= 1, ny
-	DO ly= 1, ydiv(j)
-	  ytot = ytot+1
-		xtot = 0
-		DO i= 1, nx
-		    DO lx= 1, xdiv(i)
-				xtot = xtot+1
-				IF ((xtot >= ystag(ytot)%smin) .AND. (xtot <= ystag(ytot)%smax )) THEN
-				    div = REAL (ydiv(j) * xdiv(i))            ! Number of nodes in current assembly
-				    node_nf(xtot,ytot) = area(i,j) * nfpin / (barea * div)   ! Number of fuel pin for this node
-				END IF
-			END DO
-		END DO
-	END DO
+    DO ly= 1, ydiv(j)
+      ytot = ytot+1
+        xtot = 0
+        DO i= 1, nx
+            DO lx= 1, xdiv(i)
+                xtot = xtot+1
+                IF ((xtot >= ystag(ytot)%smin) .AND. (xtot <= ystag(ytot)%smax )) THEN
+                    div = REAL (ydiv(j) * xdiv(i))            ! Number of nodes in current assembly
+                    node_nf(xtot,ytot) = area(i,j) * nfpin / (barea * div)   ! Number of fuel pin for this node
+                END IF
+            END DO
+        END DO
+    END DO
 END DO
 
 
@@ -3283,9 +3272,12 @@ ALLOCATE(rdel(nt), rpos(nt+2))
 DO i = 1, nm
     rdel(i) = dum
 END DO
+
+! Fuel pin mesh size
 rdel(nm+1) = tg
 rdel(nm+2) = tc
 
+! Fuel pin mesh position
 rpos(1) = 0.5 * rdel(1)
 DO i = 2, nt-2
     rpos(i) = rpos(i-1) + 0.5 * (rdel(i-1) + rdel(i))
@@ -3310,22 +3302,30 @@ OPEN (UNIT=thunit, FILE='st155bar', STATUS='OLD', ACTION='READ', &
       IOSTAT = iost)
 IF (iost /= 0) THEN
     WRITE(*,1091) iost
-    1091 FORMAT	(2X, 'Steam Table Open Failed--status', I6)
-	STOP
+    1091 FORMAT    (2X, 'Steam Table Open Failed--status', I6)
+    STOP
 END IF
+
+! Save steam table data to stab
+DO i = 1, ntem
+   READ(thunit,*) stab(i,1), stab(i,2), stab(i,3), &
+                  stab(i,4), stab(i,5), stab(i,6)
+END DO
+
+CLOSE(UNIT=thunit)
 
 !! THER PRINT OPTION
 READ(xbunit, *, IOSTAT=ios) ind, ln, popt
 IF (ios == 0 .AND. popt > 0) THEN
     WRITE(ounit,1309) ppow
-	WRITE(ounit,1301) pow
-	WRITE(ounit,1302) tin
-	WRITE(ounit,1303) cmflow
-	WRITE(ounit,1304) rf
-	WRITE(ounit,1305) tg
-	WRITE(ounit,1306) tc
-	WRITE(ounit,1310) ppitch
-	WRITE(ounit,1307) cf
+    WRITE(ounit,1301) pow
+    WRITE(ounit,1302) tin
+    WRITE(ounit,1303) cmflow
+    WRITE(ounit,1304) rf
+    WRITE(ounit,1305) tg
+    WRITE(ounit,1306) tc
+    WRITE(ounit,1310) ppitch
+    WRITE(ounit,1307) cf
 END IF
 
 WRITE(ounit,*)
@@ -3354,13 +3354,13 @@ SUBROUTINE  GetFq(fn)
 !    The maximum local linear power density in the core divided by the core average fuel rod linear power density.
 !
 
-USE sdata, ONLY: ix, iy, iz, nnod, zdel, node_nf, vdel
+USE sdata, ONLY: ix, iy, iz, nnod, zdel, node_nf
 
 IMPLICIT NONE
 
 REAL, DIMENSION(:), INTENT(IN) :: fn           ! Relative Power
 
-INTEGER :: n, fnnod
+INTEGER :: n
 REAL, DIMENSION(nnod) :: locp, xf
 REAL :: totp, npmax, tleng, pave
 
@@ -3368,11 +3368,11 @@ REAL :: totp, npmax, tleng, pave
 totp = 0.; tleng = 0.
 DO n = 1, nnod
     IF (fn(n) > 0.) THEN
-	    xf(n) = fn(n) / node_nf(ix(n),iy(n))
+        xf(n) = fn(n) / node_nf(ix(n),iy(n))
         totp = totp + xf(n)
-	    tleng = tleng + zdel(iz(n))
-	    locp(n) = xf(n) / zdel(iz(n))
-	END IF
+        tleng = tleng + zdel(iz(n))
+        locp(n) = xf(n) / zdel(iz(n))
+    END IF
 END DO
 
 pave = totp / tleng
@@ -3380,9 +3380,9 @@ pave = totp / tleng
 npmax = 0.
 DO n = 1, nnod
     IF (fn(n) > 0.) THEN
-        locp(n) = locp(n) / pave
-	    IF (locp(n) > npmax) npmax = locp(n)
-	END IF
+       locp(n) = locp(n) / pave
+       IF (locp(n) > npmax) npmax = locp(n)
+    END IF
 END DO
 
 
@@ -3456,7 +3456,7 @@ DO j = 1, nyy
         DO k = 1, nzz
             summ = summ + fx(i,j,k)
         END DO
-        fnode(i,j)= summ/DBLE(nzz)
+        fnode(i,j)= summ/REAL(nzz)
     END DO
 END DO
 
@@ -3468,7 +3468,7 @@ END DO
 END SUBROUTINE NodPow
 
 
-SUBROUTINE  AsmPow(fn)
+SUBROUTINE AsmPow(fn)
 
 !
 ! Purpose:
@@ -3550,14 +3550,14 @@ xmax = 1; ymax = 1
 fmax = 0.d0
 DO j = 1, ny
     DO i = 1, nx
-        IF (totp > 0.) fasm(i,j) = DBLE(nfuel) / totp * fasm(i,j)
+        IF (totp > 0.) fasm(i,j) = REAL(nfuel) / totp * fasm(i,j)
         IF (fasm(i,j) > fmax) THEN     ! Get max position
             xmax = i
             ymax = j
             fmax = fasm(i,j)
         END IF
         ! Convert power to character (If power == 0 convert to blank spaces)
-        IF (fasm(i,j) == 0.) THEN
+        IF ((fasm(i,j) - 0.) < 1.e-5) THEN
             cpow(i,j) = '     '
         ELSE
             WRITE (cpow(i,j),'(F6.3)') fasm(i,j)
@@ -3615,7 +3615,7 @@ SUBROUTINE  AxiPow(fn)
 !    To print radially averaged  power distribution
 !
 
-USE sdata, ONLY: nx, ny, nxx, nyy, nzz, nz, zdiv, &
+USE sdata, ONLY: nxx, nyy, nzz, nz, zdiv, &
                 vdel, ystag, nnod, ix, iy, iz, xyz, zdel, ystag
 
 IMPLICIT NONE
@@ -3624,7 +3624,7 @@ REAL, DIMENSION(:), INTENT(IN) :: fn
 
 REAL, DIMENSION(nxx, nyy, nzz) :: fx
 INTEGER :: i, j, k, n, ztot
-INTEGER :: ly, lx, ys, xs, yf, xf, lz
+INTEGER :: lz
 REAL :: summ, vsumm
 REAL, DIMENSION(nz) :: faxi
 REAL :: totp
@@ -3696,7 +3696,6 @@ WRITE(ounit,*)
 WRITE(ounit,*) '  MAX POS.       Maximum Value'
 WRITE(ounit,1102)  amax, faxi(amax)
 
-1101 FORMAT(2X, '(' , I3, ',', I3,')', F15.3)
 1102 FORMAT(4X, '(' , I3, ')', F18.3)
 
 
@@ -3814,7 +3813,7 @@ DO g = 1, ng
     !!! Convert to character (zero flux convert to blank spaces)
     DO j = 1, ny
         DO i = 1, nx
-            IF (fasm(i,j,g) == 0.) THEN
+            IF ((fasm(i,j,g) - 0.) < 1.e-5) THEN
                 cflx(i,j) = '         '
             ELSE
                 WRITE (cflx(i,j),'(ES10.3)') fasm(i,j,g)

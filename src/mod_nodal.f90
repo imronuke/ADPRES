@@ -21,8 +21,8 @@ SUBROUTINE outer4(popt)
 !    To perform normal outer iteration
 
 
-USE sdata, ONLY: ng, nnod, ystag, nout, serc, ferc, fer, ser, &
-                 f0, fx1, fy1, fz1, fx2, fy2, fz2, Ke, nac
+USE sdata, ONLY: ng, nnod, nout, serc, ferc, fer, ser, &
+                 Ke, nac, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 USE InpOutp, ONLY: ounit
 
 IMPLICIT NONE
@@ -30,17 +30,15 @@ IMPLICIT NONE
 INTEGER, OPTIONAL, INTENT(IN) :: popt
 
 REAL :: Keo                                    !Old Multiplication factor (Keff)
-REAL, DIMENSION(nnod) :: fs0, fs0c             !New and old fission source, and scattering source
-REAL, DIMENSION(nnod) :: fsx1, fsy1, fsz1
-REAL, DIMENSION(nnod) :: fsx2, fsy2, fsz2      ! Fission source moments
+REAL, DIMENSION(nnod) :: fs0c                  !old fission source
 REAL, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
 REAL, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 REAL, DIMENSION(nnod) :: ss0                   ! Scattering source
 REAL, DIMENSION(nnod) :: ssx1, ssy1, ssz1
 REAL, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
 REAL :: f, fc                                  ! new and old integrated fission sources
-REAL :: domiR
-INTEGER :: h, g
+REAL :: domiR, e1, e2
+INTEGER :: g
 INTEGER :: p, npos
 LOGICAL :: opt
 
@@ -53,16 +51,17 @@ ELSE
 END IF
 
 ! Initialize fission source
-fs0  = 0.d0
-fsx1 = 0.d0; fsy1 = 0.d0; fsz1 = 0.d0
-fsx2 = 0.d0; fsy2 = 0.d0; fsz2 = 0.d0
+fs0  = 0.0
+fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
+fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
 
 DO g= 1, ng
     CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
 END DO
 
-errn = 1.d0
+errn = 1.0
 f = Integrate(fs0)
+e1 = Integrate(errn)
 
 !Start outer iteration
 DO p=1, nout
@@ -70,16 +69,16 @@ DO p=1, nout
     fs0c  = fs0
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
     fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
-    fs0  = 0.d0
-    fsx1 = 0.d0; fsy1 = 0.d0; fsz1 = 0.d0
-    fsx2 = 0.d0; fsy2 = 0.d0; fsz2 = 0.d0
+    fs0  = 0.0
+    fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
+    fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
     Keo = Ke
     erro = errn
     DO g = 1, ng
 
-        ss0  = 0.d0
-        ssx1 = 0.d0; ssy1 = 0.d0; ssz1 = 0.d0
-        ssx2 = 0.d0; ssy2 = 0.d0; ssz2 = 0.d0
+        ss0  = 0.0
+        ssx1 = 0.0; ssy1 = 0.0; ssz1 = 0.0
+        ssx2 = 0.0; ssy2 = 0.0; ssz2 = 0.0
 
         !!!Calculate Scattering source
         CALL SSrc(g, ss0, ssx1, ssy1, ssz1, ssx2, ssy2, ssz2)
@@ -98,14 +97,16 @@ DO p=1, nout
     END DO
 
     errn = fs0 - fs0c
+    e2 = Integrate(ABS(errn))
 
     IF (MOD(p,nac) == 0) THEN
-        domiR = Integrate(ABS(errn)) / Integrate(ABS(erro))
+        domiR = e2 / e1
         npos = MAXLOC(ABS(erro),1)
-        IF (erro(npos) * errn(npos) < 0.d0) domiR = -domiR
-        fs0 = fs0 + domiR / (1.d0 - domiR) * errn
-        IF (opt) WRITE(ounit,*) '    ...FISSION SOURCE EXTRAPOLATED...'
+        IF (erro(npos) * errn(npos) < 0.0) domiR = -domiR
+        fs0 = fs0 + domiR / (1.0 - domiR) * errn
     END IF
+
+    e1 = e2
 
     f = Integrate(fs0)
 
@@ -130,6 +131,7 @@ END IF
 IF (opt) WRITE(ounit,*)
 IF (opt) WRITE(ounit, '(A36,F9.6)') 'MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
 
+
 END SUBROUTINE outer4
 
 
@@ -140,42 +142,40 @@ SUBROUTINE outer4th(maxn)
 !    To perform normal outer iteration when %THER card present
 
 
-USE sdata, ONLY: ng, nnod, ystag, serc, ferc, fer, ser, &
-                 f0, fx1, fy1, fz1, fx2, fy2, fz2, Ke, nac
-USE InpOutp, ONLY: ounit
+USE sdata, ONLY: ng, nnod, serc, ferc, fer, ser, &
+                 Ke, nac, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: maxn
 
 REAL :: Keo                                    !Old Multiplication factor (Keff)
-REAL, DIMENSION(nnod) :: fs0, fs0c             !New and old fission source, and scattering source
-REAL, DIMENSION(nnod) :: fsx1, fsy1, fsz1
-REAL, DIMENSION(nnod) :: fsx2, fsy2, fsz2      ! Fission source moments
+REAL, DIMENSION(nnod) :: fs0c                  !Old fission source
 REAL, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
 REAL, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 REAL, DIMENSION(nnod) :: ss0                   ! Scattering source
 REAL, DIMENSION(nnod) :: ssx1, ssy1, ssz1
 REAL, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
 REAL :: f, fc                                  ! new and old integrated fission sources
-REAL :: domiR
-INTEGER :: h, g
+REAL :: domiR, e1, e2
+INTEGER :: g
 INTEGER :: p, npos
 
 REAL, DIMENSION(nnod) :: errn, erro
 
 
 ! Initialize fission source
-fs0  = 0.d0
-fsx1 = 0.d0; fsy1 = 0.d0; fsz1 = 0.d0
-fsx2 = 0.d0; fsy2 = 0.d0; fsz2 = 0.d0
+fs0  = 0.0
+fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
+fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
 
 DO g= 1, ng
     CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
 END DO
 
-errn = 1.d0
+errn = 1.0
 f = Integrate(fs0)
+e1 = Integrate(errn)
 
 !Start outer iteration
 DO p=1, maxn
@@ -183,9 +183,9 @@ DO p=1, maxn
     fs0c  = fs0
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
     fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
-    fs0  = 0.d0
-    fsx1 = 0.d0; fsy1 = 0.d0; fsz1 = 0.d0
-    fsx2 = 0.d0; fsy2 = 0.d0; fsz2 = 0.d0
+    fs0  = 0.0
+    fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
+    fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
     Keo = Ke
     erro = errn
     DO g = 1, ng
@@ -207,13 +207,16 @@ DO p=1, maxn
     END DO
 
     errn = fs0 - fs0c
+    e2 = Integrate(ABS(errn))
 
     IF (MOD(p,nac) == 0) THEN
-        domiR = Integrate(ABS(errn)) / Integrate(ABS(erro))
+        domiR = e2 / e1
         npos = MAXLOC(ABS(erro),1)
-        IF (erro(npos) * errn(npos) < 0.d0) domiR = -domiR
-        fs0 = fs0 + domiR / (1.d0 - domiR) * errn
+        IF (erro(npos) * errn(npos) < 0.0) domiR = -domiR
+        fs0 = fs0 + domiR / (1.0 - domiR) * errn
     END IF
+
+    e1 = e2
 
     f = Integrate(fs0)
 
@@ -235,46 +238,45 @@ SUBROUTINE outer4Fx
 ! Purpose:
 !    To perform fixed-source outer iteration
 
-USE sdata, ONLY: ng, nnod, ystag, nout, serc, ferc, &
-                 f0, fx1, fy1, fz1, fx2, fy2, fz2, Ke, nac
+USE sdata, ONLY: ng, nnod, nout, serc, ferc, &
+                 Ke, nac, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 USE InpOutp, ONLY: ounit
 
 IMPLICIT NONE
 
-REAL, DIMENSION(nnod) :: fs0, fs0c             !New and old fission source, and scattering source
-REAL, DIMENSION(nnod) :: fsx1, fsy1, fsz1
-REAL, DIMENSION(nnod) :: fsx2, fsy2, fsz2      ! Fission source moments
+REAL, DIMENSION(nnod) :: fs0c                  !Old fission source
 REAL, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
 REAL, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 REAL, DIMENSION(nnod) :: ss0                   ! Scattering source
 REAL, DIMENSION(nnod) :: ssx1, ssy1, ssz1
 REAL, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
-REAL :: ser, Ker, fer                          ! Fission source and Keff error
-REAL :: domiR
-INTEGER :: h, g
+REAL :: ser, fer                          ! Fission source and Keff error
+REAL :: domiR, e1, e2
+INTEGER :: g
 INTEGER :: p, npos
 
 REAL, DIMENSION(nnod) :: errn, erro
 
 ! Initialize fission source
-fs0  = 0.d0
-fsx1 = 0.d0; fsy1 = 0.d0; fsz1 = 0.d0
-fsx2 = 0.d0; fsy2 = 0.d0; fsz2 = 0.d0
+fs0  = 0.0
+fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
+fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
 
 DO g= 1, ng
     CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
 END DO
 
-errn = 1.d0
+errn = 1.0
+e1 = Integrate(errn)
 
 !Start outer iteration
 DO p=1, nout
     fs0c  = fs0
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
     fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
-    fs0  = 0.d0
-    fsx1 = 0.d0; fsy1 = 0.d0; fsz1 = 0.d0
-    fsx2 = 0.d0; fsy2 = 0.d0; fsz2 = 0.d0
+    fs0  = 0.0
+    fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
+    fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
     erro = errn
     DO g = 1, ng
 
@@ -295,14 +297,16 @@ DO p=1, nout
     END DO
 
     errn = fs0 - fs0c
+    e2 = Integrate(ABS(errn))
 
     IF (MOD(p,nac) == 0) THEN
-        domiR = Integrate(ABS(errn)) / Integrate(ABS(erro))
+        domiR = e2 / e1
         npos = MAXLOC(ABS(erro),1)
-        IF (erro(npos) * errn(npos) < 0.d0) domiR = -domiR
-        fs0 = fs0 + domiR / (1.d0 - domiR) * errn
-        WRITE(ounit,*) '    ...FISSION SOURCE EXTRAPOLATED...'
+        IF (erro(npos) * errn(npos) < 0.0) domiR = -domiR
+        fs0 = fs0 + domiR / (1.0 - domiR) * errn
     END IF
+
+    e1 = e2
 
     CALL RelE(fs0, fs0c, ser)                      ! Search maximum point wise fission source Relative Error
 
@@ -328,6 +332,86 @@ WRITE(ounit, '(A36,F9.6)') 'MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
 END SUBROUTINE outer4Fx
 
 
+SUBROUTINE outertf (nmax, ht, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+
+!
+! Purpose:
+!    To perform outer iteration for transient with flux transformation
+
+USE sdata, ONLY: ng, nnod, serc, ferc, &
+                 nac, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: nmax
+REAL, INTENT(IN) :: ht
+REAL, DIMENSION(:,:), INTENT(IN) :: ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2
+
+REAL, DIMENSION(nnod) :: fs0c                  !Old fission source
+REAL, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
+REAL, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
+REAL, DIMENSION(nnod) :: ss0                   ! Scattering source
+REAL, DIMENSION(nnod) :: ssx1, ssy1, ssz1,ssx2, ssy2, ssz2      ! Scattering source moments
+REAL :: ser, fer                          ! Fission source and Keff error
+REAL :: domiR, e1, e2
+INTEGER :: g
+INTEGER :: p, npos
+
+REAL, DIMENSION(nnod) :: errn, erro
+
+errn = 1.0
+e1 = Integrate(errn)
+
+!Start outer iteration
+DO p=1, nmax
+    fs0c  = fs0
+    fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
+    fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
+    fs0  = 0.0
+    fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
+    fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
+    erro = errn
+    DO g = 1, ng
+
+        !!!Calculate Scattering source
+        CALL SSrc(g, ss0, ssx1, ssy1, ssz1, ssx2, ssy2, ssz2)
+
+        !!!Calculate total source
+        CALL TSrcT(g,  fs0c, fsx1c, fsy1c, fsz1c,&
+                              fsx2c, fsy2c, fsz2c, &
+                        ss0 , ssx1 , ssy1 , ssz1 , &
+                              ssx2 , ssy2 , ssz2, &
+                        ht, ft(:,g), ftx1(:,g), fty1(:,g), ftz1(:,g), &
+                        ftx2(:,g), fty2(:,g), ftz2(:,g))
+
+        !!!Inner Iteration
+        CALL inner4(g, fer)
+
+        !!!Calculate fission source for next outer iteration
+        CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
+    END DO
+
+    errn = fs0 - fs0c
+    e2 = Integrate(ABS(errn))
+
+    IF (MOD(p,nac) == 0) THEN
+        domiR = e2 / e1
+        npos = MAXLOC(ABS(erro),1)
+        IF (erro(npos) * errn(npos) < 0.0) domiR = -domiR
+        fs0 = fs0 + domiR / (1.0 - domiR) * errn
+    END IF
+
+    e1 = e2
+
+    CALL RelE(fs0, fs0c, ser)                      ! Search maximum point wise fission source Relative Error
+
+    IF ((ser < serc) .AND. (fer < ferc)) EXIT
+END DO
+
+WRITE(*,*) p
+
+END SUBROUTINE outertf
+
 
 SUBROUTINE outer4ad(popt)
 
@@ -335,8 +419,8 @@ SUBROUTINE outer4ad(popt)
   ! Purpose:
   !    To perform adjoint outer iteration
 
-USE sdata, ONLY: ng, nnod, ystag, nout, serc, ferc, &
-                 f0, fx1, fy1, fz1, fx2, fy2, fz2, Ke, nac
+USE sdata, ONLY: ng, nnod, nout, serc, ferc, &
+                 Ke, nac, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 USE InpOutp, ONLY: ounit
 
 IMPLICIT NONE
@@ -344,9 +428,7 @@ IMPLICIT NONE
 INTEGER, OPTIONAL, INTENT(IN) :: popt
 
 REAL :: Keo                                    !Old Multiplication factor (Keff)
-REAL, DIMENSION(nnod) :: fs0, fs0c             !New and old fission source, and scattering source
-REAL, DIMENSION(nnod) :: fsx1, fsy1, fsz1
-REAL, DIMENSION(nnod) :: fsx2, fsy2, fsz2      ! Fission source moments
+REAL, DIMENSION(nnod) :: fs0c                  !Old fission source
 REAL, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
 REAL, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 REAL, DIMENSION(nnod) :: ss0                   ! Scattering source
@@ -354,8 +436,8 @@ REAL, DIMENSION(nnod) :: ssx1, ssy1, ssz1
 REAL, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
 REAL :: ser, Ker, fer                          ! Fission source and Keff error
 REAL :: f, fc                                  ! new and old integrated fission sources
-REAL :: domiR
-INTEGER :: h, g
+REAL :: domiR, e1, e2
+INTEGER :: g
 INTEGER :: p, npos
 
 LOGICAL :: opt
@@ -369,16 +451,17 @@ ELSE
 END IF
 
 ! Initialize fission source
-fs0  = 0.d0
-fsx1 = 0.d0; fsy1 = 0.d0; fsz1 = 0.d0
-fsx2 = 0.d0; fsy2 = 0.d0; fsz2 = 0.d0
+fs0  = 0.0
+fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
+fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
 
 DO g= 1, ng
     CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
 END DO
 
-errn = 1.d0
+errn = 1.0
 f = Integrate(fs0)
+e1 = Integrate(errn)
 
 !Start outer iteration
 DO p=1, nout
@@ -386,9 +469,9 @@ DO p=1, nout
     fs0c  = fs0
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
     fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
-    fs0  = 0.d0
-    fsx1 = 0.d0; fsy1 = 0.d0; fsz1 = 0.d0
-    fsx2 = 0.d0; fsy2 = 0.d0; fsz2 = 0.d0
+    fs0  = 0.0
+    fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
+    fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
     Keo = Ke
     erro = errn
     DO g = ng,1,-1
@@ -410,14 +493,16 @@ DO p=1, nout
     END DO
 
     errn = fs0 - fs0c
+    e2 = Integrate(ABS(errn))
 
     IF (MOD(p,nac) == 0) THEN
-        domiR = Integrate(ABS(errn)) / Integrate(ABS(erro))
+        domiR = e2 / e1
         npos = MAXLOC(ABS(erro),1)
-        IF (erro(npos) * errn(npos) < 0.d0) domiR = -domiR
-        fs0 = fs0 + domiR / (1.d0 - domiR) * errn
-        IF (opt) WRITE(ounit,*) '    ...FISSION SOURCE EXTRAPOLATED...'
+        IF (erro(npos) * errn(npos) < 0.0) domiR = -domiR
+        fs0 = fs0 + domiR / (1.0 - domiR) * errn
     END IF
+
+    e1 = e2
 
     f = Integrate(fs0)
 
@@ -463,7 +548,7 @@ IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g
 REAL, INTENT(OUT) :: fer
-INTEGER :: l, n, i, j
+INTEGER :: l, n
 REAL, DIMENSION(6) :: bvec, qvec
 
 ! Transverse Leakage Moments(0, Lx1, Ly1, Lz2, Lx2, Ly2, Lz3)
@@ -482,43 +567,49 @@ DO l = 1, nin
             IF (ix(n) == ystag(iy(n))%smax) THEN                          ! East (X+) BC
                 CALL bcond(xeast, n, g, 1)
             ELSE
-                nod(n,g)%ji(1) = 1.d0/(1.d0 - al(n,g)%dc(1)) * &
-                (nod(xyz( ix(n)+1, iy(n), iz(n) ), g)%jo(2) + al(n,g)%dc(1) * nod(n,g)%jo(1))
+                nod(n,g)%ji(1) = (nod(xyz( ix(n)+1, iy(n), iz(n) ), g)%jo(2) + &
+                                  al(n,g)%dc(1) * nod(n,g)%jo(1)) / &
+                                  (1.0 - al(n,g)%dc(1))
             END IF
 
             IF (ix(n) == ystag(iy(n))%smin) THEN                          ! West (X-) BC
                 CALL bcond(xwest, n, g, 2)
             ELSE
-                nod(n,g)%ji(2) = 1.d0/(1.d0 - al(n,g)%dc(2)) * &
-                (nod(xyz( ix(n)-1, iy(n), iz(n) ), g)%jo(1) + al(n,g)%dc(2) * nod(n,g)%jo(2))
+                nod(n,g)%ji(2) = (nod(xyz( ix(n)-1, iy(n), iz(n) ), g)%jo(1) + &
+                                  al(n,g)%dc(2) * nod(n,g)%jo(2)) / &
+                                  (1.0 - al(n,g)%dc(2))
             END IF
 
             IF (iy(n) == xstag(ix(n))%smax) THEN                          ! North (Y+) BC
                 CALL bcond(ynorth, n, g, 3)
             ELSE
-                nod(n,g)%ji(3) = 1.d0/(1.d0 - al(n,g)%dc(3)) * &
-                (nod(xyz( ix(n), iy(n)+1, iz(n) ), g)%jo(4) + al(n,g)%dc(3) * nod(n,g)%jo(3))
+                nod(n,g)%ji(3) = (nod(xyz( ix(n), iy(n)+1, iz(n) ), g)%jo(4) + &
+                                  al(n,g)%dc(3) * nod(n,g)%jo(3)) / &
+                                  (1.0 - al(n,g)%dc(3))
             END IF
 
             IF (iy(n) == xstag(ix(n))%smin) THEN                          ! South (Y-) BC
                 CALL bcond(ysouth, n, g, 4)
             ELSE
-                nod(n,g)%ji(4) = 1.d0/(1.d0 - al(n,g)%dc(4)) * &
-                (nod(xyz( ix(n), iy(n)-1, iz(n) ), g)%jo(3) + al(n,g)%dc(4) * nod(n,g)%jo(4))
+                nod(n,g)%ji(4) = (nod(xyz( ix(n), iy(n)-1, iz(n) ), g)%jo(3) + &
+                                  al(n,g)%dc(4) * nod(n,g)%jo(4)) / &
+                                  (1.0 - al(n,g)%dc(4))
             END IF
 
             IF (iz(n) == nzz) THEN                                    ! Top (Z+) BC
                 CALL bcond(ztop, n, g, 5)
             ELSE
-                nod(n,g)%ji(5) = 1.d0/(1.d0 - al(n,g)%dc(5)) * &
-                (nod(xyz( ix(n), iy(n), iz(n)+1 ), g)%jo(6) + al(n,g)%dc(5) * nod(n,g)%jo(5))
+                nod(n,g)%ji(5) = (nod(xyz( ix(n), iy(n), iz(n)+1 ), g)%jo(6) + &
+                                  al(n,g)%dc(5) * nod(n,g)%jo(5)) / &
+                                  (1.0 - al(n,g)%dc(5))
             END IF
 
             IF (iz(n) == 1) THEN                                      ! Bottom (Z-)BC
                 CALL bcond(zbott, n, g, 6)
             ELSE
-                   nod(n,g)%ji(6) = 1.d0/(1.d0 - al(n,g)%dc(6)) * &
-                (nod(xyz( ix(n), iy(n), iz(n)-1 ), g)%jo(5) + al(n,g)%dc(6) * nod(n,g)%jo(6))
+                nod(n,g)%ji(6) = (nod(xyz( ix(n), iy(n), iz(n)-1 ), g)%jo(5) + &
+                                  al(n,g)%dc(6) * nod(n,g)%jo(6)) / &
+                                  (1.0 - al(n,g)%dc(6))
             END IF
 
 
@@ -543,43 +634,49 @@ DO l = 1, nin
             IF (ix(n) == ystag(iy(n))%smax) THEN                          ! East (X+) BC
                 CALL bcond(xeast, n, g, 1)
             ELSE
-                nod(n,g)%ji(1) = 1.d0/(1.d0 - al(n,g)%dc(1)) * &
-                (nod(xyz( ix(n)+1, iy(n), iz(n) ), g)%jo(2) + al(n,g)%dc(1) * nod(n,g)%jo(1))
+                nod(n,g)%ji(1) = (nod(xyz( ix(n)+1, iy(n), iz(n) ), g)%jo(2) + &
+                                  al(n,g)%dc(1) * nod(n,g)%jo(1)) / &
+                                  (1.0 - al(n,g)%dc(1))
             END IF
 
             IF (ix(n) == ystag(iy(n))%smin) THEN                          ! West (X-) BC
                 CALL bcond(xwest, n, g, 2)
             ELSE
-                nod(n,g)%ji(2) = 1.d0/(1.d0 - al(n,g)%dc(2)) * &
-                (nod(xyz( ix(n)-1, iy(n), iz(n) ), g)%jo(1) + al(n,g)%dc(2) * nod(n,g)%jo(2))
+                nod(n,g)%ji(2) = (nod(xyz( ix(n)-1, iy(n), iz(n) ), g)%jo(1) + &
+                                  al(n,g)%dc(2) * nod(n,g)%jo(2)) / &
+                                  (1.0 - al(n,g)%dc(2))
             END IF
 
             IF (iy(n) == xstag(ix(n))%smax) THEN                          ! North (Y+) BC
                 CALL bcond(ynorth, n, g, 3)
             ELSE
-                nod(n,g)%ji(3) = 1.d0/(1.d0 - al(n,g)%dc(3)) * &
-                (nod(xyz( ix(n), iy(n)+1, iz(n) ), g)%jo(4) + al(n,g)%dc(3) * nod(n,g)%jo(3))
+                nod(n,g)%ji(3) = (nod(xyz( ix(n), iy(n)+1, iz(n) ), g)%jo(4) + &
+                                  al(n,g)%dc(3) * nod(n,g)%jo(3)) / &
+                                  (1.0 - al(n,g)%dc(3))
             END IF
 
             IF (iy(n) == xstag(ix(n))%smin) THEN                          ! South (Y-) BC
                 CALL bcond(ysouth, n, g, 4)
             ELSE
-                nod(n,g)%ji(4) = 1.d0/(1.d0 - al(n,g)%dc(4)) * &
-                (nod(xyz( ix(n), iy(n)-1, iz(n) ), g)%jo(3) + al(n,g)%dc(4) * nod(n,g)%jo(4))
+                nod(n,g)%ji(4) = (nod(xyz( ix(n), iy(n)-1, iz(n) ), g)%jo(3) + &
+                                  al(n,g)%dc(4) * nod(n,g)%jo(4)) / &
+                                  (1.0 - al(n,g)%dc(4))
             END IF
 
             IF (iz(n) == nzz) THEN                                    ! Top (Z+) BC
                 CALL bcond(ztop, n, g, 5)
             ELSE
-                nod(n,g)%ji(5) = 1.d0/(1.d0 - al(n,g)%dc(5)) * &
-                (nod(xyz( ix(n), iy(n), iz(n)+1 ), g)%jo(6) + al(n,g)%dc(5) * nod(n,g)%jo(5))
+                nod(n,g)%ji(5) = (nod(xyz( ix(n), iy(n), iz(n)+1 ), g)%jo(6) + &
+                                  al(n,g)%dc(5) * nod(n,g)%jo(5)) / &
+                                  (1.0 - al(n,g)%dc(5))
             END IF
 
             IF (iz(n) == 1) THEN                                      ! Bottom (Z-)BC
                 CALL bcond(zbott, n, g, 6)
             ELSE
-                   nod(n,g)%ji(6) = 1.d0/(1.d0 - al(n,g)%dc(6)) * &
-                (nod(xyz( ix(n), iy(n), iz(n)-1 ), g)%jo(5) + al(n,g)%dc(6) * nod(n,g)%jo(6))
+                nod(n,g)%ji(6) = (nod(xyz( ix(n), iy(n), iz(n)-1 ), g)%jo(5) + &
+                                  al(n,g)%dc(6) * nod(n,g)%jo(6)) / &
+                                  (1.0 - al(n,g)%dc(6))
             END IF
 
 
@@ -624,9 +721,10 @@ IMPLICIT NONE
 INTEGER, INTENT(IN) :: bc, nt, gt, side
 
 IF (bc == 0) THEN
-    nod(nt,gt)%ji(side) = -nod(nt,gt)%jo(side)
+    ! nod(nt,gt)%ji(side) = -nod(nt,gt)%jo(side)
+    nod(nt,gt)%ji(side) = 0.0
 ELSE IF (bc == 1) THEN
-    nod(nt,gt)%ji(side) = 0.d0
+    nod(nt,gt)%ji(side) = 0.0
 ELSE
     nod(nt,gt)%ji(side) = nod(nt,gt)%jo(side)
 END IF
@@ -657,6 +755,7 @@ f0(n,g)  = ( nod(n,g)%Q(1)          &
                  - nod(n,g)%L(2)/ydel(iy(n))   &
                  - nod(n,g)%L(3)/zdel(iz(n)))  &
                  / sigr(n,g)
+IF (f0(n,g) < 0.) f0(n,g) = 0.
 
 ! Set parameters Tx, Ty and Tz
 Tx = nod(n,g)%jo(1) - nod(n,g)%ji(1) &
@@ -668,48 +767,48 @@ Tz = nod(n,g)%jo(5) - nod(n,g)%ji(5) &
 
 ! Calculate Flux moments
 fx1(n,g) = ( nod(n,g)%Q(2) - L(2)                &
-           - 0.5d0*Tx/xdel(ix(n))                &
-           - 2.d0*D(n,g)/xdel(ix(n))**2     &
+           - 0.5*Tx/xdel(ix(n))                  &
+           - 2.*D(n,g)/xdel(ix(n))**2            &
            * (nod(n,g)%jo(1) + nod(n,g)%ji(1)    &
            -  nod(n,g)%jo(2) - nod(n,g)%ji(2)) ) &
            / sigr(n,g)
 
 
 fy1(n,g) = ( nod(n,g)%Q(3) - L(3)                &
-           - 0.5d0*Ty/ydel(iy(n))                &
-           - 2.d0*D(n,g)/ydel(iy(n))**2     &
+           - 0.5*Ty/ydel(iy(n))                  &
+           - 2.*D(n,g)/ydel(iy(n))**2            &
            * (nod(n,g)%jo(3) + nod(n,g)%ji(3)    &
            -  nod(n,g)%jo(4) - nod(n,g)%ji(4)) ) &
            / sigr(n,g)
 
 
 fz1(n,g) = ( nod(n,g)%Q(4) - L(4)                &
-           - 0.5d0*Tz/zdel(iz(n))                &
-           - 2.d0*D(n,g)/zdel(iz(n))**2     &
+           - 0.5*Tz/zdel(iz(n))                  &
+           - 2.*D(n,g)/zdel(iz(n))**2            &
            * (nod(n,g)%jo(5) + nod(n,g)%ji(5)    &
            -  nod(n,g)%jo(6) - nod(n,g)%ji(6)) ) &
            / sigr(n,g)
 
 
 fx2(n,g) = ( nod(n,g)%Q(5) - L(5)                &
-           - 0.5d0*nod(n,g)%L(1)/xdel(ix(n))     &
-           - 6.d0*D(n,g)/xdel(ix(n))**2     &
+           - 0.5*nod(n,g)%L(1)/xdel(ix(n))       &
+           - 6.*D(n,g)/xdel(ix(n))**2            &
            * (nod(n,g)%jo(1) + nod(n,g)%ji(1)    &
            +  nod(n,g)%jo(2) + nod(n,g)%ji(2)    &
            - f0(n,g)) ) / sigr(n,g)
 
 
 fy2(n,g) = ( nod(n,g)%Q(6) - L(6)                &
-           - 0.5d0*nod(n,g)%L(2)/ydel(iy(n))     &
-           - 6.d0*D(n,g)/ydel(iy(n))**2     &
+           - 0.5*nod(n,g)%L(2)/ydel(iy(n))       &
+           - 6.*D(n,g)/ydel(iy(n))**2            &
            * (nod(n,g)%jo(3) + nod(n,g)%ji(3)    &
            +  nod(n,g)%jo(4) + nod(n,g)%ji(4)    &
            - f0(n,g)) ) / sigr(n,g)
 
 
 fz2(n,g) = ( nod(n,g)%Q(7) - L(7)                &
-           - 0.5d0*nod(n,g)%L(3)/zdel(iz(n))     &
-           - 6.d0*D(n,g)/zdel(iz(n))**2     &
+           - 0.5*nod(n,g)%L(3)/zdel(iz(n))       &
+           - 6.*D(n,g)/zdel(iz(n))**2            &
            * (nod(n,g)%jo(5) + nod(n,g)%ji(5)    &
            +  nod(n,g)%jo(6) + nod(n,g)%ji(6)    &
            - f0(n,g)) ) / sigr(n,g)
@@ -720,9 +819,8 @@ END SUBROUTINE FluxUpd4
 
 SUBROUTINE FluxUpd2 (nt, gt)
 
-USE sdata, ONLY: nod, D, sigr, xdel, ydel, zdel, &
-                 f0, fx1, fy1, fz1, fx2, fy2, fz2, &
-                 ix, iy, iz
+USE sdata, ONLY: nod, sigr, xdel, ydel, zdel, &
+                 f0, ix, iy, iz
 
 ! Purpose:
    ! To update nod averaged flux and flux moments
@@ -730,8 +828,6 @@ USE sdata, ONLY: nod, D, sigr, xdel, ydel, zdel, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: gt, nt
-
-REAL :: Tx, Ty, Tz
 
 ! Calculate Zeroth Flux
 f0(nt,gt)  = ( nod(nt,gt)%Q(1)          &
@@ -741,7 +837,6 @@ f0(nt,gt)  = ( nod(nt,gt)%Q(1)          &
                  / sigr(nt,gt)
 
 END SUBROUTINE FluxUpd2
-
 
 
 SUBROUTINE TLUpd (n, g, L)
@@ -758,8 +853,8 @@ IMPLICIT NONE
 INTEGER, INTENT(IN) :: g, n
 REAL, DIMENSION(:), INTENT(OUT) :: L
 
-REAL :: txm, txp, tym, typ, tzm, tzp
-REAL :: p1m, p2m, p1p, p2p, p1, p2
+REAL :: tm, tp
+REAL :: p1m, p2m, p1p, p2p, pm, pp, p1, p2, p3
 REAL :: r1xy, r2xy, r1xz, r2xz
 REAL :: r1yx, r2yx, r1yz, r2yz
 REAL :: r1zx, r2zx, r1zy, r2zy
@@ -767,321 +862,299 @@ REAL :: r1zx, r2zx, r1zy, r2zy
 ! Set paramaters for X-Direction Transverse leakage
 IF (ix(n) == ystag(iy(n))%smin) THEN
     IF (xwest == 0 .OR. xwest == 1) THEN
-        txp = xdel(ix(n)+1)/xdel(ix(n))
-        p1p = txp+1.d0
-        r1xy = 2.d0 *                     &
-             ( nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(2)   &
-             - nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)   &
+        tp = xdel(ix(n)+1)/xdel(ix(n))
+        p1p = tp+1.0
+        r1xy = 2. * ( nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(2)   &
+             - nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)          &
              ) / p1p
-        r2xy = 0.d0
-        r1xz = 2.d0 *                     &
-             ( nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(3)   &
-             - nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(3)   &
+        r2xy = 0.0
+        r1xz = 2. * ( nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(3)   &
+             - nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(3)          &
              ) / p1p
-        r2xz = 0.d0
+        r2xz = 0.0
     ELSE
-        txm = 1.d0
-        txp = xdel(ix(n)+1)/xdel(ix(n))
-        p1m = txm+1.d0; p2m = 2.d0*txm+1.d0; p1p = txp+1.d0
-        p2p = 2.d0*txp+1.d0; p1 = txm+txp+1.d0; p2 = txm+txp+2.d0
-        r1xy = (   p1m*p2m * nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(2)   &
-                 - p1p*p2p * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)   &
-                 + (p1p*p2p-p1m*p2m)                                &
-                 * nod(n,g)%L(2)                                    &
-               ) / (p1m*p1p*p1)
+        tm = 1.0
+        tp = xdel(ix(n)+1)/xdel(ix(n))
+        p1m = tm+1.0; p2m = 2.*tm+1.0; p1p = tp+1.0
+        p2p = 2.*tp+1.0; p2 = tm+tp+2.
+        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+        r1xy = (   pm * nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(2)   &
+                 - pp * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)   &
+                 + p1 * nod(n,g)%L(2)                          &
+               ) / p3
         r2xy = (   p1m * nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(2)  &
                  + p1p * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)  &
                  - p2  * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)  &
-               ) / (p1m*p1p*p1)
-        r1xz = (   p1m*p2m * nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(3)   &
-                 - p1p*p2p * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(3)   &
-                 + (p1p*p2p-p1m*p2m)                                &
-                 * nod(n,g)%L(3)                                    &
-               ) / (p1m*p1p*p1)
+               ) / p3
+        r1xz = (   pm * nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(3)   &
+                 - pp * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(3)   &
+                 + p1 * nod(n,g)%L(3)                          &
+               ) / p3
         r2xz = (   p1m * nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(3)  &
                  + p1p * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(3)  &
                  - p2  * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(3)  &
-               ) / (p1m*p1p*p1)
+               ) / p3
     END IF
 ELSE IF (ix(n) == ystag(iy(n))%smax) THEN
     IF (xeast == 0 .OR. xeast == 1) THEN
-        txm = xdel(ix(n)-1)/xdel(ix(n))
-        p1m = txm+1.d0
-        r1xy = 2.d0 *                                 &
-             ( nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)   &
-             - nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(2)   &
+        tm = xdel(ix(n)-1)/xdel(ix(n))
+        p1m = tm+1.0
+        r1xy = 2. * ( nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)   &
+             - nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(2)          &
              ) / p1m
-        r2xy = 0.d0
-        r1xz = 2.d0 *                                 &
-             ( nod(xyz(ix(n)  ,iy(n) ,iz(n)),g)%L(3)  &
-             - nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(3)   &
+        r2xy = 0.0
+        r1xz = 2. * ( nod(xyz(ix(n)  ,iy(n) ,iz(n)),g)%L(3)  &
+             - nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(3)          &
              ) / p1m
-        r2xz = 0.d0
+        r2xz = 0.0
     ELSE
-        txm = xdel(ix(n)-1)/xdel(ix(n))
-        txp = 1.d0
-        p1m = txm+1.d0; p2m = 2.d0*txm+1.d0;p1p = txp+1.d0
-        p2p = 2.d0*txp+1.d0; p1 = txm+txp+1.d0; p2 = txm+txp+2.d0
-        r1xy = (   p1m*p2m * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)   &
-                 - p1p*p2p * nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(2)   &
-                 + (p1p*p2p-p1m*p2m)                                &
-                 * nod(n,g)%L(2)                                    &
-               ) / (p1m*p1p*p1)
+        tm = xdel(ix(n)-1)/xdel(ix(n))
+        tp = 1.0
+        p1m = tm+1.0; p2m = 2.*tm+1.0;p1p = tp+1.0
+        p2p = 2.*tp+1.0; p2 = tm+tp+2.
+        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+        r1xy = (   pm * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)   &
+                 - pp * nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(2)   &
+                 + p1 * nod(n,g)%L(2)                          &
+               ) / p3
         r2xy = (   p1m * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)  &
                  + p1p * nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(2)  &
                  - p2  * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)  &
-               ) / (p1m*p1p*p1)
-        r1xz = (   p1m*p2m * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(3)   &
-                 - p1p*p2p * nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(3)   &
-                 + (p1p*p2p-p1m*p2m)                                &
-                 * nod(n,g)%L(3)                                    &
-                 ) / (p1m*p1p*p1)
+               ) / p3
+        r1xz = (   pm * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(3)   &
+                 - pp * nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(3)   &
+                 + p1 * nod(n,g)%L(3)                          &
+                 ) / p3
         r2xz = (   p1m * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(3)  &
                  + p1p * nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(3)  &
                  - p2  * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(3)  &
-               ) / (p1m*p1p*p1)
+               ) / p3
     END IF
 ELSE
-    txm = xdel(ix(n)-1)/xdel(ix(n))
-    txp = xdel(ix(n)+1)/xdel(ix(n))
-    p1m = txm+1.d0; p2m = 2.d0*txm+1.d0;p1p = txp+1.d0
-    p2p = 2.d0*txp+1.d0; p1 = txm+txp+1.d0; p2 = txm+txp+2.d0
-    r1xy = (   p1m*p2m * nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(2)   &
-             - p1p*p2p * nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(2)   &
-             + (p1p*p2p-p1m*p2m)                                &
-             * nod(n,g)%L(2)                                    &
-           ) / (p1m*p1p*p1)
+    tm = xdel(ix(n)-1)/xdel(ix(n))
+    tp = xdel(ix(n)+1)/xdel(ix(n))
+    p1m = tm+1.0; p2m = 2.*tm+1.0;p1p = tp+1.0
+    p2p = 2.*tp+1.0; p2 = tm+tp+2.
+    pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+    r1xy = (   pm * nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(2)   &
+             - pp * nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(2)   &
+             + p1 * nod(n,g)%L(2)                          &
+           ) / p3
     r2xy = (   p1m * nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(2)  &
              + p1p * nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(2)  &
              - p2  * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)  &
-           ) / (p1m*p1p*p1)
-    r1xz = (   p1m*p2m * nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(3)   &
-             - p1p*p2p * nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(3)   &
-             + (p1p*p2p-p1m*p2m)                                &
-             * nod(n,g)%L(3)                                    &
-           ) / (p1m*p1p*p1)
+           ) / p3
+    r1xz = (   pm * nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(3)   &
+             - pp * nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(3)   &
+             + p1 * nod(n,g)%L(3)                          &
+           ) / p3
     r2xz = (   p1m * nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(3)  &
              + p1p * nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(3)  &
              - p2  * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(3)  &
-           ) / (p1m*p1p*p1)
+           ) / p3
 END IF
 
 
 ! Set paramaters for Y-Direction Transverse leakage
 IF (iy(n) == xstag(ix(n))%smin) THEN
     IF (ysouth == 0 .OR. ysouth == 1) THEN
-        typ = ydel(iy(n)+1)/ydel(iy(n))
-        p1p = typ+1.d0
-        r1yx = 2.d0 *                                 &
-             ( nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(1)   &
-             - nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)   &
+        tp = ydel(iy(n)+1)/ydel(iy(n))
+        p1p = tp+1.0
+        r1yx = 2. * ( nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(1)   &
+             - nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)          &
              ) / p1p
-        r2yx = 0.d0
-        r1yz = 2.d0 *                                 &
-             ( nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(3)   &
-             - nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(3)   &
+        r2yx = 0.0
+        r1yz = 2. * ( nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(3)   &
+             - nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(3)          &
              ) / p1p
-        r2yz = 0.d0
+        r2yz = 0.0
     ELSE
-        tym = 1.d0
-        typ = ydel(iy(n)+1)/ydel(iy(n))
-        p1m = tym+1.d0; p2m = 2.d0*tym+1.d0;p1p = typ+1.d0
-        p2p = 2.d0*typ+1.d0; p1 = tym+typ+1.d0; p2 = tym+typ+2.d0
-        r1yx = (   p1m*p2m * nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(1)   &
-                 - p1p*p2p * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)   &
-                 + (p1p*p2p-p1m*p2m)                                &
-                 * nod(n,g)%L(1)                                    &
-               ) / (p1m*p1p*p1)
+        tm = 1.0
+        tp = ydel(iy(n)+1)/ydel(iy(n))
+        p1m = tm+1.0; p2m = 2.*tm+1.0;p1p = tp+1.0
+        p2p = 2.*tp+1.0; p2 = tm+tp+2.
+        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+        r1yx = (   pm * nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(1)   &
+                 - pp * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)   &
+                 + p1 * nod(n,g)%L(1)                          &
+               ) / p3
         r2yx = (   p1m * nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(1)  &
                  + p1p * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)  &
                  - p2  * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)  &
-               ) / (p1m*p1p*p1)
-        r1yz = (   p1m*p2m * nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(3)   &
-                 - p1p*p2p * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(3)   &
-                 + (p1p*p2p-p1m*p2m)                                &
-                 * nod(n,g)%L(3)                                    &
-               ) / (p1m*p1p*p1)
+               ) / p3
+        r1yz = (   pm * nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(3)   &
+                 - pp * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(3)   &
+                 + p1 * nod(n,g)%L(3)                          &
+               ) / p3
         r2yz = (   p1m * nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(3)  &
                  + p1p * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(3)  &
                  - p2  * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(3)  &
-               ) / (p1m*p1p*p1)
+               ) / p3
     END IF
 ELSE IF (iy(n) == xstag(ix(n))%smax) THEN
     IF (ynorth == 0 .OR. ynorth == 1) THEN
-        tym = ydel(iy(n)-1)/ydel(iy(n))
-        p1m = tym+1.d0
-        r1yx = 2.d0 *                                 &
-             ( nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)   &
-             - nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(1)   &
+        tm = ydel(iy(n)-1)/ydel(iy(n))
+        p1m = tm+1.0
+        r1yx = 2. * ( nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)   &
+             - nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(1)          &
              ) / p1m
-        r2yx = 0.d0
-        r1yz = 2.d0 *                                 &
-             ( nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(3)   &
-             - nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(3)   &
+        r2yx = 0.0
+        r1yz = 2. * ( nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(3)   &
+             - nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(3)          &
              ) / p1m
-        r2yz = 0.d0
+        r2yz = 0.0
     ELSE
-        tym = ydel(iy(n)-1)/ydel(iy(n))
-        typ = 1.d0
-        p1m = tym+1.d0; p2m = 2.d0*tym+1.d0;p1p = typ+1.d0
-        p2p = 2.d0*typ+1.d0; p1 = tym+typ+1.d0; p2 = tym+typ+2.d0
-        r1yx = (   p1m*p2m * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)   &
-                 - p1p*p2p * nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(1)   &
-                 + (p1p*p2p-p1m*p2m)                                &
-                 * nod(n,g)%L(1)                                    &
-               ) / (p1m*p1p*p1)
+        tm = ydel(iy(n)-1)/ydel(iy(n))
+        tp = 1.0
+        p1m = tm+1.0; p2m = 2.*tm+1.0;p1p = tp+1.0
+        p2p = 2.*tp+1.0; p2 = tm+tp+2.
+        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+        r1yx = (   pm * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)   &
+                 - pp * nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(1)   &
+                 + p1 * nod(n,g)%L(1)                          &
+               ) / p3
         r2yx = (   p1m * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)  &
                  + p1p * nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(1)  &
                  - p2  * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)  &
-                 ) / (p1m*p1p*p1)
-        r1yz = (   p1m*p2m * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(3)   &
-                 - p1p*p2p * nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(3)   &
-                 + (p1p*p2p-p1m*p2m)                                &
-                 * nod(n,g)%L(3)                                    &
-               ) / (p1m*p1p*p1)
+                 ) / p3
+        r1yz = (   pm * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(3)   &
+                 - pp * nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(3)   &
+                 + p1 * nod(n,g)%L(3)                          &
+               ) / p3
         r2yz = (   p1m * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(3)  &
                  + p1p * nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(3)  &
                  - p2  * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(3)  &
-               ) / (p1m*p1p*p1)
+               ) / p3
     END IF
 ELSE
-    tym = ydel(iy(n)-1)/ydel(iy(n))
-    typ = ydel(iy(n)+1)/ydel(iy(n))
-    p1m = tym+1.d0; p2m = 2.d0*tym+1.d0;p1p = typ+1.d0
-    p2p = 2.d0*typ+1.d0; p1 = tym+typ+1.d0; p2 = tym+typ+2.d0
-    r1yx = (   p1m*p2m * nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(1)   &
-             - p1p*p2p * nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(1)   &
-             + (p1p*p2p-p1m*p2m)                                &
-             * nod(n,g)%L(1)                                    &
-           ) / (p1m*p1p*p1)
+    tm = ydel(iy(n)-1)/ydel(iy(n))
+    tp = ydel(iy(n)+1)/ydel(iy(n))
+    p1m = tm+1.0; p2m = 2.*tm+1.0;p1p = tp+1.0
+    p2p = 2.*tp+1.0; p2 = tm+tp+2.
+    pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+    r1yx = (   pm * nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(1)   &
+             - pp * nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(1)   &
+             + p1 * nod(n,g)%L(1)                          &
+           ) / p3
     r2yx = (   p1m * nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(1)  &
              + p1p * nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(1)  &
              - p2  * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)  &
-           ) / (p1m*p1p*p1)
-    r1yz = (   p1m*p2m * nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(3)   &
-             - p1p*p2p * nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(3)   &
-             + (p1p*p2p-p1m*p2m)                                &
-             * nod(n,g)%L(3)                                    &
-           ) / (p1m*p1p*p1)
+           ) / p3
+    r1yz = (   pm * nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(3)   &
+             - pp * nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(3)   &
+             + p1 * nod(n,g)%L(3)                          &
+           ) / p3
     r2yz = (   p1m * nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(3)  &
              + p1p * nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(3)  &
              - p2  * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(3)  &
-           ) / (p1m*p1p*p1)
+           ) / p3
 END IF
 
 ! Set paramaters for Z-Direction Transverse leakage
 IF (iz(n) == 1 ) THEN
     IF (zbott == 0 .OR. zbott == 1) THEN
-        tzp = zdel(iz(n)+1)/zdel(iz(n))
-        p1p = tzp+1.d0
-        r1zx = 2.d0 *                                 &
-             ( nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(1)   &
-             - nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)   &
+        tp = zdel(iz(n)+1)/zdel(iz(n))
+        p1p = tp+1.0
+        r1zx = 2. * ( nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(1)   &
+             - nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)          &
              ) / p1p
-        r2zx = 0.d0
-        r1zy = 2.d0 *                                 &
-             ( nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(2)   &
-             - nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(2)   &
+        r2zx = 0.0
+        r1zy = 2. * ( nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(2)   &
+             - nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(2)          &
              ) / p1p
-        r2zy = 0.d0
+        r2zy = 0.0
     ELSE
-        tzm = 1.d0
-        tzp = zdel(iz(n)+1)/zdel(iz(n))
-        p1m = tzm+1.d0; p2m = 2.d0*tzm+1.d0; p1p = tzp+1.d0
-        p2p = 2.d0*tzp+1.d0; p1 = tzm+tzp+1.d0; p2 = tzm+tzp+2.d0
-        r1zx = (   p1m*p2m * nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(1)   &
-                 - p1p*p2p * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)   &
-                 + (p1p*p2p-p1m*p2m)                                &
-                 * nod(n,g)%L(1)                                    &
-               ) / (p1m*p1p*p1)
+        tm = 1.0
+        tp = zdel(iz(n)+1)/zdel(iz(n))
+        p1m = tm+1.0; p2m = 2.*tm+1.0; p1p = tp+1.0
+        p2p = 2.*tp+1.0; p2 = tm+tp+2.
+        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+        r1zx = (   pm * nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(1)   &
+                 - pp * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)   &
+                 + p1 * nod(n,g)%L(1)                          &
+               ) / p3
         r2zx = (   p1m * nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(1)  &
                  + p1p * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)  &
                  - p2  * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)  &
-               ) / (p1m*p1p*p1)
-        r1zy = (   p1m*p2m * nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(2)   &
-                 - p1p*p2p * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(2)   &
-                 + (p1p*p2p-p1m*p2m)                                &
-                 * nod(n,g)%L(2)                                    &
-               ) / (p1m*p1p*p1)
+               ) / p3
+        r1zy = (   pm * nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(2)   &
+                 - pp * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(2)   &
+                 + p1 * nod(n,g)%L(2)                          &
+               ) / p3
         r2zy = (   p1m * nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(2)  &
                  + p1p * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(2)  &
                  - p2  * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(2)  &
-               ) / (p1m*p1p*p1)
+               ) / p3
     END IF
 ELSE IF (iz(n) == nzz) THEN
     IF (ztop == 0 .OR. ztop == 1) THEN
-        tzm = zdel(iz(n)-1)/zdel(iz(n))
-        p1m = tzm+1.d0
-        r1zx = 2.d0 *                                 &
-             ( nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)   &
-             - nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(1)   &
+        tm = zdel(iz(n)-1)/zdel(iz(n))
+        p1m = tm+1.0
+        r1zx = 2. * ( nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)   &
+             - nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(1)          &
              ) / p1m
-        r2zx = 0.d0
-        r1zy = 2.d0 *                                 &
-             ( nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(2)   &
-             - nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(2)   &
+        r2zx = 0.0
+        r1zy = 2. * ( nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(2)   &
+             - nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(2)          &
              ) / p1m
-        r2zy = 0.d0
+        r2zy = 0.0
     ELSE
-        tzm = zdel(iz(n)-1)/zdel(iz(n))
-        tzp = 1.d0
-        p1m = tzm+1.d0; p2m = 2.d0*tzm+1.d0; p1p = tzp+1.d0
-        p2p = 2.d0*tzp+1.d0; p1 = tzm+tzp+1.d0; p2 = tzm+tzp+2.d0
-        r1zx = (   p1m*p2m * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)   &
-                 - p1p*p2p * nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(1)   &
-                 + (p1p*p2p-p1m*p2m)                                &
-                 * nod(n,g)%L(1)                                    &
-               ) / (p1m*p1p*p1)
+        tm = zdel(iz(n)-1)/zdel(iz(n))
+        tp = 1.0
+        p1m = tm+1.0; p2m = 2.*tm+1.0; p1p = tp+1.0
+        p2p = 2.*tp+1.0; p2 = tm+tp+2.
+        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+        r1zx = (   pm * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)   &
+                 - pp * nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(1)   &
+                 + p1 * nod(n,g)%L(1)                          &
+               ) / p3
         r2zx = (    p1m * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)  &
                   + p1p * nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(1)  &
                   - p2  * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)  &
-               ) / (p1m*p1p*p1)
-        r1zy = (   p1m*p2m * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(2)   &
-                 - p1p*p2p * nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(2)   &
-                 + (p1p*p2p-p1m*p2m)                                &
-                 * nod(n,g)%L(2)                                    &
-               ) / (p1m*p1p*p1)
+               ) / p3
+        r1zy = (   pm * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(2)   &
+                 - pp * nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(2)   &
+                 + p1 * nod(n,g)%L(2)                          &
+               ) / p3
         r2zy = (   p1m * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(2)  &
                  + p1p * nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(2)  &
                  - p2  * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(2)  &
-               ) / (p1m*p1p*p1)
+               ) / p3
     END IF
 ELSE
-    tzm = zdel(iz(n)-1)/zdel(iz(n))
-    tzp = zdel(iz(n)+1)/zdel(iz(n))
-    p1m = tzm+1.d0; p2m = 2.d0*tzm+1.d0; p1p = tzp+1.d0
-    p2p = 2.d0*tzp+1.d0; p1 = tzm+tzp+1.d0; p2 = tzm+tzp+2.d0
-    r1zx = (   p1m*p2m * nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(1)   &
-             - p1p*p2p * nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(1)   &
-             + (p1p*p2p-p1m*p2m)                                &
-             * nod(n,g)%L(1)                                    &
-           ) / (p1m*p1p*p1)
+    tm = zdel(iz(n)-1)/zdel(iz(n))
+    tp = zdel(iz(n)+1)/zdel(iz(n))
+    p1m = tm+1.0; p2m = 2.*tm+1.0; p1p = tp+1.0
+    p2p = 2.*tp+1.0; p2 = tm+tp+2.
+    pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+    r1zx = (   pm * nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(1)   &
+             - pp * nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(1)   &
+             + p1 * nod(n,g)%L(1)                          &
+           ) / p3
     r2zx = (   p1m * nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(1)  &
              + p1p * nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(1)  &
              - p2  * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)  &
-           ) / (p1m*p1p*p1)
-    r1zy = (   p1m*p2m * nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(2)   &
-             - p1p*p2p * nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(2)   &
-             + (p1p*p2p-p1m*p2m)                                &
-             * nod(n,g)%L(2)                                    &
-           ) / (p1m*p1p*p1)
+           ) / p3
+    r1zy = (   pm * nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(2)   &
+             - pp * nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(2)   &
+             + p1 * nod(n,g)%L(2)                          &
+           ) / p3
     r2zy = (   p1m * nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(2)  &
              + p1p * nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(2)  &
              - p2  * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(2)  &
-           ) / (p1m*p1p*p1)
+           ) / p3
 END IF
 
 ! Set Transverse leakage Moments
-L(1) = 0.d0
-L(2) = ( r1xy/ydel(iy(n))+r1xz/zdel(iz(n)) ) / 12.d0
-L(3) = ( r1yx/xdel(ix(n))+r1yz/zdel(iz(n)) ) / 12.d0
-L(4) = ( r1zx/xdel(ix(n))+r1zy/ydel(iy(n)) ) / 12.d0
-L(5) = ( r2xy/ydel(iy(n))+r2xz/zdel(iz(n)) ) / 20.d0
-L(6) = ( r2yx/xdel(ix(n))+r2yz/zdel(iz(n)) ) / 20.d0
-L(7) = ( r2zx/xdel(ix(n))+r2zy/ydel(iy(n)) ) / 20.d0
+L(1) = 0.0
+L(2) = ( r1xy/ydel(iy(n))+r1xz/zdel(iz(n)) ) / 12.
+L(3) = ( r1yx/xdel(ix(n))+r1yz/zdel(iz(n)) ) / 12.
+L(4) = ( r1zx/xdel(ix(n))+r1zy/ydel(iy(n)) ) / 12.
+L(5) = ( r2xy/ydel(iy(n))+r2xz/zdel(iz(n)) ) / 20.
+L(6) = ( r2yx/xdel(ix(n))+r2yz/zdel(iz(n)) ) / 20.
+L(7) = ( r2zx/xdel(ix(n))+r2zy/ydel(iy(n)) ) / 20.
 
 END SUBROUTINE TLUpd
-
 
 
 SUBROUTINE FSrc(gt, s, sx1, sy1, sz1, sx2, sy2, sz2)
@@ -1286,6 +1359,61 @@ END DO
 END SUBROUTINE TSrcFx
 
 
+SUBROUTINE TSrcT(gt, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
+                      s0,  sx1,  sy1,  sz1,  sx2,  sy2 , sz2, &
+                      h, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+!
+! Purpose:
+!   To update total source for transient calcs. with exponetial transformation
+!
+
+USE sdata, ONLY: nod, chi, nnod, tbeta, velo, lamb, iBeta, nf, omeg, &
+ct, ctx1, cty1, ctz1, ctx2, cty2, ctz2
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: gt
+REAL, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2
+REAL, DIMENSION(:), INTENT(IN) :: s0, sx1, sy1, sz1, sx2, sy2, sz2
+REAL, INTENT(IN) :: h
+REAL, DIMENSION(:), INTENT(IN) :: ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2
+
+REAL :: dt, dtx1, dty1, dtz1, dtx2, dty2, dtz2, lat, dfis
+INTEGER :: n, i
+
+DO n = 1, nnod
+     dt = 0.; dtx1 = 0.; dty1 = 0.; dtz1 = 0.; dtx2 = 0.; dty2 = 0.; dtz2 = 0.
+     dfis = 0.
+     DO i = 1, nf
+        lat = 1. + lamb(i) * h
+        dt = dt  + lamb(i) * ct(i,n) / lat
+        dtx1 = dtx1 + lamb(i) * ctx1(i,n) / lat
+        dty1 = dty1 + lamb(i) * cty1(i,n) / lat
+        dtz1 = dtz1 + lamb(i) * ctz1(i,n) / lat
+        dtx2 = dtx2 + lamb(i) * ctx2(i,n) / lat
+        dty2 = dty2 + lamb(i) * cty2(i,n) / lat
+        dtz2 = dtz2 + lamb(i) * ctz2(i,n) / lat
+        dfis = dfis + chi(n,gt) * iBeta(i) * lamb(i) * h / lat
+    END DO
+
+    nod(n,gt)%Q(1) = ((1. - tbeta) * chi(n,gt) + dfis) * sf0(n)  &
+    + s0(n) + chi(n,gt) * dt + ft(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
+    nod(n,gt)%Q(2) = ((1. - tbeta) * chi(n,gt) + dfis) * sfx1(n)  &
+    + sx1(n) + chi(n,gt) * dtx1 + ftx1(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
+    nod(n,gt)%Q(3) = ((1. - tbeta) * chi(n,gt) + dfis) * sfy1(n)  &
+    + sy1(n) + chi(n,gt) * dty1 + fty1(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
+    nod(n,gt)%Q(4) = ((1. - tbeta) * chi(n,gt) + dfis) * sfz1(n)  &
+    + sz1(n) + chi(n,gt) * dtz1 + ftz1(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
+    nod(n,gt)%Q(5) = ((1. - tbeta) * chi(n,gt) + dfis) * sfx2(n)  &
+    + sx2(n) + chi(n,gt) * dtx2 + ftx2(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
+    nod(n,gt)%Q(6) = ((1. - tbeta) * chi(n,gt) + dfis) * sfy2(n)  &
+    + sy2(n) + chi(n,gt) * dty2 + fty2(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
+    nod(n,gt)%Q(7) = ((1. - tbeta) * chi(n,gt) + dfis) * sfz2(n)  &
+    + sz2(n) + chi(n,gt) * dtz2 + ftz2(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
+END DO
+
+END SUBROUTINE TSrcT
+
 
 SUBROUTINE TSrcAd(gt, Keff, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
                           s0,  sx1,  sy1,  sz1,  sx2,  sy2 , sz2   )
@@ -1357,7 +1485,7 @@ IMPLICIT NONE
 REAL, DIMENSION(6,6) :: A, B
 REAL, DIMENSION(6,7) :: C
 
-INTEGER :: n, g, i,j
+INTEGER :: n, g
 
 REAL:: dx, dy, dz, lx, ly, lz
 REAL :: ax, ay, az, ax1, ay1, az1, bx, by, bz
@@ -1370,34 +1498,34 @@ DO g= 1, ng
         dy = D(n,g) / ydel(iy(n))
         dz = D(n,g) / zdel(iz(n))
 
-        lx = 1.d0 / sigr(n,g) / xdel(ix(n))
-        ly = 1.d0 / sigr(n,g) / ydel(iy(n))
-        lz = 1.d0 / sigr(n,g) / zdel(iz(n))
+        lx = 1.0 / sigr(n,g) / xdel(ix(n))
+        ly = 1.0 / sigr(n,g) / ydel(iy(n))
+        lz = 1.0 / sigr(n,g) / zdel(iz(n))
 
-        ax = 1.d0+32.d0*dx+120.d0*dx*lx+960.d0*dx*dx*lx+840.d0*dx*dx*lx*lx
-        ay = 1.d0+32.d0*dy+120.d0*dy*ly+960.d0*dy*dy*ly+840.d0*dy*dy*ly*ly
-        az = 1.d0+32.d0*dz+120.d0*dz*lz+960.d0*dz*dz*lz+840.d0*dz*dz*lz*lz
+        ax = 1.0+32.0*dx+120.0*dx*lx+960.0*dx*dx*lx+840.0*dx*dx*lx*lx
+        ay = 1.0+32.0*dy+120.0*dy*ly+960.0*dy*dy*ly+840.0*dy*dy*ly*ly
+        az = 1.0+32.0*dz+120.0*dz*lz+960.0*dz*dz*lz+840.0*dz*dz*lz*lz
 
-        ax1 = 8.d0*dx+60.d0*dx*lx+720.d0*dx*dx*lx+840.d0*dx*dx*lx*lx
-        ay1 = 8.d0*dy+60.d0*dy*ly+720.d0*dy*dy*ly+840.d0*dy*dy*ly*ly
-        az1 = 8.d0*dz+60.d0*dz*lz+720.d0*dz*dz*lz+840.d0*dz*dz*lz*lz
+        ax1 = 8.0*dx+60.0*dx*lx+720.0*dx*dx*lx+840.0*dx*dx*lx*lx
+        ay1 = 8.0*dy+60.0*dy*ly+720.0*dy*dy*ly+840.0*dy*dy*ly*ly
+        az1 = 8.0*dz+60.0*dz*lz+720.0*dz*dz*lz+840.0*dz*dz*lz*lz
 
-        bx = 1.d0-32.d0*dx+120.d0*dx*lx-960.d0*dx*dx*lx+840.d0*dx*dx*lx*lx
-        by = 1.d0-32.d0*dy+120.d0*dy*ly-960.d0*dy*dy*ly+840.d0*dy*dy*ly*ly
-        bz = 1.d0-32.d0*dz+120.d0*dz*lz-960.d0*dz*dz*lz+840.d0*dz*dz*lz*lz
+        bx = 1.0-32.0*dx+120.0*dx*lx-960.0*dx*dx*lx+840.0*dx*dx*lx*lx
+        by = 1.0-32.0*dy+120.0*dy*ly-960.0*dy*dy*ly+840.0*dy*dy*ly*ly
+        bz = 1.0-32.0*dz+120.0*dz*lz-960.0*dz*dz*lz+840.0*dz*dz*lz*lz
 
-        bx1 = -8.d0*dx+60.d0*dx*lx-720.d0*dx*dx*lx+840.d0*dx*dx*lx*lx
-        by1 = -8.d0*dy+60.d0*dy*ly-720.d0*dy*dy*ly+840.d0*dy*dy*ly*ly
-        bz1 = -8.d0*dz+60.d0*dz*lz-720.d0*dz*dz*lz+840.d0*dz*dz*lz*lz
+        bx1 = -8.0*dx+60.0*dx*lx-720.0*dx*dx*lx+840.0*dx*dx*lx*lx
+        by1 = -8.0*dy+60.0*dy*ly-720.0*dy*dy*ly+840.0*dy*dy*ly*ly
+        bz1 = -8.0*dz+60.0*dz*lz-720.0*dz*dz*lz+840.0*dz*dz*lz*lz
 
-        xy = 20.d0*dx*ly+840.d0*dx*dx*lx*ly
-        xz = 20.d0*dx*lz+840.d0*dx*dx*lx*lz
+        xy = 20.*dx*ly+840.0*dx*dx*lx*ly
+        xz = 20.*dx*lz+840.0*dx*dx*lx*lz
 
-        yx = 20.d0*dy*lx+840.d0*dy*dy*ly*lx
-        yz = 20.d0*dy*lz+840.d0*dy*dy*ly*lz
+        yx = 20.*dy*lx+840.0*dy*dy*ly*lx
+        yz = 20.*dy*lz+840.0*dy*dy*ly*lz
 
-        zx = 20.d0*dz*lx+840.d0*dz*dz*lz*lx
-        zy = 20.d0*dz*ly+840.d0*dz*dz*lz*ly
+        zx = 20.*dz*lx+840.0*dz*dz*lz*lx
+        zy = 20.*dz*ly+840.0*dz*dz*lz*ly
 
         A(1,1) = ax; A(2,2) = ax
         A(3,3) = ay; A(4,4) = ay
@@ -1432,11 +1560,11 @@ DO g= 1, ng
         B(3,4) = by1; B(4,3) = by1
         B(5,6) = bz1; B(6,5) = bz1
 
-        C = 0.d0
+        C = 0.0
 
-        ax = 20.d0*dx*lx*xdel(ix(n))+840.d0*dx*dx*lx*lx*xdel(ix(n))
-        ay = 20.d0*dy*ly*ydel(iy(n))+840.d0*dy*dy*ly*ly*ydel(iy(n))
-        az = 20.d0*dz*lz*zdel(iz(n))+840.d0*dz*dz*lz*lz*zdel(iz(n))
+        ax = 20.*dx*lx*xdel(ix(n))+840.0*dx*dx*lx*lx*xdel(ix(n))
+        ay = 20.*dy*ly*ydel(iy(n))+840.0*dy*dy*ly*ly*ydel(iy(n))
+        az = 20.*dz*lz*zdel(iz(n))+840.0*dz*dz*lz*lz*zdel(iz(n))
 
         C(1,1) = ax
         C(2,1) = ax
@@ -1445,9 +1573,9 @@ DO g= 1, ng
         C(5,1) = az
         C(6,1) = az
 
-        ax1 = 60.d0*dx*lx*xdel(ix(n))
-        ay1 = 60.d0*dy*ly*ydel(iy(n))
-        az1 = 60.d0*dz*lz*zdel(iz(n))
+        ax1 = 60.0*dx*lx*xdel(ix(n))
+        ay1 = 60.0*dy*ly*ydel(iy(n))
+        az1 = 60.0*dz*lz*zdel(iz(n))
 
         C(1,2) =  ax1
         C(2,2) = -ax1
@@ -1456,9 +1584,9 @@ DO g= 1, ng
         C(5,4) =  az1
         C(6,4) = -az1
 
-        ax1 = 140.d0*dx*lx*xdel(ix(n))
-        ay1 = 140.d0*dy*ly*ydel(iy(n))
-        az1 = 140.d0*dz*lz*zdel(iz(n))
+        ax1 = 140.0*dx*lx*xdel(ix(n))
+        ay1 = 140.0*dy*ly*ydel(iy(n))
+        az1 = 140.0*dz*lz*zdel(iz(n))
 
         C(1,5) = ax1
         C(2,5) = ax1
@@ -1468,33 +1596,33 @@ DO g= 1, ng
         C(6,7) = az1
 
         IF (ix(n) == ystag(iy(n))%smax .AND. xeast == 0) THEN
-            A(1,1) = A(1,1) - 32.d0*dx
-            B(1,1) = B(1,1) + 32.d0*dx
+            A(1,1) = A(1,1) - 32.0*dx
+            B(1,1) = B(1,1) + 32.0*dx
         END IF
 
         IF (ix(n) == ystag(iy(n))%smin .AND. xwest == 0) THEN
-            A(2,2) = A(2,2) - 32.d0*dx
-            B(2,2) = B(2,2) + 32.d0*dx
+            A(2,2) = A(2,2) - 32.0*dx
+            B(2,2) = B(2,2) + 32.0*dx
         END IF
 
         IF (iy(n) == xstag(ix(n))%smax .AND. ynorth == 0) THEN
-            A(3,3) = A(3,3) - 32.d0*dy
-            B(3,3) = B(3,3) + 32.d0*dy
+            A(3,3) = A(3,3) - 32.0*dy
+            B(3,3) = B(3,3) + 32.0*dy
         END IF
 
         IF (iy(n) == xstag(ix(n))%smin .AND. ysouth == 0) THEN
-            A(4,4) = A(4,4) - 32.d0*dy
-            B(4,4) = B(4,4) + 32.d0*dy
+            A(4,4) = A(4,4) - 32.0*dy
+            B(4,4) = B(4,4) + 32.0*dy
         END IF
 
         IF (iz(n) == nzz .AND. ztop == 0) THEN
-            A(5,5) = A(5,5) - 32.d0*dz
-            B(5,5) = B(5,5) + 32.d0*dz
+            A(5,5) = A(5,5) - 32.0*dz
+            B(5,5) = B(5,5) + 32.0*dz
         END IF
 
         IF (iz(n) == 1 .AND. zbott == 0) THEN
-            A(6,6) = A(6,6) - 32.d0*dz
-            B(6,6) = B(6,6) + 32.d0*dz
+            A(6,6) = A(6,6) - 32.0*dz
+            B(6,6) = B(6,6) + 32.0*dz
         END IF
 
         CALL inverse(g, n, A)
@@ -1530,7 +1658,7 @@ INTEGER :: i, j, k
 
 pmat = mat
 U = mat
-L = 0.d0
+L = 0.0
 
 ! Start matrix decomposition
 DO i= 1, 6
@@ -1539,21 +1667,21 @@ DO i= 1, 6
       WRITE(ounit,2001) gt, ix(nt), iy(nt), iz(nt)
       STOP
     END IF
-    L(i,i) = 1.d0
+    L(i,i) = 1.0
     DO j= i+1, 6
         piv = U(j,i)/U(i,i)
         L(j,i) = piv
         DO k= i, 6
             U(j,k) = U(j,k) - piv*U(i,k)
         END DO
-        U(j,i) = 0.d0
+        U(j,i) = 0.0
     END DO
 END DO
 
 ! Check matrix decomposition
 DO i = 1,6
     DO j = 1,6
-        isum = 0.d0
+        isum = 0.0
         DO k = 1,6
             isum = isum+L(i,k)*U(k,j)
         END DO
@@ -1566,9 +1694,9 @@ DO i = 1,6
 END DO
 
 !Initialiaze Identity matrix
-imat = 0.d0
+imat = 0.0
 DO i= 1, 6
-    imat(i,i) = 1.d0
+    imat(i,i) = 1.0
 END DO
 
 ! Calculate matrix inverse
@@ -1577,7 +1705,7 @@ DO j=1,6   ! For each column
     !Solve y in Ly = b (Forward substitution)
     y(1) = imat(1,j)
     DO i=2,6
-        isum = 0.d0
+        isum = 0.0
         DO k =1, i-1
             isum = isum + L(i,k)*y(k)
         END DO
@@ -1587,7 +1715,7 @@ DO j=1,6   ! For each column
     ! Solve x in Ux=y(Backward substitution) and store inverse matrix to input matrix 'mat'
     mat(6,j) = y(6)/U(6,6)
     DO i = 5,1,-1
-        isum = 0.d0
+        isum = 0.0
         DO k =i+1,6
             isum = isum + U(i,k)*mat(k,j)
         END DO
@@ -1598,7 +1726,7 @@ END DO
 !Check matrix Inverse
 DO i = 1,6
     DO j = 1,6
-        isum = 0.d0
+        isum = 0.0
         DO k = 1,6
             isum = isum+pmat(i,k)*mat(k,j)
         END DO
@@ -1672,7 +1800,7 @@ SUBROUTINE RelE(newF, oldF, rel)
 
   !
   ! Purpose:
-  !    To calculate Relative error
+  !    To calculate Max Relative error
 
 USE sdata, ONLY: nnod
 
@@ -1687,7 +1815,7 @@ INTEGER :: n
 rel = 0.
 
 DO n= 1, nnod
-    IF (newF(n) /= 0.d0) THEN
+    IF (ABS(newF(n)) > 1.e-10) THEN
         error = ABS(newF(n) - oldF(n)) / ABS(newF(n))
         IF (error > rel) rel = error
     END IF
@@ -1696,13 +1824,12 @@ END DO
 END SUBROUTINE RelE
 
 
-
 SUBROUTINE MultF(k)
 
 ! Purpose: To calculate Keff for fixed source problem
 
-USE sdata, ONLY: ng, nnod, nod, nxx, nyy, nzz, &
-                 ix, iy, iz, xyz, nuf, siga, f0, &
+USE sdata, ONLY: ng, nnod, nod, nzz, &
+                 ix, iy, iz, nuf, siga, f0, &
                  xstag, ystag, xdel, ydel, zdel
 
 IMPLICIT NONE
@@ -1716,9 +1843,9 @@ INTEGER :: g, n
 !! Jot Nodals' outgoing currents  (X+, X-, Y+, Y-, Z+, Z-)
 !! Jin Nodals' ingoing currents   (X+, X-, Y+, Y-, Z+, Z-)
 
-leak = 0.d0
-absp = 0.d0
-fiss = 0.d0
+leak = 0.0
+absp = 0.0
+fiss = 0.0
 DO g = 1, ng
     DO n = 1, nnod
         !! Get leakages
@@ -1757,7 +1884,8 @@ SUBROUTINE Init()
 
 
 USE sdata, ONLY: ng, nod, nnod, Ke, &
-                 f0, fx1, fy1, fz1, fx2, fy2, fz2
+                 f0, fx1, fy1, fz1, fx2, fy2, fz2, &
+                 fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 USE InpOutp, ONLY: ounit, brrst, runit, ounit
 
 IMPLICIT NONE
@@ -1807,26 +1935,29 @@ IF (brrst == 1) THEN
     END DO
 
 ELSE
-    Ke = 1.d0
+    Ke = 1.0
     DO g= 1, ng
         DO n = 1, nnod
-            nod(n,g)%jo = 1.d0
-            nod(n,g)%ji = 1.d0
-            nod(n,g)%Q  = 0.d0
+            nod(n,g)%jo = 1.0
+            nod(n,g)%ji = 1.0
+            nod(n,g)%Q  = 0.0
 
             CALL LxyzUpd(n,g)
 
-            f0(n,g)  = 1.d0
-            fx1(n,g) = 1.d0
-            fy1(n,g) = 1.d0
-            fz1(n,g) = 1.d0
-            fx2(n,g) = 1.d0
-            fy2(n,g) = 1.d0
-            fz2(n,g) = 1.d0
+            f0(n,g)  = 1.0
+            fx1(n,g) = 1.0
+            fy1(n,g) = 1.0
+            fz1(n,g) = 1.0
+            fx2(n,g) = 1.0
+            fy2(n,g) = 1.0
+            fz2(n,g) = 1.0
         END DO
     END DO
 END IF
 
+! Allocate fission source
+ALLOCATE (fs0(nnod), fsx1(nnod), fsy1(nnod), fsz1(nnod))
+ALLOCATE (fsx2(nnod), fsy2(nnod), fsz2(nnod))
 
 END SUBROUTINE Init
 
@@ -1840,7 +1971,7 @@ SUBROUTINE PowDis (p)
 !
 
 
-USE sdata, ONLY: ng, nnod, nuf, sigf, f0, vdel, mode
+USE sdata, ONLY: ng, nnod, sigf, f0, vdel, mode
 USE InpOutp, ONLY: ounit
 
 IMPLICIT NONE
@@ -1849,7 +1980,7 @@ REAL, DIMENSION(:), INTENT(OUT) :: p
 INTEGER :: g, n
 REAL :: tpow
 
-p = 0.d0
+p = 0.0
 DO g= 1, ng
     DO n= 1, nnod
         p(n) = p(n) + f0(n,g) * sigf(n,g) * vdel(n)
@@ -1863,9 +1994,9 @@ DO n = 1, nnod
 END DO
 
 IF (tpow <= 0 .AND. mode /= 'FIXEDSRC') THEN
-    WRITE(ounit, *) '   ERROR: TOTAL NODES POWER IS ZERO OR LESS'
-	WRITE(ounit, *) '   STOP IN SUBROUTINE POWDIS'
-	STOP
+   WRITE(ounit, *) '   ERROR: TOTAL NODES POWER IS ZERO OR LESS'
+   WRITE(ounit, *) '   STOP IN SUBROUTINE POWDIS'
+   STOP
 END IF
 
 DO n = 1, nnod
@@ -1874,6 +2005,64 @@ END DO
 
 
 END SUBROUTINE PowDis
+
+
+SUBROUTINE PowTot (fx,tpow)
+
+!
+! Purpose:
+!    To calculate power distribution
+!
+
+
+USE sdata, ONLY: ng, nnod, sigf, vdel
+
+IMPLICIT NONE
+
+REAL, DIMENSION(:,:), INTENT(IN) :: fx
+REAL, INTENT(OUT) :: tpow
+
+REAL, DIMENSION(nnod) :: p
+INTEGER :: g, n
+
+p = 0.0
+DO g= 1, ng
+    DO n= 1, nnod
+        p(n) = p(n) + fx(n,g) * sigf(n,g) * vdel(n)
+    END DO
+END DO
+
+
+tpow = 0.
+DO n = 1, nnod
+    tpow = tpow + p(n)
+END DO
+
+END SUBROUTINE PowTot
+
+
+FUNCTION AbsAr (ar)
+
+!
+! Purpose:
+!    To calculate power distribution
+!
+
+
+USE sdata, ONLY: nnod
+
+IMPLICIT NONE
+
+REAL, DIMENSION(:), INTENT(IN) :: ar
+REAL, DIMENSION(nnod) :: AbsAr
+
+INTEGER :: n
+
+DO n= 1, nnod
+   AbsAr(n) = ABS(ar(n))
+END DO
+
+END FUNCTION AbsAr
 
 
 SUBROUTINE forward()

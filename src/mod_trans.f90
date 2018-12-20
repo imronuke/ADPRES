@@ -2,10 +2,7 @@ MODULE trans
 
 !=========================
 ! Transient Module to solve transient diffusion problems
-! Using Aadiabatic approach adapated from paper:
-! Neutronic Modeling for Modular High Temperature Pebble Bed Reactor during Reactivity Accident
-! Author: Peng Hong LIEM and Hiroshi SEKIMOTO
-! Journal of NucLEAR SciENCE and TECHNOLOGY, 29(8], pp. 805-812 (August 1992).
+! Using Fully Implicit method with exponetial transformation
 ! =======================
 
 
@@ -13,136 +10,7 @@ IMPLICIT NONE
 
 SAVE
 
-REAL, DIMENSION(:,:), ALLOCATABLE :: af      ! Adjoint Flux
-REAL, DIMENSION(:), ALLOCATABLE :: beta, C   ! beta, neutron precusor density
-REAL, DIMENSION(:,:), ALLOCATABLE :: xvdum
-REAL :: amp                             ! Amplitude function
-REAL :: tbeta
-
 CONTAINS
-
-SUBROUTINE adj_calc()
-
-!
-! Purpose:
-!    To calculate adjoint flux
-!
-
-USE sdata, ONLY: f0, ng, nnod, nf, bcon, ftem, mtem, cden, bpos
-USE nodal, ONLY: nodal_coup4, outer4ad
-USE InpOutp, ONLY: XS_updt
-
-IMPLICIT NONE
-
-! Start adjoint flux calculation
-CALL XS_updt(bcon, ftem, mtem, cden, bpos)
-CALL nodal_coup4()
-CALL outer4ad(0)
-
-ALLOCATE(af(nnod,ng))
-af = f0       ! Save adjoint flux to af
-
-ALLOCATE(beta(nf), C(nf))
-ALLOCATE(xvdum(nnod,ng))
-
-END SUBROUTINE adj_calc
-
-
-
-SUBROUTINE kinet_par(dsigr, dnuf, dsigs, sf, xA, xrho)
-
-!
-! Purpose:
-!    To calculate kinetic parameters
-!
-
-USE sdata, ONLY: ng, nnod, chi, velo, nf, iBeta, vdel, nod, xdel, ydel, zdel, &
-ix, iy, iz
-USE nodal, ONLY: Integrate
-
-IMPLICIT NONE
-
-REAL, DIMENSION(:,:), INTENT(IN) :: sf, dsigr, dnuf
-REAL, DIMENSION(:,:,:), INTENT(IN) :: dsigs
-REAL, INTENT(OUT) :: xA, xrho
-
-INTEGER :: n, i, g, h
-REAL, DIMENSION(nnod) :: vdum, vdum2, vdum3, vdum4, vdum5
-REAL, DIMENSION(nnod,ng) :: yvdum
-REAL :: F2, F, fiss, scat, leak, remo
-
-! Calculate F
-vdum = 0.
-DO g = 1, ng
-    DO n = 1, nnod
-        vdum(n) = vdum(n) + dnuf(n,g) * sf(n,g)
-    END DO
-END DO
-
-vdum2 = 0.
-DO g = 1, ng
-    DO n = 1, nnod
-        vdum2(n) = vdum2(n) + chi(n,g) * vdum(n) * af(n,g)
-    END DO
-END DO
-
-F2 = Integrate(vdum2)
-
-
-! Calculate neutron gneration time (A)
-vdum2 = 0.
-DO g = 1, ng
-    DO n = 1, nnod
-        vdum2(n) = vdum2(n) + af(n,g) * sf(n,g) / velo(g)
-    END DO
-END DO
-
-xA = Integrate(vdum2) / F2    ! Calculate neutron generation time
-
-
-! Calculate Delayed neutron fraction (beta)
-DO i = 1, nf
-    vdum2 = 0.
-    DO g = 1, ng
-        DO n = 1, nnod
-            vdum2(n) = vdum2(n) + chi(n,g) * iBeta(i) * vdum(n) * af(n,g)
-        END DO
-    END DO
-    beta(i) = Integrate(vdum2) / F2
-END DO
-
-
-! Calculate reactivity (rho)
-vdum2 = 0.
-DO g = 1, ng
-    DO n = 1, nnod
-        vdum2(n) = vdum2(n) + dnuf(n,g) * sf(n,g)
-    END DO
-END DO
-
-F = 0.
-DO g = 1, ng
-   vdum5 = 0.
-   DO h = 1, ng
-      DO n = 1, nnod
-         vdum5(n) = vdum5(n) + dsigs(n,h,g) * sf(n,h)
-      END DO
-  END DO
-  DO n = 1, nnod
-     remo = af(n,g) * dsigr(n,g) * sf(n,g) * vdel(n)
-     fiss = af(n,g) * chi(n,g) * vdum2(n) * vdel(n)
-     scat = af(n,g) * vdum5(n) * vdel(n)
-     leak = af(n,g) * nod(n,g)%L(1) * ydel(iy(n)) * zdel(iz(n)) &
-     + af(n,g) * nod(n,g)%L(2) * xdel(ix(n)) * zdel(iz(n)) &
-     + af(n,g) * nod(n,g)%L(3) * xdel(ix(n)) * ydel(iy(n))
-     F = F + fiss + scat - leak - remo
-  END DO
-END DO
-
-xrho = F / F2
-
-END SUBROUTINE kinet_par
-
 
 
 SUBROUTINE rod_eject()
@@ -152,58 +20,60 @@ SUBROUTINE rod_eject()
 !    To perform rod ejection simulation
 !
 
-USE sdata, ONLY: ng, nnod, sigr, nuf, sigs, f0, &
-                 iBeta, lamb, nf, nout, nac, &
-                 ttot, tdiv, tstep1, tstep2, &
-                 ix, iy, iz, zdel,Ke, &
+USE sdata, ONLY: ng, nnod, sigr, nf, nout, &
+                 ttot, tdiv, tstep1, tstep2, Ke, &
                  bcon, ftem, mtem, cden, &
-                 fbpos, bpos, tmove, bspeed, mdir, &
-                 nout, nac, nb, xnuf, dnuf
-USE InpOutp, ONLY: XS_updt, bther, ounit
-USE nodal, ONLY: nodal_coup4, outer4
+                 fbpos, bpos, tmove, bspeed, mdir, nb, velo, iBeta, &
+                 f0, fx1, fy1, fz1, fx2, fy2, fz2, &
+                 fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
+                 c0, cx1, cy1, cz1, cx2, cy2, cz2, tbeta, &
+                 ct, ctx1, cty1, ctz1, ctx2, cty2, ctz2, omeg
+USE InpOutp, ONLY: XS_updt, ounit
+USE nodal, ONLY: nodal_coup4, outer4, outertf, PowTot, Fsrc
 
 IMPLICIT NONE
 
-REAL :: A, rho
+REAL, DIMENSION(nnod, ng) :: ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2  ! Flux at previous time step
 
 REAL :: t1, t2
-REAL :: xppow
-INTEGER :: n, i, j, imax, step
-REAL, PARAMETER :: hp = 0.0001 ! Point Kinetetic Time step
-LOGICAL :: stime
+REAL :: tpow1, tpow2
+INTEGER :: n, i, j, g, imax, step
 
+! Allocate precusor density
+ALLOCATE (c0(nf,nnod),cx1(nf,nnod),cy1(nf,nnod),cz1(nf,nnod))
+ALLOCATE (cx2(nf,nnod),cy2(nf,nnod),cz2(nf,nnod))
+ALLOCATE (ct(nf,nnod),ctx1(nf,nnod),cty1(nf,nnod),ctz1(nf,nnod))
+ALLOCATE (ctx2(nf,nnod),cty2(nf,nnod),ctz2(nf,nnod))
 
-! Calculate forward flux at t=0
+! Allocate Frequency transformation constant
+ALLOCATE (omeg(nnod,ng))
+
+! Update xsec
 CALL XS_updt(bcon, ftem, mtem, cden, bpos)
-CALL adj_calc()
+
+! Guess fission source
+fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
+DO g = 1, ng
+   CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
+END DO
+
+! Calculate forward flux at t=0 and check if keff=1
 CALL nodal_coup4()
 CALL outer4(0)
 
 ! If K-EFF NOT EQUAL TO 1.0
-IF (ABS(Ke - 1.) > 1.e-5) THEN
-   WRITE(ounit, *)
-   WRITE(ounit, '(A46,F9.6)') '  INITIAL MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
-   WRITE(ounit, *) '  WARNING: THE STEADY STATE K-EFF IS NOT EQUAL TO 1.0'
-   WRITE(ounit, *) '  AND NOW IT IS FORCED TO 1.0BY MODIFYING THE nu*sigf CROSS SECTIONS '
-   WRITE(ounit, *)
-   DO i = 1, 10
-      CALL outer4(0)
-      IF (ABS(Ke-1.0) < 1.e-5) EXIT
-      xnuf = xnuf / Ke
-      dnuf = dnuf / Ke
-      CALL XS_updt(bcon, ftem, mtem, cden, bpos)
-   END DO
-   IF (i == 10) STOP "K-EFF STILL NOT EQUAL TO ONE. ADPRES IS STOPPING"
-END IF
+IF (ABS(Ke - 1.) > 1.e-4) CALL KNE1
 
-
-! Calculate intgral kinet parameters at t = 0
-CALL kinet_par(sigr, nuf, sigs, f0, A, rho)
+! Calculate power
+CALL PowTot(f0,tpow1)
 
 ! Calculate Initial precursor density
-amp = 1.
+CALL iPden()
+
+! Total beta
+tbeta = 0.
 DO j = 1, nf
-    C(j) = beta(j) / (A * lamb(j))   ! See Eq. 6-32 D&H
+  tbeta = tbeta + iBeta(j)
 END DO
 
 WRITE(ounit, *)
@@ -211,25 +81,19 @@ WRITE(ounit, *) " TRANSIENT RESULTS :"
 WRITE(ounit, *)
 WRITE(ounit, *) " Step  Time(s)  React.($)   Rel. Power   CR Bank Pos. (1-end)"
 WRITE(ounit, *) "--------------------------------------------------------------"
-WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') 0, 0., 0., amp, (bpos(n), n = 1, nb)
+WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') 0, 0., 0., 1.0, (bpos(n), n = 1, nb)
 
 ! Start transient calculation
 step = 0
 t2 = 0.
-imax = CEILING(tdiv/tstep1)
-stime = .FALSE.
+imax = INT(tdiv/tstep1)
 
 ! First Time Step
 DO i = 1, imax
 
     step = step + 1
     t1 = t2
-    t2 = t1 + tstep1
-
-    IF (t2 > tdiv) THEN
-        t2 = tdiv
-        stime = .TRUE.
-    END IF
+    t2 = REAL(i)*tstep1
 
     ! Rod bank changes
     DO n = 1, nb
@@ -251,47 +115,60 @@ DO i = 1, imax
     ! Calculate xsec after pertubation
     CALL XS_updt(bcon, ftem, mtem, cden, bpos)
 
-    ! Calculate shape function
+    ! Modify removal xsec
+    IF (i > 1) THEN
+      DO g = 1, ng
+         DO n = 1, nnod
+           omeg(n,g) = LOG(f0(n,g) / ft(n,g)) / tstep1
+           sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep1) + omeg(n,g) / velo(g)
+         END DO
+      END DO
+    ELSE
+       DO g = 1, ng
+          DO n = 1, nnod
+             omeg(n,g) = 0.
+             sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep1)
+          END DO
+       END DO
+    END IF
+
+    ! Save the previous flux and DN precusor density
+    ft = f0
+    ftx1 = fx1; fty1 = fy1; ftz1 = fz1
+    ftx2 = fx2; fty2 = fy2; ftz2 = fz2
+    ct = c0
+    ctx1 = cx1; cty1 = cy1; ctz1 = cz1
+    ctx2 = cx2; cty2 = cy2; ctz2 = cz2
+
+    ! Transient calculation
     CALL nodal_coup4()
-    CALL outer4(0)
+    CALL outertf(nout, tstep1, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
 
-    ! Calculate intgral kinet parameters
-    CALL kinet_par(sigr, nuf, sigs, f0, A, rho)
-
-    tbeta = 0.
-    DO j = 1, nf
-        tbeta = tbeta + beta(j)
+    ! Update fission source
+    fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
+    DO g = 1, ng
+       CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
     END DO
 
-    !Calculate amplitude function
-    CALL point(tstep1, hp, rho, A, beta, amp)
+    ! Update precursor density
+    CALL uPden(tstep1)
 
-    WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, amp, (bpos(n), n = 1, nb)
+    ! Calculate power
+    CALL PowTot(f0, tpow2)
 
-    IF (stime) EXIT
+    WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, 0., tpow2/tpow1, (bpos(n), n = 1, nb)
 
-    IF (step>1000) THEN
-        WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
-        STOP
-    END IF
 
 END DO
 
-
 ! Second Time Step
-imax = CEILING((ttot-tdiv)/tstep2)
-stime = .FALSE.
+imax = INT((ttot-tdiv)/tstep2)
 
 DO i = 1, imax
 
     step = step + 1
     t1 = t2
-    t2 = t1 + tstep2
-
-    IF (t2 > ttot) THEN
-        t2 = ttot
-        stime = .TRUE.
-    END IF
+    t2 = tdiv + REAL(i)*tstep2
 
     ! Rod bank changes
     DO n = 1, nb
@@ -313,31 +190,54 @@ DO i = 1, imax
     ! Calculate xsec after pertubation
     CALL XS_updt(bcon, ftem, mtem, cden, bpos)
 
-    ! Calculate shape function
-    CALL nodal_coup4()
-    CALL outer4(0)
-
-    ! Calculate intgral kinet parameters
-    CALL kinet_par(sigr, nuf, sigs, f0, A, rho)
-
-    tbeta = 0.
-    DO j = 1, nf
-        tbeta = tbeta + beta(j)
-    END DO
-
-    !Calculate amplitude function
-    CALL point(tstep2, hp, rho, A, beta, amp)
-
-    WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, amp, (bpos(n), n = 1, nb)
-
-    IF (stime) EXIT
-
-    IF (step>1000) THEN
-        WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
-        STOP
+    ! Modify removal xsec
+    IF (i > 1) THEN
+      DO g = 1, ng
+         DO n = 1, nnod
+           omeg(n,g) = LOG(f0(n,g) / ft(n,g)) / tstep2
+           sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep2) + omeg(n,g) / velo(g)
+         END DO
+      END DO
+    ELSE
+       DO g = 1, ng
+          DO n = 1, nnod
+             omeg(n,g) = 0.
+             sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep2)
+          END DO
+       END DO
     END IF
 
+    ! Save the previous flux and DN precusor density
+    ft = f0
+    ftx1 = fx1; fty1 = fy1; ftz1 = fz1
+    ftx2 = fx2; fty2 = fy2; ftz2 = fz2
+    ct = c0
+    ctx1 = cx1; cty1 = cy1; ctz1 = cz1
+    ctx2 = cx2; cty2 = cy2; ctz2 = cz2
+
+    ! Transient calculation
+    CALL nodal_coup4()
+    CALL outertf(nout, tstep2, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+
+    ! Update fission source
+    fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
+    DO g = 1, ng
+       CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
+    END DO
+
+    ! Update precursor density
+    CALL uPden(tstep2)
+
+    ! Calculate power
+    CALL PowTot(f0, tpow2)
+
+    WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, 0., tpow2/tpow1, (bpos(n), n = 1, nb)
+
+
 END DO
+
+
+
 
 END SUBROUTINE rod_eject
 
@@ -346,98 +246,84 @@ SUBROUTINE trod_eject()
 
 !
 ! Purpose:
-!    To perform rod ejection simulation
+!    To perform rod ejection simulation with TH feedbacks
 !
 
-USE sdata, ONLY: ng, nnod, sigr, nuf, sigs, f0, &
-                 iBeta, lamb, nf, nout, nac, &
-                 ttot, tdiv, tstep1, tstep2, &
-                 ix, iy, iz, zdel,Ke, &
+USE sdata, ONLY: ng, nnod, sigr, nf, nout, &
+                 ttot, tdiv, tstep1, tstep2, Ke, &
                  bcon, ftem, mtem, cden, &
-                 fbpos, bpos, tmove, bspeed, mdir, &
-                 nout, nac, nb, npow, ppow, pow, node_nf, xnuf, dnuf
-USE InpOutp, ONLY: XS_updt, bther, ounit
-USE nodal, ONLY: nodal_coup4, outer4, powdis
+                 fbpos, bpos, tmove, bspeed, mdir, nb, velo, iBeta, &
+                 f0, fx1, fy1, fz1, fx2, fy2, fz2, &
+                 fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
+                 c0, cx1, cy1, cz1, cx2, cy2, cz2, tbeta, &
+                 ct, ctx1, cty1, ctz1, ctx2, cty2, ctz2, omeg, &
+                 npow, pow, ppow, node_nf, ix, iy, iz, zdel
+USE InpOutp, ONLY: XS_updt, ounit
+USE nodal, ONLY: nodal_coup4, outer4, outertf, PowTot, powdis, Fsrc
 USE th, ONLY: th_iter, th_trans3
-!, par_ave_f, par_max, par_ave
 
 IMPLICIT NONE
 
-REAL, DIMENSION(nnod) :: pline       ! Linear power density
-REAL, DIMENSION(nnod,ng) :: fl
-
-REAL :: A, rho
+REAL, DIMENSION(nnod, ng) :: ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2  ! Flux at previous time step
 
 REAL :: t1, t2
-REAL :: xppow
-INTEGER :: n, i, j, imax, step
-REAL, PARAMETER :: hp = 0.0001 ! Point Kinetetic Time step
-LOGICAL :: stime
+REAL :: tpow1, tpow2
+INTEGER :: n, i, j, g, imax, step
 
+REAL, DIMENSION(nnod) :: pline       ! Linear power density
+REAL :: xppow
 
 ! Allocate node power distribution npow
 ALLOCATE(npow(nnod))
 
-! Calculate forward flux at t=0
+! Allocate precusor density
+ALLOCATE (c0(nf,nnod),cx1(nf,nnod),cy1(nf,nnod),cz1(nf,nnod))
+ALLOCATE (cx2(nf,nnod),cy2(nf,nnod),cz2(nf,nnod))
+ALLOCATE (ct(nf,nnod),ctx1(nf,nnod),cty1(nf,nnod),ctz1(nf,nnod))
+ALLOCATE (ctx2(nf,nnod),cty2(nf,nnod),ctz2(nf,nnod))
+
+! Allocate Frequency transformation constant
+ALLOCATE (omeg(nnod,ng))
+
+! Determine th paramters distribution
 CALL th_iter(0)
 
 ! If K-EFF NOT EQUAL TO 1.0
-IF (ABS(Ke - 1.) > 1.e-5) THEN
-   WRITE(ounit, *)
-   WRITE(ounit, '(A46,F9.6)') '  INITIAL MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
-   WRITE(ounit, *) '  WARNING: THE STEADY STATE K-EFF IS NOT EQUAL TO 1.0'
-   WRITE(ounit, *) '  AND NOW IT IS FORCED TO 1.0BY MODIFYING THE nu*sigf CROSS SECTIONS '
-   WRITE(ounit, *)
-   DO i = 1, 10
-      CALL outer4(0)
-      IF (ABS(Ke-1.0) < 1.e-5) EXIT
-      xnuf = xnuf / Ke
-      dnuf = dnuf / Ke
-      CALL XS_updt(bcon, ftem, mtem, cden, bpos)
-   END DO
-   IF (i == 10) STOP "K-EFF STILL NOT EQUAL TO ONE. ADPRES IS STOPPING"
-END IF
+IF (ABS(Ke - 1.) > 1.e-4) CALL KNE1
 
-fl = f0
+! ReCalculate forward flux at t=0 after keff fixed
+CALL outer4(0)
 
-!Initial amplitude function
-amp = 1.
+! Calculate power
+CALL PowTot(f0,tpow1)
+
+! Calculate Initial precursor density
+CALL iPden()
+
+! Total beta
+tbeta = 0.
+DO j = 1, nf
+  tbeta = tbeta + iBeta(j)
+END DO
 
 WRITE(ounit, *)
 WRITE(ounit, *) " TRANSIENT RESULTS :"
 WRITE(ounit, *)
-WRITE(ounit, *) " Step  Time(s)  React.($)    Power (W)    CR Bank Pos. (1-end)"
+WRITE(ounit, *) " Step  Time(s)  React.($)   Rel. Power   CR Bank Pos. (1-end)"
 WRITE(ounit, *) "--------------------------------------------------------------"
-WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') 0, 0., 0., amp*ppow*0.01, (bpos(n), n = 1, nb)
-
-! Adjoint flux at t=0
-CALL adj_calc()
-
-! Calculate intgral kinet parameters at t = 0
-CALL kinet_par(sigr, nuf, sigs, fl, A, rho)
-
-! Calculate Initial precursor density
-DO j = 1, nf
-    C(j) = beta(j) / (A * lamb(j))   ! See Eq. 6-32 D&H
-END DO
+WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') 0, 0., 0., ppow*0.01, (bpos(n), n = 1, nb)
 
 ! Start transient calculation
 step = 0
 t2 = 0.
-imax = CEILING(tdiv/tstep1)
-stime = .FALSE.
+imax = INT(tdiv/tstep1)
 
 ! First Time Step
 DO i = 1, imax
 
     step = step + 1
     t1 = t2
-    t2 = t1 + tstep1
-
-    IF (t2 > tdiv) THEN
-        t2 = tdiv
-        stime = .TRUE.
-    END IF
+    t2 = REAL(i)*tstep1
 
     ! Rod bank changes
     DO n = 1, nb
@@ -459,39 +345,63 @@ DO i = 1, imax
     ! Calculate xsec after pertubation
     CALL XS_updt(bcon, ftem, mtem, cden, bpos)
 
-    ! Calculate shape function
+    ! Modify removal xsec
+    IF (i > 1) THEN
+      DO g = 1, ng
+         DO n = 1, nnod
+           omeg(n,g) = LOG(f0(n,g) / ft(n,g)) / tstep1
+           sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep1) + omeg(n,g) / velo(g)
+         END DO
+      END DO
+    ELSE
+       DO g = 1, ng
+          DO n = 1, nnod
+             omeg(n,g) = 0.
+             sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep1)
+          END DO
+       END DO
+    END IF
+
+    ! Save the previous flux and DN precusor density
+    ft = f0
+    ftx1 = fx1; fty1 = fy1; ftz1 = fz1
+    ftx2 = fx2; fty2 = fy2; ftz2 = fz2
+    ct = c0
+    ctx1 = cx1; cty1 = cy1; ctz1 = cz1
+    ctx2 = cx2; cty2 = cy2; ctz2 = cz2
+
+    ! Transient calculation
     CALL nodal_coup4()
-    CALL outer4(0)
+    CALL outertf(nout, tstep1, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
 
-    ! Calculate intgral kinet parameters
-    CALL kinet_par(sigr, nuf, sigs, f0, A, rho)
-
-    tbeta = 0.
-    DO j = 1, nf
-        tbeta = tbeta + beta(j)
+    ! Update fission source
+    fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
+    DO g = 1, ng
+       CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
     END DO
 
-    !Calculate amplitude function
-    CALL point(tstep1, hp, rho, A, beta, amp)
+    ! Update precursor density
+    CALL uPden(tstep1)
+
+    ! Calculate power
+    CALL PowTot(f0, tpow2)
 
     ! Calculate node power distribution
     CALL powdis(npow)
 
     ! Power change
-    xppow = ppow * amp * 0.01
+    xppow = ppow * tpow2/tpow1 * 0.01
 
     ! Calculate linear power density for each nodes (W/cm)
     DO n = 1, nnod
-        pline(n) = npow(n) * pow * xppow &
-                 / (node_nf(ix(n),iy(n)) * zdel(iz(n)))     ! Linear power density (W/cm)
+       pline(n) = npow(n) * pow * xppow &
+       / (node_nf(ix(n),iy(n)) * zdel(iz(n)))     ! Linear power density (W/cm)
     END DO
 
     ! TH transient
     CALL th_trans3(pline,tstep1)
 
-    WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, xppow, (bpos(n), n = 1, nb)
-
-    IF (stime) EXIT
+    WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, 0., xppow, (bpos(n), n = 1, nb)
 
     IF (step>1000) THEN
         WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
@@ -500,21 +410,14 @@ DO i = 1, imax
 
 END DO
 
-
 ! Second Time Step
-imax = CEILING((ttot-tdiv)/tstep2)
-stime = .FALSE.
+imax = INT((ttot-tdiv)/tstep2)
 
 DO i = 1, imax
 
     step = step + 1
     t1 = t2
-    t2 = t1 + tstep2
-
-    IF (t2 > ttot) THEN
-        t2 = ttot
-        stime = .TRUE.
-    END IF
+    t2 = tdiv + REAL(i)*tstep2
 
     ! Rod bank changes
     DO n = 1, nb
@@ -536,39 +439,64 @@ DO i = 1, imax
     ! Calculate xsec after pertubation
     CALL XS_updt(bcon, ftem, mtem, cden, bpos)
 
-    ! Calculate shape function
+    ! Modify removal xsec
+    IF (i > 1) THEN
+      DO g = 1, ng
+         DO n = 1, nnod
+           omeg(n,g) = LOG(f0(n,g) / ft(n,g)) / tstep2
+           sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep2) + omeg(n,g) / velo(g)
+         END DO
+      END DO
+    ELSE
+       DO g = 1, ng
+          DO n = 1, nnod
+             omeg(n,g) = 0.
+             sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep2)
+          END DO
+       END DO
+    END IF
+
+    ! Save the previous flux and DN precusor density
+    ft = f0
+    ftx1 = fx1; fty1 = fy1; ftz1 = fz1
+    ftx2 = fx2; fty2 = fy2; ftz2 = fz2
+    ct = c0
+    ctx1 = cx1; cty1 = cy1; ctz1 = cz1
+    ctx2 = cx2; cty2 = cy2; ctz2 = cz2
+
+    ! Transient calculation
     CALL nodal_coup4()
-    CALL outer4(0)
+    CALL outertf(nout, tstep2, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
 
-    ! Calculate intgral kinet parameters
-    CALL kinet_par(sigr, nuf, sigs, f0, A, rho)
-
-    tbeta = 0.
-    DO j = 1, nf
-        tbeta = tbeta + beta(j)
+    ! Update fission source
+    fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
+    DO g = 1, ng
+       CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
     END DO
 
-    !Calculate amplitude function
-    CALL point(tstep2, hp, rho, A, beta, amp)
+    ! Update precursor density
+    CALL uPden(tstep2)
+
+    ! Calculate power
+    CALL PowTot(f0, tpow2)
 
     ! Calculate node power distribution
     CALL powdis(npow)
 
     ! Power change
-    xppow = ppow * amp * 0.01
+    xppow = ppow * tpow2/tpow1 * 0.01
 
     ! Calculate linear power density for each nodes (W/cm)
     DO n = 1, nnod
-        pline(n) = npow(n) * pow * xppow  &
-                 / (node_nf(ix(n),iy(n)) * zdel(iz(n)))     ! Linear power density (W/cm)
+       pline(n) = npow(n) * pow * xppow &
+       / (node_nf(ix(n),iy(n)) * zdel(iz(n)))     ! Linear power density (W/cm)
     END DO
 
     ! TH transient
     CALL th_trans3(pline,tstep2)
 
-    WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, xppow, (bpos(n), n = 1, nb)
+    WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, 0., xppow, (bpos(n), n = 1, nb)
 
-    IF (stime) EXIT
 
     IF (step>1000) THEN
         WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
@@ -577,64 +505,109 @@ DO i = 1, imax
 
 END DO
 
+
 END SUBROUTINE trod_eject
 
 
-
-SUBROUTINE point(ht, h, xrho, xA, xbet, xamp)
+SUBROUTINE KNE1()
 
 !
 ! Purpose:
-!    To perform transient point reactor calculation using RK-4
+!    To adjuts the Keff to 1.0 if it is not equal to 1.0
 !
 
-USE sdata, ONLY: nf, lamb
+USE sdata, ONLY: Ke, xnuf, dnuf, bcon, ftem, mtem, cden, bpos
+USE InpOutp, ONLY: XS_updt, ounit
+USE nodal, ONLY: outer4
 
 IMPLICIT NONE
 
-REAL, INTENT(IN) :: ht, h                  ! Macro time step, micro time step
-REAL, INTENT(IN) :: xrho, xA               ! reactivity and neutron generation time
-REAL, DIMENSION(:), INTENT(IN) :: xbet     ! delayed neutron fraction
-REAL, INTENT(INOUT) :: xamp                ! amplitude function
+INTEGER :: i
 
-INTEGER :: j, i, itot
-REAL :: summ
-REAL :: k1, k2, k3, k4
-REAL :: xtbet
+WRITE(ounit, *)
+WRITE(ounit, '(A46,F9.6)') '  INITIAL MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
+WRITE(ounit, *) '  WARNING: THE STEADY STATE K-EFF IS NOT EQUAL TO 1.0'
+WRITE(ounit, *) '  AND NOW IT IS FORCED TO 1.0 BY MODIFYING THE nu*sigf CROSS SECTIONS '
+WRITE(ounit, *)
+DO i = 1, 10
+   xnuf = xnuf / Ke
+   dnuf = dnuf / Ke
+   CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+   CALL outer4(0)
+   IF (ABS(Ke-1.0) < 1.e-5) EXIT
+END DO
+IF (i == 10) STOP "K-EFF STILL NOT EQUAL TO ONE. ADPRES IS STOPPING"
 
 
-itot = INT(ht / h)
-DO i = 1, itot
+END SUBROUTINE KNE1
 
-    !!!Calculate Power for time step = i
-    summ = 0.
-    DO j = 1, nf
-        summ = summ + lamb(j)*C(j)
-    END DO
 
-    k1 = (xrho - tbeta) * xamp / xA + summ
-    k2 = (xrho - tbeta) * (xamp + k1 * 0.5 * h) / xA + summ
-    k3 = (xrho - tbeta) * (xamp + k2 * 0.5 * h) / xA + summ
-    k4 = (xrho - tbeta) * (xamp + k3 * h) / xA + summ
+SUBROUTINE iPden()
 
-    xamp = xamp + h/6. * (k1 + 2.* k2 + 2.* k3 + k4)
+!
+! Purpose:
+!    Calculate Initial precursor density
+!
 
-    !!!Calculate precursor density for each group j for time step = i
-    DO j = 1, nf
-        k1 = xbet(j) * xamp / xA - lamb(j) * C(j)
-        k2 = xbet(j) * xamp / xA - lamb(j) * (C(j) + k1 * 0.5 * h)
-        k3 = xbet(j) * xamp / xA - lamb(j) * (C(j) + k2 * 0.5 * h)
-        k4 = xbet(j) * xamp / xA - lamb(j) * (C(j) + k3 * h)
+USE sdata, ONLY: nnod, nf, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
+c0, cx1, cy1, cz1, cx2, cy2, cz2, iBeta, lamb
+USE InpOutp, ONLY: XS_updt
+USE nodal, ONLY: outer4
 
-        C(j) =  C(j) + h/6. * (k1 + 2.* k2 + 2.* k3 + k4)
-    END DO
+IMPLICIT NONE
+
+INTEGER :: n, j
+
+DO n = 1, nnod
+   DO j = 1, nf
+      c0(j,n) = iBeta(j) * fs0(n) / lamb(j)
+      cx1(j,n) = iBeta(j) * fsx1(n) / lamb(j)
+      cy1(j,n) = iBeta(j) * fsy1(n) / lamb(j)
+      cz1(j,n) = iBeta(j) * fsz1(n) / lamb(j)
+      cx2(j,n) = iBeta(j) * fsx2(n) / lamb(j)
+      cy2(j,n) = iBeta(j) * fsy2(n) / lamb(j)
+      cz2(j,n) = iBeta(j) * fsz2(n) / lamb(j)
+   END DO
 END DO
 
 
-END SUBROUTINE point
+END SUBROUTINE iPden
 
 
+SUBROUTINE uPden(h)
+
+!
+! Purpose:
+!    To update precursor density
+!
+
+USE sdata, ONLY: nnod, nf, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
+                 ct, ctx1, cty1, ctz1, ctx2, cty2, ctz2, &
+                 c0, cx1, cy1, cz1, cx2, cy2, cz2, iBeta, lamb
+USE InpOutp, ONLY: XS_updt
+USE nodal, ONLY: outer4
+
+IMPLICIT NONE
+
+REAL, INTENT(IN) :: h
+
+REAL :: lat
+INTEGER :: n, j
+
+DO n = 1, nnod
+   DO j = 1, nf
+      lat = (1. + lamb(j) * h)
+      c0(j,n) = (ct(j,n) + iBeta(j) * h * fs0(n)) / lat
+      cx1(j,n) = (ctx1(j,n) + iBeta(j) * h * fsx1(n)) / lat
+      cy1(j,n) = (cty1(j,n) + iBeta(j) * h * fsy1(n)) / lat
+      cz1(j,n) = (ctz1(j,n) + iBeta(j) * h * fsz1(n)) / lat
+      cx2(j,n) = (ctx2(j,n) + iBeta(j) * h * fsx2(n)) / lat
+      cy2(j,n) = (cty2(j,n) + iBeta(j) * h * fsy2(n)) / lat
+      cz2(j,n) = (ctz2(j,n) + iBeta(j) * h * fsz2(n)) / lat
+   END DO
+END DO
 
 
+END SUBROUTINE uPden
 
 END MODULE trans
