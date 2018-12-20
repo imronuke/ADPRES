@@ -25,5 +25,17 @@ Copy some sample inputs file from folder 'smpl' into the folder where the execut
 
 then type the input file name. It will produce output file with out extension
 
+## How accurate is ADPRES
+
+ADPRES has been tested for both static and transient reactor problems
+*[IAEA 3D PWR] (https://engineering.purdue.edu/PARCS/Code/TestSuite/CalculationMode/StandAloneMode/Eigenvalue/IAEA3DPWR)  benchmark. A static PWR benchmark.
+*[DVP BWR benchmark]
+*[LMW benchmark]
+*[NEACRP transient benchmark]
+
+
+## How to cite
+
+[will be updated]
 
 
