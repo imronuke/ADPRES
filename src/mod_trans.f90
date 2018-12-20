@@ -2,21 +2,13 @@ MODULE trans
 
 !=========================
 ! Transient Module to solve transient diffusion problems
-! Using Aadiabatic approach adapated from paper:
-! Neutronic Modeling for Modular High Temperature Pebble Bed Reactor during Reactivity Accident
-! Author: Peng Hong LIEM and Hiroshi SEKIMOTO
-! Journal of NucLEAR SciENCE and TECHNOLOGY, 29(8], pp. 805-812 (August 1992).
+! Using Fully Implicit method with exponetial transformation
 ! =======================
 
 
 IMPLICIT NONE
 
 SAVE
-
-REAL, DIMENSION(:,:), ALLOCATABLE :: af      ! Adjoint Flux
-REAL, DIMENSION(:), ALLOCATABLE :: beta, C   ! beta (point kinetic), neutron precusor density (point kinetic)
-REAL :: ptbet ! Total beta (point kinetic)
-REAL, DIMENSION(:,:), ALLOCATABLE :: xvdum
 
 CONTAINS
 
@@ -28,18 +20,15 @@ SUBROUTINE rod_eject()
 !    To perform rod ejection simulation
 !
 
-USE sdata, ONLY: ng, nnod, sigr, nuf, sigs, f0, &
-                 iBeta, lamb, nf, nout, nac, &
-                 ttot, tdiv, tstep1, tstep2, &
-                 ix, iy, iz, zdel, vdel, Ke, &
+USE sdata, ONLY: ng, nnod, sigr, nf, nout, &
+                 ttot, tdiv, tstep1, tstep2, Ke, &
                  bcon, ftem, mtem, cden, &
-                 fbpos, bpos, tmove, bspeed, mdir, &
-                 nout, nac, nb, sigr, velo, &
+                 fbpos, bpos, tmove, bspeed, mdir, nb, velo, iBeta, &
                  f0, fx1, fy1, fz1, fx2, fy2, fz2, &
                  fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
                  c0, cx1, cy1, cz1, cx2, cy2, cz2, tbeta, &
                  ct, ctx1, cty1, ctz1, ctx2, cty2, ctz2, omeg
-USE InpOutp, ONLY: XS_updt, bther, ounit
+USE InpOutp, ONLY: XS_updt, ounit
 USE nodal, ONLY: nodal_coup4, outer4, outertf, PowTot, Fsrc
 
 IMPLICIT NONE
@@ -153,7 +142,7 @@ DO i = 1, imax
 
     ! Transient calculation
     CALL nodal_coup4()
-    CALL outertf(200, tstep1, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+    CALL outertf(nout, tstep1, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
 
     ! Update fission source
     fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
@@ -228,7 +217,7 @@ DO i = 1, imax
 
     ! Transient calculation
     CALL nodal_coup4()
-    CALL outertf(200, tstep2, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+    CALL outertf(nout, tstep2, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
 
     ! Update fission source
     fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
@@ -257,22 +246,19 @@ SUBROUTINE trod_eject()
 
 !
 ! Purpose:
-!    To perform rod ejection simulation
+!    To perform rod ejection simulation with TH feedbacks
 !
 
-USE sdata, ONLY: ng, nnod, sigr, nuf, sigs, f0, &
-                 iBeta, lamb, nf, nout, nac, &
-                 ttot, tdiv, tstep1, tstep2, &
-                 ix, iy, iz, zdel, vdel, Ke, &
+USE sdata, ONLY: ng, nnod, sigr, nf, nout, &
+                 ttot, tdiv, tstep1, tstep2, Ke, &
                  bcon, ftem, mtem, cden, &
-                 fbpos, bpos, tmove, bspeed, mdir, &
-                 nout, nac, nb, sigr, velo, &
+                 fbpos, bpos, tmove, bspeed, mdir, nb, velo, iBeta, &
                  f0, fx1, fy1, fz1, fx2, fy2, fz2, &
                  fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
                  c0, cx1, cy1, cz1, cx2, cy2, cz2, tbeta, &
                  ct, ctx1, cty1, ctz1, ctx2, cty2, ctz2, omeg, &
-                 npow, pow, ppow, node_nf
-USE InpOutp, ONLY: XS_updt, bther, ounit
+                 npow, pow, ppow, node_nf, ix, iy, iz, zdel
+USE InpOutp, ONLY: XS_updt, ounit
 USE nodal, ONLY: nodal_coup4, outer4, outertf, PowTot, powdis, Fsrc
 USE th, ONLY: th_iter, th_trans3
 
@@ -386,7 +372,7 @@ DO i = 1, imax
 
     ! Transient calculation
     CALL nodal_coup4()
-    CALL outertf(400, tstep1, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+    CALL outertf(nout, tstep1, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
 
     ! Update fission source
     fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
@@ -480,7 +466,7 @@ DO i = 1, imax
 
     ! Transient calculation
     CALL nodal_coup4()
-    CALL outertf(400, tstep2, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+    CALL outertf(nout, tstep2, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
 
     ! Update fission source
     fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
@@ -565,12 +551,11 @@ SUBROUTINE iPden()
 
 USE sdata, ONLY: nnod, nf, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
 c0, cx1, cy1, cz1, cx2, cy2, cz2, iBeta, lamb
-USE InpOutp, ONLY: XS_updt, ounit
+USE InpOutp, ONLY: XS_updt
 USE nodal, ONLY: outer4
 
 IMPLICIT NONE
 
-REAL :: lat
 INTEGER :: n, j
 
 DO n = 1, nnod
@@ -599,7 +584,7 @@ SUBROUTINE uPden(h)
 USE sdata, ONLY: nnod, nf, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
                  ct, ctx1, cty1, ctz1, ctx2, cty2, ctz2, &
                  c0, cx1, cy1, cz1, cx2, cy2, cz2, iBeta, lamb
-USE InpOutp, ONLY: XS_updt, ounit
+USE InpOutp, ONLY: XS_updt
 USE nodal, ONLY: outer4
 
 IMPLICIT NONE

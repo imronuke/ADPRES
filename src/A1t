@@ -250,7 +250,7 @@ NEACRP Problem
      0.                       0.0                     0.0       ! Bank 5
      0.                       0.0                     0.0       ! Bank 6
      0.                       0.0                     0.0       ! Bank 7
-0.6  0.01  0.6  0.1            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
+0.03  0.01  0.03  0.01            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
 0.0002584 0.00152 0.0013908 0.0030704 0.001102 0.0002584 !beta
 0.0128  0.0318  0.119   0.3181  1.4027  3.9286           !decay constants
 2.8E7    4.4E5     ! Neutron velocity
