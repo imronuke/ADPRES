@@ -7,8 +7,23 @@ ADPRES is a great learning tool in the reactor theory class. The input is design
 ## How to compile
 
 You need a fortran compiler to compile the ADPRES code. Any fortran fortran compiler should work (I use gnufortran).
-To compile using gnufortran, type this command in the working folder
+To compile using gnufortran in Unix based OS, type this command in the folder where the codes are located
 
+```
+gfortran mod_data.f90 mod_io.f90 mod_nodal.f90 mod_th.f90 mod_trans.f90 ADPRES.f90 -O4 -o adpres
+```
+
+This command shall produce executable file 'adpres'
+
+## How to run a test
+
+Copy some sample inputs file from folder 'smpl' into the folder where the executable file is located, then type this command
+
+```
+./adpres
+```
+
+then type the input file name. It will produce output file with out extension
 
 
 
