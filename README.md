@@ -25,6 +25,12 @@ Copy some sample inputs file from folder [smpl](https://github.com/imronuke/ADPR
 
 then type the input file name. It will produce output file with out extension
 
+# How to develop my own input?
+ADPRES input is designed to self-explanatory. Followings are some step bt step tips to develop your own input
+* Open and try to understand the easiest input sample, for example [IAEA 3D PWR input](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D). From here you should have some ideas about the input structure.
+* Modify the input sample for your own purposes
+* In order to get detailed explanation, you may refer to the [ADPRES User Manual](https://github.com/imronuke/ADPRES/blob/reactivity/ADPRES%20USER%20MANUAL.pdf)
+
 ## How accurate is ADPRES
 
 ADPRES has been tested for both static and transient reactor problems
@@ -34,7 +40,7 @@ ADPRES has been tested for both static and transient reactor problems
 * [NEACRP 3D PWR Core transient](https://www.oecd-nea.org/science/docs/1991/neacrp-l-1991-335.pdf) bechmark. Inputs and the coressponding outputs are located in [this folder](https://github.com/imronuke/ADPRES/tree/master/smpl/NEACRP_TRANS)
 
 
-#How to give feebacks
+# How to give feebacks
 Contact me
 * muhammad.imron[at]adpoly.ac.ae
 * makrus.imron[at]gmail.com
