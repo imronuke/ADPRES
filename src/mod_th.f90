@@ -81,23 +81,21 @@ SUBROUTINE par_ave_f(par, ave)
 !    To calculate average fuel temp (only for active core)
 !
 
-USE sdata, ONLY: vdel, ystag, xyz, nzz, nyy
+USE sdata, ONLY: vdel, nnod, ng, nuf
 
 IMPLICIT NONE
 
 REAL, DIMENSION(:), INTENT(IN) :: par
 REAL, INTENT(OUT) :: ave
 REAL :: dum, dum2
-INTEGER :: i, j, k
+INTEGER :: n
 
 dum = 0.; dum2 = 0.
-DO k = 1, nzz
-    DO j = 1, nyy
-        DO i = ystag(j)%smin, ystag(j)%smax
-            dum = dum + par(xyz(i,j,k)) * vdel(xyz(i,j,k))
-            dum2 = dum2 + vdel(xyz(i,j,k))
-        END DO
-    END DO
+DO n = 1, nnod
+   IF (nuf(n,ng) > 0.) THEN
+      dum = dum + par(n) * vdel(n)
+      dum2 = dum2 + vdel(n)
+   END IF
 END DO
 
 ave = dum / dum2
@@ -111,23 +109,19 @@ SUBROUTINE par_ave(par, ave)
 !    To calculate average moderator temp (only for radially active core)
 !
 
-USE sdata, ONLY: vdel, ystag, xyz, nzz, nyy
+USE sdata, ONLY: vdel, nnod
 
 IMPLICIT NONE
 
 REAL, DIMENSION(:), INTENT(IN) :: par
 REAL, INTENT(OUT) :: ave
 REAL :: dum, dum2
-INTEGER :: i, j, k
+INTEGER :: n
 
 dum = 0.; dum2 = 0.
-DO k = 1, nzz
-    DO j = 1, nyy
-        DO i = ystag(j)%smin, ystag(j)%smax
-            dum = dum + par(xyz(i,j,k)) * vdel(xyz(i,j,k))
-            dum2 = dum2 + vdel(xyz(i,j,k))
-        END DO
-    END DO
+DO n = 1, nnod
+   dum = dum + par(n) * vdel(n)
+   dum2 = dum2 + vdel(n)
 END DO
 
 ave = dum / dum2
@@ -141,23 +135,17 @@ SUBROUTINE par_max(par, pmax)
 !    To calculate maximum fuel tem, coolant tem, and density
 !
 
-USE sdata, ONLY: ystag, xyz, nzz, nyy
+USE sdata, ONLY: nnod
 
 IMPLICIT NONE
 
 REAL, DIMENSION(:), INTENT(IN) :: par
 REAL, INTENT(OUT) :: pmax
-INTEGER :: i, j, k
+INTEGER :: n
 
 pmax = 0.
-DO k = 1, nzz
-    DO j = 1, nyy
-        DO i = ystag(j)%smin, ystag(j)%smax
-            IF (par(xyz(i,j,k)) > pmax) THEN
-                pmax = par(xyz(i,j,k))
-            END IF
-        END DO
-    END DO
+DO n = 1, nnod
+   IF (par(n) > pmax) pmax = par(n)
 END DO
 
 END SUBROUTINE par_max
@@ -729,7 +717,7 @@ IMPLICIT NONE
 REAL  :: bc1, bc2    ! Boron Concentration
 REAL :: ke1, ke2
 INTEGER :: n
-REAL :: tf, tm, maxtf, maxtm, maxfcl
+REAL :: tf, tm, mtm, mtf
 
 WRITE(ounit,*)
 WRITE(ounit,*)
@@ -802,17 +790,16 @@ IF (afrad == 1) CALL AsmFlux(f0, 1.e0)
 CALL par_ave_f(ftem, tf)
 CALL par_ave(mtem, tm)
 
-CALL par_max(ftem, maxtf)
-CALL par_max(tfm(:,1), maxfcl)
-CALL par_max(mtem, maxtm)
+CALL par_max(tfm(:,1), mtf)
+CALL par_max(mtem, mtm)
 CALL getfq(npow)
 
 ! Write Output
 WRITE(ounit,*)
 WRITE(ounit, 5001) tf, tf-273.15
-WRITE(ounit, 5002)  maxfcl, maxfcl-273.15
+WRITE(ounit, 5002)  mtf, mtf-273.15
 WRITE(ounit, 5003) tm, tm-273.15
-WRITE(ounit, 5004) maxtm, maxtm-273.15
+WRITE(ounit, 5004) mtm, mtm-273.15
 
 5001 FORMAT(2X, 'AVERAGE DOPPLER TEMPERATURE     : ', F7.1, ' K (', F7.1, ' C)')
 5002 FORMAT(2X, 'MAX FUEL CENTERLINE TEMPERATURE : ', F7.1, ' K (', F7.1, ' C)')

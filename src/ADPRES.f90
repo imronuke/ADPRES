@@ -9,7 +9,8 @@ USE th, ONLY: cbsearch, cbsearcht
 IMPLICIT NONE
 
 REAL :: st, fn
- 
+
+
 CALL CPU_TIME(st)
 
 CALL inp_read()
@@ -24,15 +25,15 @@ SELECT CASE(mode)
     CASE('RODEJECT')
         IF (bther == 0) THEN
             CALL rod_eject()
-          ELSE
+        ELSE
             CALL trod_eject()
-         END IF
+        END IF
     CASE('BCSEARCH')
-          IF (bther == 0) THEN
+        IF (bther == 0) THEN
             CALL cbsearch()
-          ELSE
+        ELSE
             CALL cbsearcht()
-          END IF
+        END IF
     CASE DEFAULT
         CALL forward()
 END SELECT

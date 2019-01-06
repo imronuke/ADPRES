@@ -2179,7 +2179,8 @@ SUBROUTINE crod_updt (bpos)
 
 USE sdata, ONLY: ng, nxx, nyy, nzz, xyz, zdel, mat, nod, cusp, f0, &
                  sigtr, siga, nuf, sigf, sigs, &
-                 dsigtr, dsiga, dnuf, dsigf, dsigs, negxs
+                 dsigtr, dsiga, dnuf, dsigf, dsigs, negxs, &
+                 nod, f0, fz1, fz2
 
 IMPLICIT NONE
 
@@ -2187,129 +2188,84 @@ REAL, DIMENSION(:), INTENT(IN) :: bpos
 
 INTEGER ::i, j, k, g, h
 REAL :: rodh, vfrac
-REAL :: dum, dumx
+REAL :: dum
 
 INTEGER :: n, n1, n2, nmax
 REAL :: del1, del2, eta1, eta2
-REAL :: D1, D2, sigr1, sigr2
 REAL :: sum1, sum2, sum3, sum4, sumx
 REAL, DIMENSION(ng) :: sum5
-REAL, DIMENSION(:), ALLOCATABLE :: a, b, c, dx, f
+REAL, DIMENSION(:), ALLOCATABLE :: f
+REAL :: a1, a2, a3, a4, x, tx, f1, f2
 
 DO j = 1, nyy
-    DO i = 1, nxx
-        IF (fbmap(i,j) > 0) THEN
-            !!!(rodh -> posistion the tip of the control from the top of core)
-            rodh = coreh - pos0  - bpos(fbmap(i,j))*ssize
-            dum = 0.d0
-            DO k = nzz, 1, -1
-                ! For partially rodded node, get volume weighted homogenized CX (0 < vfrac < 1.0)
-                IF (rodh >= dum .AND. rodh < dum+zdel(k)) THEN
-                    eta1 = rodh - dum
-                    eta2 = zdel(k) - rodh + dum
-                    IF (cusp == 0 .OR. eta1 < 1. .OR. eta2 < 1.) THEN    ! IF ROD CUSPING NOT ACTIVE
-                        vfrac = (rodh - dum) / zdel(k)
-                        sigtr(xyz(i,j,k),:) = sigtr(xyz(i,j,k),:) + &
-                                           vfrac * dsigtr(mat(xyz(i,j,k)),:)
-                        siga(xyz(i,j,k),:)  = siga(xyz(i,j,k),:) + &
-                                           vfrac * dsiga(mat(xyz(i,j,k)),:)
-                        nuf(xyz(i,j,k),:)   = nuf(xyz(i,j,k),:) + &
-                                           vfrac * dnuf(mat(xyz(i,j,k)),:)
-                        sigf(xyz(i,j,k),:)  = sigf(xyz(i,j,k),:) + &
-                                           vfrac * dsigf(mat(xyz(i,j,k)),:)
-                        sigs(xyz(i,j,k),:,:)  = sigs(xyz(i,j,k),:,:) + &
-                                           vfrac * dsigs(mat(xyz(i,j,k)),:,:)
-                    ELSE                    ! IF ROD CUSPING ACTIVE
-                        n1 = CEILING(rodh - dum)        ! Number of mesh in rodded area
-                        del1 = (rodh - dum) / REAL(n1)  ! mesh size in rodded area
-                        n2 = CEILING(zdel(k) - rodh + dum)  ! Number of mesh in non-rodded area
-                        del2 = (zdel(k) - rodh + dum) / REAL(n2)  ! mesh size in non-rodded area
+  DO i = 1, nxx
+     IF (fbmap(i,j) > 0) THEN
+        !!!(rodh -> posistion the tip of the control from the top of core)
+         rodh = coreh - pos0  - bpos(fbmap(i,j))*ssize
+         dum = 0.d0
+         DO k = nzz, 1, -1
+           ! For partially rodded node, get volume weighted homogenized CX (0 < vfrac < 1.0)
+           IF (rodh >= dum .AND. rodh < dum+zdel(k)) THEN
+              eta1 = rodh - dum
+              eta2 = zdel(k) - rodh + dum
+              IF (cusp == 0 .OR. eta1 < 1. .OR. eta2 < 1) THEN    ! IF ROD CUSPING NOT ACTIVE
+                 vfrac = (rodh - dum) / zdel(k)
+                 sigtr(xyz(i,j,k),:) = sigtr(xyz(i,j,k),:) + &
+                                    vfrac * dsigtr(mat(xyz(i,j,k)),:)
+                 siga(xyz(i,j,k),:)  = siga(xyz(i,j,k),:) + &
+                                    vfrac * dsiga(mat(xyz(i,j,k)),:)
+                 nuf(xyz(i,j,k),:)   = nuf(xyz(i,j,k),:) + &
+                                    vfrac * dnuf(mat(xyz(i,j,k)),:)
+                 sigf(xyz(i,j,k),:)  = sigf(xyz(i,j,k),:) + &
+                                    vfrac * dsigf(mat(xyz(i,j,k)),:)
+                 sigs(xyz(i,j,k),:,:)  = sigs(xyz(i,j,k),:,:) + &
+                                      vfrac * dsigs(mat(xyz(i,j,k)),:,:)
+              ELSE                    ! IF ROD CUSPING ACTIVE
+                 n1 = CEILING(rodh - dum)        ! Number of mesh in rodded area
+                 del1 = (rodh - dum) / REAL(n1)  ! mesh size in rodded area
+                 n2 = CEILING(zdel(k) - rodh + dum)  ! Number of mesh in non-rodded area
+                 del2 = (zdel(k) - rodh + dum) / REAL(n2)  ! mesh size in non-rodded area
 
-                        nmax = n1 + n2                     ! Total number of mesh
+                 nmax = n1 + n2                     ! Total number of mesh
 
-                        ! Calculate vectors a, b, c, d
-                        ALLOCATE(a(nmax), b(nmax), c(nmax), dx(nmax), f(nmax))
-                        DO g = 1, ng
+                 ! Calculate vectors a, b, c, d
+                 ALLOCATE(f(nmax))
 
-                           ! Diff coef for rodded mesh
-                           D1 = 1. / (3. * (sigtr(xyz(i,j,k),g) &
-                              + dsigtr(mat(xyz(i,j,k)),g)))
-                           dumx = 0.0
-                           DO h= 1, ng
-                              IF (g /= h) dumx = dumx &
-                                               + sigs(xyz(i,j,k),g,h) &
-                                               + dsigs(mat(xyz(i,j,k)),g,h)
-                           END DO
+                 DO g = 1, ng
+                    ! Determine the flux coefficients
+                    a1 = 2. * (nod(xyz(i,j,k),g)%jo(5) + nod(xyz(i,j,k),g)%ji(5) &
+                       - nod(xyz(i,j,k),g)%jo(6) - nod(xyz(i,j,k),g)%ji(6))
+                    a2 = 2. * (nod(xyz(i,j,k),g)%jo(5) + nod(xyz(i,j,k),g)%ji(5) &
+                       + nod(xyz(i,j,k),g)%jo(6) + nod(xyz(i,j,k),g)%ji(6)) &
+                       - 2. * f0(xyz(i,j,k),g)
+                    a3 = 10. * a1 - 120. * fz1(xyz(i,j,k),g)
+                    a4 = 35. * a2 - 700. * fz2(xyz(i,j,k),g)
 
-                           ! Removal CX for rodded mesh
-                           sigr1 =  siga(xyz(i,j,k),g) &
-                                 + dsiga(mat(xyz(i,j,k)),g) + dumx
-
-                           ! Vectors for Top BC => upper node flux
-                           eta1 = D1 / del1
-                           a(1) = 0.
-                           b(1) = 2. * eta1 + sigr1
-                           c(1) = -eta1
-                           IF (k == nzz) THEN
-                              dx(1) = nod(xyz(i,j,k),g)%Q(1)
-                           ELSE
-                              dx(1) = nod(xyz(i,j,k),g)%Q(1) &
-                                   + eta1 * f0(xyz(i,j,k+1),g)
-                           END IF
-
-                           ! Vectors for rodded node
-                           DO n = 2, n1-1
-                              a(n) = -eta1
-                              b(n) = 2. * eta1 + sigr1
-                              c(n) = -eta1
-                              dx(n) = nod(xyz(i,j,k),g)%Q(1)
-                           END DO
-
-                           ! Diff coef for non-rodded mesh
-                           D2 = 1. / (3. * sigtr(xyz(i,j,k),g))
-                           dumx = 0.0
-                           DO h= 1, ng
-                              IF (g /= h) dumx = dumx &
-                                               + sigs(xyz(i,j,k),g,h)
-                           END DO
-                           sigr2 =  siga(xyz(i,j,k),g) + dumx
-
-                           ! Vectors between rodded and non-rodded
-                           eta2  = 2. * (D1 * del1 + D2 * Del2) &
-                                 / (del1 + del2)**2
-                           a(n1) = -eta1
-                           b(n1) = eta1 + eta2 + sigr1
-                           c(n1) = -eta2
-                           dx(n1) = nod(xyz(i,j,k),g)%Q(1)
-
-                           eta1 = eta2
-                           eta2 = D2 / del2
-                           a(n1+1) = -eta1
-                           b(n1+1) = eta1 + eta2 + sigr2
-                           c(n1+1) = -eta2
-                           dx(n1+1) = nod(xyz(i,j,k),g)%Q(1)
-
-                           ! Vectors for non-rodded node
-                           DO n = n1+2, nmax-1
-                             a(n) = -eta2
-                             b(n) = 2. * eta2 + sigr2
-                             c(n) = -eta2
-                             dx(n) = nod(xyz(i,j,k),g)%Q(1)
-                           END DO
-
-                           ! Vectors for Bottom BC => lower node flux
-                           a(nmax) = -eta2
-                           b(nmax) = 2. * eta2 + sigr2
-                           c(nmax) = 0.
-                           IF (k == 1) THEN
-                              dx(nmax) = nod(xyz(i,j,k),g)%Q(1)
-                           ELSE
-                              dx(nmax) = nod(xyz(i,j,k),g)%Q(1) &
-                                       + eta2 * f0(xyz(i,j,k-1),g)
-                           END IF
-
-                           !Calculate fluxes
-                           CALL TridiaSolve(a, b, c, dx, f)
+                    ! Calculate fluxes in rodded area
+                    x = 0.5 * zdel(k)
+                    tx = x / zdel(k)
+                    f1 = f0(xyz(i,j,k),g) + a1 * tx + a2 * (3*tx**2-0.25) &
+                         + a3 * (tx*(tx+0.5)*(tx-0.5)) &
+                         + a4 * ((tx**2-0.05)*(tx+0.5)*(tx-0.5))
+                    DO n = 1, n1
+                       x = x - del1
+                       tx = x / zdel(k)
+                       f2 = f0(xyz(i,j,k),g) + a1 * tx + a2 * (3*tx**2-0.25) &
+                            + a3 * (tx*(tx+0.5)*(tx-0.5)) &
+                            + a4 * ((tx**2-0.05)*(tx+0.5)*(tx-0.5))
+                      f(n) = 0.5 * (f1 + f2)
+                      f1 = f2
+                   END DO
+                   ! Calculate fluxes in non-rodded area
+                   DO n = n1+1, nmax
+                      x = x - del2
+                      tx = x / zdel(k)
+                      f2 = f0(xyz(i,j,k),g) + a1 * tx + a2 * (3*tx**2-0.25) &
+                           + a3 * (tx*(tx+0.5)*(tx-0.5)) &
+                           + a4 * ((tx**2-0.05)*(tx+0.5)*(tx-0.5))
+                      f(n) = 0.5 * (f1 + f2)
+                      f1 = f2
+                   END DO
 
                            ! Calculate homogenized CXs
                            sumx = 0.
@@ -2351,7 +2307,7 @@ DO j = 1, nyy
                            END DO
 
                        END DO
-                       DEALLOCATE(a, b, c, dx, f)
+                       DEALLOCATE(f)
                     END IF
 
                     EXIT
@@ -2404,38 +2360,6 @@ END DO
 
 
 END SUBROUTINE crod_updt
-
-
-SUBROUTINE TridiaSolve(a,b,c,d,x)
-!
-! Purpose:
-!    To solve tridiagonal matrix
-!
-
-IMPLICIT NONE
-
-REAL, DIMENSION(:), INTENT(INOUT) :: a, b, c, d
-REAL, DIMENSION(:), INTENT(OUT) :: x
-
-INTEGER :: i, n
-
-n = SIZE(d)
-
-! Gauss Elimination
-c(1) = c(1)/b(1)
-d(1) = d(1)/b(1)
-DO i = 2, n
-    c(i) = c(i) / (b(i) - a(i) * c(i-1))
-    d(i) = (d(i) - a(i) * d(i-1)) / (b(i) - a(i) * c(i-1))
-END DO
-
-! Back Substitution
-x(n) = d(n)
-DO i = n-1, 1, -1
-    x(i) = d(i) - c(i) * x(i+1)
-END DO
-
-END SUBROUTINE TridiaSolve
 
 
 SUBROUTINE inp_ejct (xbunit)

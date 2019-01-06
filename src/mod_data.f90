@@ -54,7 +54,6 @@ TYPE(NODE_DATA), DIMENSION(:,:), ALLOCATABLE :: nod
 REAL, DIMENSION(:,:), ALLOCATABLE :: f0, fx1, fy1, fz1, fx2, fy2, fz2      ! Flux and Flux moments
 REAL, DIMENSION(:), ALLOCATABLE :: fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2      ! Fission source moments
 REAL, DIMENSION(:,:), ALLOCATABLE :: c0, cx1, cy1, cz1, cx2, cy2, cz2  ! neutron precusor density
-REAL, DIMENSION(:,:), ALLOCATABLE :: ct, ctx1, cty1, ctz1, ctx2, cty2, ctz2 ! previous neutron precusor density
 
 TYPE :: STAGGERED
     INTEGER :: smax, smin                             ! imax and imin along x and y direction for staggered nodes
@@ -108,9 +107,9 @@ REAL, DIMENSION(:,:), ALLOCATABLE :: dsigtr, dsiga, dnuf, dsigf   ! CX inceremen
 REAL, DIMENSION(:,:,:), ALLOCATABLE :: dsigs
 REAL, DIMENSION(:), ALLOCATABLE :: tmove    ! Time when CR bank starts moving
 REAL, DIMENSION(:), ALLOCATABLE :: bspeed   ! CR bank movement speed
-INTEGER, DIMENSION(:), ALLOCATABLE :: mdir     ! To indicate CR movement direction (0=do not move, 1=down, 2 = up)
-LOGICAL :: negxs = .FALSE.                      ! To activate warning for first time
-INTEGER :: cusp = 0
+INTEGER, DIMENSION(:), ALLOCATABLE :: mdir  ! To indicate CR movement direction (0=do not move, 1=down, 2 = up)
+LOGICAL :: negxs = .FALSE.                  ! To activate warning for first time
+INTEGER :: cusp = 0                         ! Rod cusping option
 
 ! Boron Concentration
 REAL :: bcon       ! Boron concentration in ppm
