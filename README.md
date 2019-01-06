@@ -36,7 +36,7 @@ ADPRES input is designed to self-explanatory. Followings are some step bt step t
 
 At first don't get confuse. The ouput is divided into three parts
 1. Input echo. In this part, you will see your inputs along with the line numbers. This part makes sure that results produced was given from this given input. In this [output](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D.out), it is from line 7 to 82
-2. Input read. Now ADPRES is reading your input and restate your input to make sure this the input what you want.  In this [output](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D.out), it is from line 86 to 236
+2. Input read. Now ADPRES is reading your input and restate your input to make sure this the input that you want.  In this [output](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D.out), it is from line 86 to 236
 3. Results. After doing some calculations, ADPRES presents the results in this part. For this [output](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D.out) for example, you can see the evolution of the outer iteration, final multiplication factor, radial power distribution as well as radial flux distribution.
 
 ## How accurate is ADPRES
@@ -45,7 +45,7 @@ ADPRES has been tested for both static and transient reactor problems
 * [IAEA 3D PWR](https://engineering.purdue.edu/PARCS/Code/TestSuite/CalculationMode/StandAloneMode/Eigenvalue/IAEA3DPWR) benchmark. A static PWR benchmark. Here are the [input](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D) and [output](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D.out)
 * [DVP BWR](http://li.mit.edu/Stuff/CNSE/Paper/Smith86PNE.pdf) benchmark. A static BWR bechmark with discontinuity factors. Here are the [input](https://github.com/imronuke/ADPRES/blob/master/smpl/DVP) and [output](https://github.com/imronuke/ADPRES/blob/master/smpl/DVP.out)
 * [LMW](https://www.sciencedirect.com/science/article/pii/014919709500082U) benchmark. Reactor transient benchmark without TH feedbacks. Here are the [input](https://github.com/imronuke/ADPRES/blob/master/smpl/LMW) and [output](https://github.com/imronuke/ADPRES/blob/master/smpl/LMW.out)
-* [NEACRP 3D PWR Core transient](https://www.oecd-nea.org/science/docs/1991/neacrp-l-1991-335.pdf) bechmark. Inputs and the coressponding outputs are located in [this folder](https://github.com/imronuke/ADPRES/tree/master/smpl/NEACRP_TRANS)
+* [NEACRP 3D PWR Core transient](https://www.oecd-nea.org/science/docs/1991/neacrp-l-1991-335.pdf) bechmark.  PWR transient benchmark with TH feedbacks. Inputs and the coressponding outputs are located in [this folder](https://github.com/imronuke/ADPRES/tree/master/smpl/NEACRP_TRANS)
 
 
 ## How to give feedbacks
