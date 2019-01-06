@@ -1368,7 +1368,7 @@ SUBROUTINE TSrcT(gt, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
 !
 
 USE sdata, ONLY: nod, chi, nnod, tbeta, velo, lamb, iBeta, nf, omeg, &
-ct, ctx1, cty1, ctz1, ctx2, cty2, ctz2
+c0, cx1, cy1, cz1, cx2, cy2, cz2
 
 IMPLICIT NONE
 
@@ -1386,13 +1386,13 @@ DO n = 1, nnod
      dfis = 0.
      DO i = 1, nf
         lat = 1. + lamb(i) * h
-        dt = dt  + lamb(i) * ct(i,n) / lat
-        dtx1 = dtx1 + lamb(i) * ctx1(i,n) / lat
-        dty1 = dty1 + lamb(i) * cty1(i,n) / lat
-        dtz1 = dtz1 + lamb(i) * ctz1(i,n) / lat
-        dtx2 = dtx2 + lamb(i) * ctx2(i,n) / lat
-        dty2 = dty2 + lamb(i) * cty2(i,n) / lat
-        dtz2 = dtz2 + lamb(i) * ctz2(i,n) / lat
+        dt = dt  + lamb(i) * c0(i,n) / lat
+        dtx1 = dtx1 + lamb(i) * cx1(i,n) / lat
+        dty1 = dty1 + lamb(i) * cy1(i,n) / lat
+        dtz1 = dtz1 + lamb(i) * cz1(i,n) / lat
+        dtx2 = dtx2 + lamb(i) * cx2(i,n) / lat
+        dty2 = dty2 + lamb(i) * cy2(i,n) / lat
+        dtz2 = dtz2 + lamb(i) * cz2(i,n) / lat
         dfis = dfis + chi(n,gt) * iBeta(i) * lamb(i) * h / lat
     END DO
 
