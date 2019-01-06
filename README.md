@@ -28,7 +28,7 @@ then type the input file name. It will produce output file with out extension
 ## How accurate is ADPRES
 
 ADPRES has been tested for both static and transient reactor problems
-* [IAEA 3D PWR](https://engineering.purdue.edu/PARCS/Code/TestSuite/CalculationMode/StandAloneMode/Eigenvalue/IAEA3DPWR) benchmark. A static PWR benchmark. Here are the [input]((https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D)) and [output](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D.out)
+* [IAEA 3D PWR](https://engineering.purdue.edu/PARCS/Code/TestSuite/CalculationMode/StandAloneMode/Eigenvalue/IAEA3DPWR) benchmark. A static PWR benchmark. Here are the [input](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D) and [output](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D.out)
 * [DVP BWR](https://github.com/imronuke/ADPRES/blob/master/smpl/DVP) benchmark. A static BWR bechmark with discontinuity factors
 * [LMW](https://github.com/imronuke/ADPRES/blob/master/smpl/LMW) benchmark. Reactor transient benchmark without TH feedbacks.
 * [NEACRP 3D PWR Core transient](https://github.com/imronuke/ADPRES/tree/master/smpl/NEACRP_TRANS) bechmark. PWR transient benchmark with TH feedbacks.
