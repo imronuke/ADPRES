@@ -35,8 +35,8 @@ ADPRES input is designed to self-explanatory. Followings are some step bt step t
 ## How to read the ouput?
 
 At first don't get confuse. The ouput is divided into three parts
-1. Input echo. In this part, you will see your inputs along with the line numbers. This part makes sure that results produced was given from this given input. In this [output](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D.out) it is from line 7 to 82
-2. Input read. Now ADPRES is reading your input and restate your input to make sure this the input what you want.  In this [output](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D.out) it is from line 86 to 236
+1. Input echo. In this part, you will see your inputs along with the line numbers. This part makes sure that results produced was given from this given input. In this [output](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D.out), it is from line 7 to 82
+2. Input read. Now ADPRES is reading your input and restate your input to make sure this the input what you want.  In this [output](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D.out), it is from line 86 to 236
 3. Results. After doing some calculations, ADPRES presents the results in this part. For this [output](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D.out) for example, you can see the evolution of the outer iteration, final multiplication factor, radial power distribution as well as radial flux distribution.
 
 ## How accurate is ADPRES
