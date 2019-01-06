@@ -34,7 +34,7 @@ ADPRES has been tested for both static and transient reactor problems
 * [NEACRP 3D PWR Core transient](https://github.com/imronuke/ADPRES/tree/master/smpl/NEACRP_TRANS) bechmark. PWR transient benchmark with TH feedbacks.
 
 
-## How to give feebacks
+## How to give feedbacks
 Contact me
 * muhammad.imron[at]adpoly.ac.ae
 * makrus.imron[at]gmail.com
@@ -45,5 +45,5 @@ Contact me
 
 
 
-"The best of people are those that bring most benefit to the rest of mankind." (PROPHET)
+> **"The best of people are those that bring most benefit to the rest of mankind." (PROPHET)**
 
