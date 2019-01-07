@@ -97,7 +97,7 @@ WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') 0, 0., 0., &
 ! Start transient calculation
 step = 0
 t2 = 0.
-imax = INT(tdiv/tstep1)
+imax = NINT(tdiv/tstep1)
 
 ! First Time Step
 DO i = 1, imax
@@ -175,7 +175,7 @@ DO i = 1, imax
 END DO
 
 ! Second Time Step
-imax = INT((ttot-tdiv)/tstep2)
+imax = NINT((ttot-tdiv)/tstep2)
 
 DO i = 1, imax
 
@@ -338,7 +338,7 @@ ppow*0.01, tm-273.15, mtm-273.15, tf-273.15, mtf-273.15
 ! Start transient calculation
 step = 0
 t2 = 0.
-imax = INT(tdiv/tstep1)
+imax = NINT(tdiv/tstep1)
 
 ! First Time Step
 DO i = 1, imax
@@ -440,7 +440,7 @@ DO i = 1, imax
 END DO
 
 ! Second Time Step
-imax = INT((ttot-tdiv)/tstep2)
+imax = NINT((ttot-tdiv)/tstep2)
 
 DO i = 1, imax
 
@@ -728,7 +728,7 @@ WRITE(ounit,'(I4, F12.5, F10.4)') 0, Ke, ((Ke-1.)/Ke)/tbeta
 ! Start transient calculation
 step = 0
 t2 = 0.
-imax = INT(ttot/tstep1)
+imax = NINT(ttot/tstep1)
 
 ! First Time Step
 DO i = 1, imax

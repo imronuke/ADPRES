@@ -147,7 +147,7 @@ REAL, DIMENSION(:), ALLOCATABLE :: rpos            ! mesh position
 REAL :: th_err                                     ! Doppler error
 REAL, DIMENSION(:), ALLOCATABLE :: ent             ! Coolant Enthalpy (J/Kg)
 REAL, DIMENSION(:), ALLOCATABLE :: heatf           ! Heat flux (W/m2)
-INTEGER :: th_niter = 20                           ! Maximum number of thermal-hydraulics iteration
+INTEGER :: th_niter = 50                           ! Maximum number of thermal-hydraulics iteration
 INTEGER, PARAMETER :: thunit = 300                 ! Unit number to open steam table file
 REAL, PARAMETER :: pi = 3.14159265
 

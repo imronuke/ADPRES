@@ -120,7 +120,7 @@ NEACRP Problem
 
 ! CRITICAL BORON SEARCH CARD
 %BCON
-1134.9  1200.2  !Boron concentration ref. in ppm
+1131.9  1200.2  ! BC and BC ref. in ppm
 ! CX change per unit ppm change of Boron concentration
 !  sigtr          siga         nu*sigf       sigf      sigs_g1   sigs_g2
  6.11833E-08  1.87731E-07  0.00000E+00  0.00000E+00  0.0  7.91457E-10
@@ -251,7 +251,7 @@ NEACRP Problem
      228.                     0.0                     0.0       ! Bank 6
      0.                       0.0                     0.0       ! Bank 7
      228.                     0.0                  2280.0       ! Bank 8
-5.  0.01  1.0  0.1            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
+5.  0.005  1.0  0.05            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
 0.0002584 0.00152 0.0013908 0.0030704 0.001102 0.0002584 !beta
 0.0128  0.0318  0.119   0.3181  1.4027  3.9286           !decay constants
 2.8E7    4.4E5     ! Neutron velocity
