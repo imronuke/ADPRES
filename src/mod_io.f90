@@ -2179,7 +2179,7 @@ SUBROUTINE crod_updt (bpos)
 
 USE sdata, ONLY: ng, nxx, nyy, nzz, xyz, zdel, mat, nod, cusp, f0, &
                  sigtr, siga, nuf, sigf, sigs, &
-                 dsigtr, dsiga, dnuf, dsigf, dsigs, negxs, &
+                 dsigtr, dsiga, dnuf, dsigf, dsigs, &
                  nod, f0, fz1, fz2
 
 IMPLICIT NONE
@@ -2331,24 +2331,19 @@ DO j = 1, nyy
                 DO g = 1, ng
                     IF (sigtr(xyz(i,j,k),g) < 0.) THEN
                         sigtr(xyz(i,j,k),g) = 0.
-                        negxs = .TRUE.
                     END IF
                     IF (siga(xyz(i,j,k),g) < 0.) THEN
                         siga(xyz(i,j,k),g) = 0.
-                        negxs = .TRUE.
                     END IF
                     IF (nuf(xyz(i,j,k),g) < 0.) THEN
                         nuf(xyz(i,j,k),g) = 0.
-                        negxs = .TRUE.
                     END IF
                     IF (sigf(xyz(i,j,k),g) < 0.) THEN
                         sigf(xyz(i,j,k),g) = 0.
-                        negxs = .TRUE.
                     END IF
                     DO h = 1, ng
                         IF (sigs(xyz(i,j,k),g,h) < 0.) THEN
                             sigs(xyz(i,j,k),g,h) = 0.
-                            negxs = .TRUE.
                         END IF
                     END DO
                 END DO
@@ -3077,7 +3072,7 @@ SUBROUTINE inp_ther (xbunit)
 !    To read thermalhydraulics parameters input
 
 USE sdata, ONLY: pow, tin, nx, ny, nxx, nyy, ystag, &
-                 rf, tg, tc, ppitch, cf, dia, cflow, dh, pi, &
+                 rf, tg, tc, rg, rc, ppitch, cf, dia, cflow, dh, pi, &
                  farea, xdiv, ydiv, ystag, node_nf, nm, nt, rdel, rpos, &
                  nnod, tfm, ppow, ent, heatf, ntem, stab, thunit
 
@@ -3145,8 +3140,12 @@ READ(xbunit, *, IOSTAT=ios) ind, ln, cf
 message = ' error in reading fraction of heat deposited in the coolant'
 CALL er_message(ounit, ios, ln, message)
 
+! Calculate outer radius of gap and cladding
+rg = rf + tg
+rc = rf + tg + tc
+
 ! Calculate fuel pin diameter
-dia = 2. * (rf + tg + tc)
+dia = 2. * rc
 
 ! Calculate hydraulic diameter
 dh = dia * ((4./pi) * (ppitch/dia)**2 - 1.)
@@ -3192,7 +3191,7 @@ nm = 10      ! Fuel meat divided into 10 mesh
 nt = nm + 2  ! two more mesh for gap and clad
 dum = rf / REAL(nm)
 
-ALLOCATE(rdel(nt), rpos(nt+2))
+ALLOCATE(rdel(nt), rpos(nt))
 DO i = 1, nm
     rdel(i) = dum
 END DO
@@ -3203,13 +3202,9 @@ rdel(nm+2) = tc
 
 ! Fuel pin mesh position
 rpos(1) = 0.5 * rdel(1)
-DO i = 2, nt-2
+DO i = 2, nt
     rpos(i) = rpos(i-1) + 0.5 * (rdel(i-1) + rdel(i))
 END DO
-rpos(nt-1) = rpos(nt-2) + 0.5*rdel(nt-2)
-rpos(nt) = rpos(nt-1) + rdel(nt-1)
-rpos(nt+1) = rpos(nt) + 0.5*rdel(nt)
-rpos(nt+2) = rpos(nt+1) + 0.5*rdel(nt)
 
 ! Guess fuel and moderator temperature
 ALLOCATE(tfm(nnod, nt+1)) ! Allocate fuel pin mesh temperature

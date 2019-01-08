@@ -20,13 +20,13 @@ SUBROUTINE rod_eject()
 !    To perform rod ejection simulation
 !
 
-USE sdata, ONLY: ng, nnod, sigr, nf, nout, &
+USE sdata, ONLY: ng, nnod, sigr, nf, &
                  ttot, tdiv, tstep1, tstep2, Ke, &
                  bcon, ftem, mtem, cden, &
                  fbpos, bpos, tmove, bspeed, mdir, nb, velo, iBeta, &
                  f0, fx1, fy1, fz1, fx2, fy2, fz2, &
                  fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
-                 c0, cx1, cy1, cz1, cx2, cy2, cz2, tbeta, omeg
+                 c0, cx1, cy1, cz1, cx2, cy2, cz2, tbeta, omeg, tranw
 USE InpOutp, ONLY: XS_updt, ounit
 USE nodal, ONLY: nodal_coup4, outer4, outertf, outer4ad, PowTot, Fsrc
 
@@ -40,6 +40,8 @@ REAL :: rho
 REAL :: t1, t2
 REAL :: tpow1, tpow2
 INTEGER :: n, i, j, g, imax, step
+
+LOGICAL :: maxi
 
 ! Allocate precusor density
 ALLOCATE (c0(nf,nnod),cx1(nf,nnod),cy1(nf,nnod),cz1(nf,nnod))
@@ -86,6 +88,7 @@ END DO
 ! Calculate reactivity
 CALL react(af, sigr, rho)
 
+! File output
 WRITE(ounit, *)
 WRITE(ounit, *) " TRANSIENT RESULTS :"
 WRITE(ounit, *)
@@ -93,6 +96,15 @@ WRITE(ounit, *) " Step  Time(s)  React.($)   Rel. Power   CR Bank Pos. (1-end)"
 WRITE(ounit, *) "--------------------------------------------------------------"
 WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') 0, 0., 0., &
 1.0, (bpos(n), n = 1, nb)
+
+! Terminal output
+WRITE(*,*)
+WRITE(*,*)
+WRITE(*, *) " TRANSIENT RESULTS :"
+WRITE(*, *)
+WRITE(*, *) " Step  Time(s)  React.($)   Rel. Power"
+WRITE(*, *) "-------------------------------------------"
+WRITE(*,'(I4, F10.3, F10.4, ES15.4)') 0, 0., 0., 1.0
 
 ! Start transient calculation
 step = 0
@@ -151,7 +163,7 @@ DO i = 1, imax
 
     ! Transient calculation
     CALL nodal_coup4()
-    CALL outertf(nout, tstep1, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+    CALL outertf(tstep1, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2, maxi)
 
     ! Update fission source
     fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
@@ -170,8 +182,17 @@ DO i = 1, imax
 
     WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, &
     tpow2/tpow1, (bpos(n), n = 1, nb)
+    
+    IF (maxi) THEN
+        WRITE(*,'(I4, F10.3, F10.4, ES15.4, A35)') step, t2, rho/tbeta, &
+        tpow2/tpow1, 'OUTER ITERATION DID NOT CONVERGE'
+    ELSE
+        WRITE(*,'(I4, F10.3, F10.4, ES15.4)') step, t2, rho/tbeta, &
+        tpow2/tpow1
+    END IF  
 
-
+    IF (maxi) tranw = .TRUE.    
+    
 END DO
 
 ! Second Time Step
@@ -219,7 +240,7 @@ DO i = 1, imax
 
     ! Transient calculation
     CALL nodal_coup4()
-    CALL outertf(nout, tstep2, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+    CALL outertf(tstep2, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2, maxi)
 
     ! Update fission source
     fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
@@ -235,9 +256,19 @@ DO i = 1, imax
 
     ! Calculate reactivity
     CALL react(af, sigrp, rho)
-
+    
     WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, &
     tpow2/tpow1, (bpos(n), n = 1, nb)
+    
+    IF (maxi) THEN
+        WRITE(*,'(I4, F10.3, F10.4, ES15.4, A35)') step, t2, rho/tbeta, &
+        tpow2/tpow1, 'OUTER ITERATION DID NOT CONVERGE'
+    ELSE
+        WRITE(*,'(I4, F10.3, F10.4, ES15.4)') step, t2, rho/tbeta, &
+        tpow2/tpow1
+    END IF
+
+    IF (maxi) tranw = .TRUE.    
 
 END DO
 
@@ -251,24 +282,24 @@ SUBROUTINE trod_eject()
 !    To perform rod ejection simulation with TH feedbacks
 !
 
-USE sdata, ONLY: ng, nnod, sigr, nf, nout, &
+USE sdata, ONLY: ng, nnod, sigr, nf, &
                  ttot, tdiv, tstep1, tstep2, Ke, &
                  bcon, ftem, mtem, cden, tfm, &
                  fbpos, bpos, tmove, bspeed, mdir, nb, velo, iBeta, &
                  f0, fx1, fy1, fz1, fx2, fy2, fz2, &
                  fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
                  c0, cx1, cy1, cz1, cx2, cy2, cz2, tbeta, omeg, &
-                 npow, pow, ppow, node_nf, ix, iy, iz, zdel
+                 npow, pow, ppow, node_nf, ix, iy, iz, zdel, tranw
 USE InpOutp, ONLY: XS_updt, ounit
 USE nodal, ONLY: nodal_coup4, outer4, outertf, outer4ad, PowTot, powdis, Fsrc
-USE th, ONLY: th_iter, th_trans3, par_ave, par_max, par_ave_f
+USE th, ONLY: th_iter, th_trans, par_ave, par_max, par_ave_f
 
 IMPLICIT NONE
 
 REAL, DIMENSION(nnod, ng) :: ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2  ! Flux at previous time step
 REAL, DIMENSION(nnod, ng) :: af                                      ! adjoint flux
 REAL, DIMENSION(nnod, ng) :: sigrp                                   ! Temporary sigr
-
+    
 REAL :: rho
 REAL :: t1, t2
 REAL :: tpow1, tpow2
@@ -277,6 +308,8 @@ INTEGER :: n, i, j, g, imax, step
 REAL, DIMENSION(nnod) :: pline       ! Linear power density
 REAL :: xppow
 REAL :: tf, tm, mtf, mtm
+
+LOGICAL :: maxi
 
 ! Allocate node power distribution npow
 ALLOCATE(npow(nnod))
@@ -327,6 +360,7 @@ CALL par_max(tfm(:,1), mtf)
 CALL par_ave(mtem, tm)
 CALL par_max(mtem, mtm)
 
+! File output
 WRITE(ounit, *)
 WRITE(ounit, *) " TRANSIENT RESULTS :"
 WRITE(ounit, *)
@@ -334,6 +368,15 @@ WRITE(ounit, *) " Step  Time(s)  React.($)   Rel. Power   Avg. Tm   Max. Tm   Av
 WRITE(ounit, *) "--------------------------------------------------------------------------------"
 WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 4F10.2)') 0, 0., 0., &
 ppow*0.01, tm-273.15, mtm-273.15, tf-273.15, mtf-273.15
+
+! Terminal output
+WRITE(*,*)
+WRITE(*,*)
+WRITE(*, *) " TRANSIENT RESULTS :"
+WRITE(*, *)
+WRITE(*, *) " Step  Time(s)  React.($)   Rel. Power"
+WRITE(*, *) "-------------------------------------------"
+WRITE(*,'(I4, F10.3, F10.4, ES15.4)') 0, 0., 0., ppow*0.01
 
 ! Start transient calculation
 step = 0
@@ -392,7 +435,7 @@ DO i = 1, imax
 
     ! Transient calculation
     CALL nodal_coup4()
-    CALL outertf(nout, tstep1, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+    CALL outertf(tstep1, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2, maxi)
 
     ! Update fission source
     fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
@@ -419,7 +462,7 @@ DO i = 1, imax
     END DO
 
     ! TH transient
-    CALL th_trans3(pline,tstep1)
+    CALL th_trans(pline,tstep1)
 
     ! Calculate reactivity
     CALL react(af, sigrp, rho)
@@ -431,6 +474,16 @@ DO i = 1, imax
 
     WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 4F10.2)') step, t2, rho/tbeta, &
     xppow, tm-273.15, mtm-273.15, tf-273.15, mtf-273.15
+    
+    IF (maxi) THEN
+        WRITE(*,'(I4, F10.3, F10.4, ES15.4, A35)') step, t2, rho/tbeta, &
+        xppow, 'OUTER ITERATION DID NOT CONVERGE'
+    ELSE
+        WRITE(*,'(I4, F10.3, F10.4, ES15.4)') step, t2, rho/tbeta, &
+        xppow
+    END IF
+    
+    IF (maxi) tranw = .TRUE.
 
     IF (step>1000) THEN
         WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
@@ -484,7 +537,7 @@ DO i = 1, imax
 
     ! Transient calculation
     CALL nodal_coup4()
-    CALL outertf(nout, tstep2, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+    CALL outertf(tstep2, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2, maxi)
 
     ! Update fission source
     fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
@@ -511,7 +564,7 @@ DO i = 1, imax
     END DO
 
     ! TH transient
-    CALL th_trans3(pline,tstep2)
+    CALL th_trans(pline,tstep2)
 
     ! Calculate reactivity
     CALL react(af, sigrp, rho)
@@ -523,7 +576,16 @@ DO i = 1, imax
 
     WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 4F10.2)') step, t2, rho/tbeta, &
     xppow, tm-273.15, mtm-273.15, tf-273.15, mtf-273.15
-
+    
+    IF (maxi) THEN
+        WRITE(*,'(I4, F10.3, F10.4, ES15.4, A35)') step, t2, rho/tbeta, &
+        xppow, 'OUTER ITERATION DID NOT CONVERGE'
+    ELSE
+        WRITE(*,'(I4, F10.3, F10.4, ES15.4)') step, t2, rho/tbeta, &
+        xppow
+    END IF
+    
+    IF (maxi) tranw = .TRUE.
 
     IF (step>1000) THEN
         WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'

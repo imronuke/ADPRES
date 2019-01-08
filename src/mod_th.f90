@@ -4,9 +4,9 @@ IMPLICIT NONE
 
 SAVE
 
-REAL :: kv   ! Water kinematic viscosity
-REAL :: Pr  !Prandtl Number
-REAL :: tc  ! Thermal conductivity (W/mK)
+! REAL :: kv   ! Water kinematic viscosity
+! REAL :: Pr  !Prandtl Number
+! REAL :: tcon  ! Thermal conductivity (W/mK)
 
 CONTAINS
 
@@ -56,7 +56,7 @@ SUBROUTINE th_iter(ind)
       END DO
 
       ! Update fuel, moderator temp. and coolant density
-      CALL th_upd2(pline)
+      CALL th_upd(pline)
 
       th_err = MAXVAL(ABS(ftem - otem))
       IF ((th_err < 0.01) .OR. (niter == th_niter)) EXIT
@@ -335,7 +335,7 @@ END SUBROUTINE TridiaSolve
 
 
 
-REAL FUNCTION geths(xden)
+REAL FUNCTION geths(xden, tc, kv, Pr)
 !
 ! Purpose:
 !    To calculate heat transfer coef.
@@ -345,7 +345,10 @@ USE sdata, ONLY: dh, farea, cflow
 
 IMPLICIT NONE
 
-REAL, INTENT(IN) :: xden
+REAL, INTENT(IN) :: xden  ! coolant densisty
+REAL, INTENT(IN) :: tc  ! coolant thermal conductivity
+REAL, INTENT(IN) :: kv  ! kinematic viscosity
+REAL, INTENT(IN) :: Pr  ! Prandtl Number
 
 REAL :: cvelo, Nu, Re
 
@@ -358,7 +361,8 @@ geths = (tc / dh) * Nu                        ! Calculate heat transfer coeffici
 END FUNCTION geths
 
 
-SUBROUTINE th_trans3(xpline, h)
+
+SUBROUTINE th_trans(xpline, h)
 
 !
 ! Purpose:
@@ -366,7 +370,7 @@ SUBROUTINE th_trans3(xpline, h)
 !
 
 USE sdata, ONLY: mtem, cden, ftem, tin, xyz, cflow, nyy, nzz, cf, ent, heatf, nnod, &
-                 ystag, tfm, nt, rpos, rdel, rf, farea, dia, pi, zdel, ystag
+                 ystag, tfm, nt, rpos, rdel, rf, rg, rc, farea, dia, pi, zdel, ystag
 
 IMPLICIT NONE
 
@@ -378,14 +382,17 @@ REAL, DIMENSION(nt+1) :: a, b, c, d
 REAL :: hs, hg = 1.e4, kt           ! coolant heat transfer coef., gap heat transfer coef, and thermal conductivity
 REAL :: alpha = 0.7
 REAL :: xa, xc, tem
-REAL :: pdens                       ! Fuel pin power density channel
 REAL :: fdens = 10.412e3            ! UO2 density (kg/m3)
 REAL :: cdens = 6.6e3               ! Cladding density (kg/m3)
 REAL :: cp                          ! Specific heat capacity
 REAL :: eta
-REAL :: mdens, cpline, vol
-REAL :: enti
+REAL :: mdens, vol                  ! Coolant density and channel volume
 REAL, DIMENSION(nnod) :: entp        ! previous enthalpy
+
+REAL :: pdens      ! power densisty  (W/m3)
+REAL :: enti       ! Coolant inlet enthalpy
+REAL :: cpline     ! Coolant Linear power densisty (W/m)
+REAL :: Pr, kv, tcon ! Coolant Prandtl Number, Kinematic viscosity, and thermal conductivity
 
 CALL getent(tin, enti)
 entp = ent
@@ -405,7 +412,7 @@ DO k = 1, nzz
                                 + 0.5 * mdens * vol * eta) &
                                 / (0.5 * mdens * vol + cflow * h)
                 CALL gettd(0.5 * (enti + ent(xyz(i,j,k))), mtem(xyz(i,j,k)), &
-                          cden(xyz(i,j,k)), Pr, kv, tc)                             ! Get corresponding temp and density
+                          cden(xyz(i,j,k)), Pr, kv, tcon)                             ! Get corresponding temp and density
             ELSE
                 eta = entp(xyz(i,j,k-1)) + entp(xyz(i,j,k))
                 ent(xyz(i,j,k)) = (cpline * zdel(k) * 0.01 * h &
@@ -413,11 +420,11 @@ DO k = 1, nzz
                                 + 0.5 * mdens * vol * eta) &
                                 / (0.5 * mdens * vol + cflow * h)
                 CALL gettd(0.5 * (ent(xyz(i,j,k-1)) + ent(xyz(i,j,k))), &
-                           mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tc)          ! Get corresponding temp and density
+                           mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tcon)          ! Get corresponding temp and density
             END IF
 
 
-            hs = geths(cden(xyz(i,j,k)))                                               ! Calculate heat transfer coef
+            hs = geths(cden(xyz(i,j,k)), Pr, kv, tcon)                                               ! Calculate heat transfer coef
             pdens = (1. - cf) * 100. * xpline(xyz(i,j,k)) / (pi * rf**2)                ! Fuel pin Power Density (W/m3)
 
             ! Calculate tridiagonal matrix: a, b, c and source: d
@@ -445,37 +452,37 @@ DO k = 1, nzz
                      + eta * tfm(xyz(i,j,k),n)
             END DO
 
-            ! For nt-1 [FUEL SURFACE]
+            ! For nt-1 [FUEL-GAP INTERFACE]
             cp = getcpf(tfm(xyz(i,j,k),nt-1))
             eta = fdens * cp * (rf**2 - rpos(nt-2)**2) / (2. * h)
             xa = xc
-            xc = hg * rpos(nt)   ! This is position of inner clad
+            xc = rg * hg
             a(nt-1) = -xa
             b(nt-1) =  xa + xc + eta
             c(nt-1) = -xc
             d(nt-1) = pdens * 0.5 * (rf**2 - rpos(nt-2)**2) &
                     + eta * tfm(xyz(i,j,k),nt-1)
 
-            ! For nt [INNER CLAD]
+            ! For nt [GAP-CLADDING INTERFACE]
             tem = 0.5 * (tfm(xyz(i,j,k),nt) + tfm(xyz(i,j,k),nt+1))
             kt = getkc(tem)      ! For cladding
             cp = getcpc(tfm(xyz(i,j,k),nt))
-            eta = cdens * cp * (rpos(nt+1)**2 - rpos(nt)**2) / (2. * h)
+            eta = cdens * cp * (rpos(nt)**2 - rg**2) / (2. * h)
             xa = xc
-            xc = kt * rpos(nt+1) / rdel(nt)
+            xc = kt * rpos(nt) / rdel(nt)
             a(nt) = -xa
             b(nt) =  xa + xc + eta
             c(nt) = -xc
             d(nt) = eta * tfm(xyz(i,j,k),nt)
 
-            ! For nt+1  [OUTER CLAD]
+            ! For nt+1  [CLADDING-COOLANT INTERFACE]
             cp = getcpc(tfm(xyz(i,j,k),nt+1))
-            eta = cdens * cp * (rpos(nt+2)**2 - rpos(nt+1)**2) / (2. * h)
+            eta = cdens * cp * (rc**2 - rpos(nt)**2) / (2. * h)
             xa = xc
-            xc = hs * rpos(nt+2)
+            xc = rc * hs
             a(nt+1) = -xa
             b(nt+1) =  xa + xc + eta
-            d(nt+1) = hs * rpos(nt+2) * mtem(xyz(i,j,k)) &
+            d(nt+1) = rc * hs * mtem(xyz(i,j,k)) &
                     + eta * tfm(xyz(i,j,k),nt+1)
 
             ! Solve tridiagonal matrix
@@ -492,11 +499,12 @@ DO k = 1, nzz
     END DO
 END DO
 
-END SUBROUTINE th_trans3
+END SUBROUTINE th_trans
 
 
 
-SUBROUTINE th_upd2(xpline)
+
+SUBROUTINE th_upd(xpline)
 
 !
 ! Purpose:
@@ -504,7 +512,7 @@ SUBROUTINE th_upd2(xpline)
 !
 
 USE sdata, ONLY: mtem, cden, ftem, tin, xyz, cflow, nyy, nzz, cf, ent, heatf, &
-                 ystag, tfm, nt, rpos, rdel, rf, pi, zdel, dia, ystag
+                 ystag, tfm, nt, rpos, rdel, rf, rg, rc, pi, zdel, dia, ystag
 
 IMPLICIT NONE
 
@@ -512,12 +520,13 @@ REAL, DIMENSION(:), INTENT(IN) :: xpline    ! Linear Power Density (W/cm)
 
 INTEGER :: i, j, k, n
 REAL, DIMENSION(nt+1) :: a, b, c, d
-REAL :: hs, hg = 1.e4, kt
+REAL :: hs, Hg = 1.e4, kt
 REAL :: alp = 0.7
 REAL :: xa, xc, tem
-REAL :: pdens
-REAL :: enti
-REAL :: cpline
+REAL :: pdens      ! power densisty  (W/m3)
+REAL :: enti       ! Coolant inlet enthalpy
+REAL :: cpline     ! Coolant Linear power densisty (W/m)
+REAL :: Pr, kv, tcon ! Coolant Prandtl Number, Kinematic viscosity, and thermal conductivity
 
 CALL getent(tin, enti)
 
@@ -531,15 +540,15 @@ DO k = 1, nzz
             IF (k == 1) THEN                                                    ! Calculate coolant enthalpy and
                 ent(xyz(i,j,k)) = enti + cpline * zdel(k) * 0.01 / cflow        ! corresponding temp and density
                 CALL gettd(0.5 * (enti + ent(xyz(i,j,k))), &
-                           mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tc)      ! Get corresponding temp and density
+                           mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tcon)      ! Get corresponding temp and density
             ELSE
                 ent(xyz(i,j,k)) = ent(xyz(i,j,k-1)) &
                                 + cpline * zdel(k) * 0.01 / cflow
                 CALL gettd(0.5 * (ent(xyz(i,j,k-1)) + ent(xyz(i,j,k))), &
-                          mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tc)       ! Get corresponding temp and density
+                          mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tcon)       ! Get corresponding temp and density
             END IF
 
-            hs = geths(cden(xyz(i,j,k)))
+            hs = geths(cden(xyz(i,j,k)), Pr, kv, tcon)
             pdens = (1. - cf) * 100. * xpline(xyz(i,j,k)) / (pi * rf**2)        ! Fuel pin Power Density (W/m3)
 
             ! Calculate tridiagonal matrix: a, b, c and source: d
@@ -561,29 +570,29 @@ DO k = 1, nzz
                 d(n) = pdens * 0.5 * (rpos(n)**2 - rpos(n-1)**2)
             END DO
 
-            ! For nt-1 [FUEL SURFACE]
+            ! For nt-1 [FUEL-GAP INTERFACE]
             xa = xc
-            xc = hg * rpos(nt)   ! This is position of inner clad
+            xc = rg * Hg
             a(nt-1) = -xa
             b(nt-1) =  xa + xc
             c(nt-1) = -xc
             d(nt-1) = pdens * 0.5 * (rf**2 - rpos(nt-2)**2)
 
-            ! For nt [INNER CLAD]
+            ! For nt [GAP-CLADDING INTERFACE]
             tem = 0.5 * (tfm(xyz(i,j,k),nt) + tfm(xyz(i,j,k),nt+1))
             kt = getkc(tem)      ! For cladding
             xa = xc
-            xc = kt * rpos(nt+1) / rdel(nt)
+            xc = kt * rpos(nt) / rdel(nt)
             a(nt) = -xa
             b(nt) =  xa + xc
             c(nt) = -xc
             d(nt) = 0.
 
-            ! For nt+1  [OUTER CLAD]
+            ! For nt+1  [CLADDING-COOLANT INTERFACE]
             xa = xc
             a(nt+1) = -xa
-            b(nt+1) =  xa + hs * rpos(nt+2)
-            d(nt+1) = hs * rpos(nt+2) * mtem(xyz(i,j,k))
+            b(nt+1) =  xa + hs * rc
+            d(nt+1) = rc * hs * mtem(xyz(i,j,k))
 
             ! Solve tridiagonal matrix
             CALL TridiaSolve(a, b, c, d, tfm(xyz(i,j,k), :))
@@ -603,7 +612,8 @@ DO k = 1, nzz
 END DO
 
 
-END SUBROUTINE th_upd2
+END SUBROUTINE th_upd
+
 
 
 SUBROUTINE cbsearch()
@@ -624,6 +634,7 @@ REAL  :: bc1, bc2, bcon     ! Boron Concentration
 REAL :: ke1, ke2
 INTEGER :: n
 
+! File Output
 WRITE(ounit,*)
 WRITE(ounit,*)
 WRITE(ounit,*) ' ==============================================' &
@@ -634,9 +645,23 @@ WRITE(ounit,*) ' ==============================================' &
             // '=================================================='
 WRITE(ounit,*)
 WRITE(ounit,*) '  Itr  Boron Concentration          K-EFF    FLUX REL. ERROR' &
-               //'   FISS. SOURCE REL. ERROR'
+               //'   FISS. SOURCE REL. ERROR    DOPPLER ERROR'
 WRITE(ounit,*) ' -----------------------------------------------------------' &
-            // '--------------------------'
+              // '-------------------------------------------'
+		
+! Terminal Output		
+WRITE(*,*)
+WRITE(*,*)
+WRITE(*,*) ' ==============================================' &
+            // '=========='
+WRITE(*,*) &
+               '           CRITICAL BORON CONCENTRATION SEARCH'
+WRITE(*,*) ' ==============================================' &
+            // '=========='
+WRITE(*,*)
+WRITE(*,*) '  Itr  Boron Concentration          K-EFF    ' 
+WRITE(*,*) ' --------------------------------------------------------' 
+
 
 bcon = rbcon
 CALL XS_updt(bcon, ftem, mtem, cden, bpos)
@@ -646,6 +671,7 @@ bc1 = bcon
 ke1 = Ke
 
 WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') 1, bc1, Ke1, ser, fer
+WRITE(*,'(I5, F15.2, F23.5)') 1, bc1, Ke1
 
 bcon = bcon + (Ke - 1.) * bcon   ! Guess next critical boron concentration
 CALL XS_updt(bcon, ftem, mtem, cden, bpos)
@@ -655,18 +681,20 @@ bc2 = bcon
 ke2 = Ke
 
 WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') 2, bc2, Ke2, ser, fer
+WRITE(*,'(I5, F15.2, F23.5)') 2, bc2, Ke2
 
 n = 3
 DO
-    bcon = bc2 + (1.0 - ke2) / (ke1 - ke2) * (bc1 - bc2)
+  bcon = bc2 + (1.0 - ke2) / (ke1 - ke2) * (bc1 - bc2)
   CALL XS_updt(bcon, ftem, mtem, cden, bpos)
   CALL nodal_coup4()
   CALL outer4(0)
-    bc1 = bc2
-    bc2 = bcon
-    ke1 = ke2
-    ke2 = ke
+  bc1 = bc2
+  bc2 = bcon
+  ke1 = ke2
+  ke2 = ke
   WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') n, bcon, Ke, ser, fer
+  WRITE(*,'(I5, F15.2, F23.5)') n, bcon, Ke
     IF ((ABS(Ke - 1.0) < 1.e-5) .AND. (ser < 1.e-5) .AND. (fer < 1.e-5)) EXIT
     n = n + 1
     IF (bcon > 2999. .AND. bcon < 3000.) THEN
@@ -719,6 +747,7 @@ REAL :: ke1, ke2
 INTEGER :: n
 REAL :: tf, tm, mtm, mtf
 
+! File Output
 WRITE(ounit,*)
 WRITE(ounit,*)
 WRITE(ounit,*) ' ==============================================' &
@@ -732,6 +761,20 @@ WRITE(ounit,*) '  Itr  Boron Concentration          K-EFF    FLUX REL. ERROR' &
                //'   FISS. SOURCE REL. ERROR    DOPPLER ERROR'
 WRITE(ounit,*) ' -----------------------------------------------------------' &
               // '-------------------------------------------'
+		
+! Terminal Output		
+WRITE(*,*)
+WRITE(*,*)
+WRITE(*,*) ' ==============================================' &
+            // '=========='
+WRITE(*,*) &
+               '           CRITICAL BORON CONCENTRATION SEARCH'
+WRITE(*,*) ' ==============================================' &
+            // '=========='
+WRITE(*,*)
+WRITE(*,*) '  Itr  Boron Concentration          K-EFF    ' 
+WRITE(*,*) ' --------------------------------------------------------' 
+
 
 ALLOCATE(npow(nnod))
 
@@ -741,6 +784,7 @@ bc1 = bcon
 ke1 = Ke
 
 WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') 1, bc1, Ke1, ser, fer, th_err
+WRITE(*,'(I5, F15.2, F23.5)') 1, bc1, Ke1
 
 bcon = bcon + (Ke - 1.) * bcon   ! Guess next critical boron concentration
 CALL th_iter()                 ! Perform second thermal hydarulic iteration with updated parameters
@@ -748,6 +792,7 @@ bc2 = bcon
 ke2 = Ke
 
 WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') 2, bc2, Ke2, ser, fer, th_err
+WRITE(*,'(I5, F15.2, F23.5)') 2, bc2, Ke2
 
 n = 3
 DO
@@ -758,6 +803,7 @@ DO
     ke1 = ke2
     ke2 = ke
     WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') n, bcon, Ke, ser, fer, th_err
+	WRITE(*,'(I5, F15.2, F23.5)') n, bcon, Ke
     IF ((ABS(Ke - 1.0) < 1.e-5) .AND. (ser < 1.e-5) .AND. (fer < 1.e-5)) EXIT
     n = n + 1
     IF (bcon > 2999. .AND. bcon < 3000.) THEN

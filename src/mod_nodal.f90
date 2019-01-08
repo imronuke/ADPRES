@@ -332,20 +332,20 @@ WRITE(ounit, '(A36,F9.6)') 'MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
 END SUBROUTINE outer4Fx
 
 
-SUBROUTINE outertf (nmax, ht, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+SUBROUTINE outertf (ht, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2, maxi)
 
 !
 ! Purpose:
 !    To perform outer iteration for transient with flux transformation
 
-USE sdata, ONLY: ng, nnod, serc, ferc, &
+USE sdata, ONLY: ng, nnod, serc, ferc, nout, &
                  nac, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 
 IMPLICIT NONE
 
-INTEGER, INTENT(IN) :: nmax
 REAL, INTENT(IN) :: ht
 REAL, DIMENSION(:,:), INTENT(IN) :: ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2
+LOGICAL, INTENT(OUT) :: maxi
 
 REAL, DIMENSION(nnod) :: fs0c                  !Old fission source
 REAL, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
@@ -363,7 +363,7 @@ errn = 1.0
 e1 = Integrate(errn)
 
 !Start outer iteration
-DO p=1, nmax
+DO p=1, nout
     fs0c  = fs0
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
     fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
@@ -408,7 +408,11 @@ DO p=1, nmax
     IF ((ser < serc) .AND. (fer < ferc)) EXIT
 END DO
 
-WRITE(*,*) p
+IF (p==nout+1) THEN
+    maxi = .TRUE.
+ELSE
+    maxi = .FALSE.
+END IF
 
 END SUBROUTINE outertf
 

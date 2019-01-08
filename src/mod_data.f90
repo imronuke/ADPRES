@@ -71,6 +71,7 @@ REAL :: fer, ser        ! Flux and Fission source error in BCSEARCH calcs.
 INTEGER :: nin = 2
 INTEGER :: nout = 500
 INTEGER :: nac = 5
+INTEGER :: th_niter = 50                           ! Maximum number of thermal-hydraulics iteration
 
 ! OUTPUT PRINT OPTION
 INTEGER :: aprad=1, apaxi=1, afrad=1
@@ -108,7 +109,6 @@ REAL, DIMENSION(:,:,:), ALLOCATABLE :: dsigs
 REAL, DIMENSION(:), ALLOCATABLE :: tmove    ! Time when CR bank starts moving
 REAL, DIMENSION(:), ALLOCATABLE :: bspeed   ! CR bank movement speed
 INTEGER, DIMENSION(:), ALLOCATABLE :: mdir  ! To indicate CR movement direction (0=do not move, 1=down, 2 = up)
-LOGICAL :: negxs = .FALSE.                  ! To activate warning for first time
 INTEGER :: cusp = 0                         ! Rod cusping option
 
 ! Boron Concentration
@@ -127,6 +127,7 @@ REAL :: tstep1                                     ! FIRST TIME STEP
 REAL :: tstep2                                     ! SECOND TIME STEP
 REAL :: tdiv                                       ! WHEN SECOND TIME STEP APPLY
 REAL, DIMENSION(:,:), ALLOCATABLE :: omeg          ! Exponential transformation constant
+LOGICAL :: tranw = .FALSE.                        ! To activate unconverged  outer iteration warning
 
 ! Thermal-hydraulics parameters
 REAL :: pow                                        ! Reactor power for given geometry (watt)
@@ -136,6 +137,7 @@ REAL, DIMENSION(:), ALLOCATABLE :: npow            ! nodes power (watt)
 REAL :: tin                                        ! coolant inlet temperature (kelvin)
 REAL :: cflow                                      ! Sub-channel mass flow rate (kg/s)
 REAL :: rf, tg, tc, ppitch                         ! Fuel meat radius, gap thickness, clad thickness, and pin picth (m)
+REAL :: rg, rc                                     ! Outer radius of gap and cladding
 REAL :: dia, dh, farea                             ! Pi diameter, Hydraulic diameter (m) and sub-channel area (m2)
 REAL :: cf                                         ! heat fraction deposited into coolant
 REAL, DIMENSION(:,:), ALLOCATABLE :: node_nf       ! Number of fuel pin per node
@@ -146,8 +148,7 @@ REAL, DIMENSION(:), ALLOCATABLE :: rdel            ! mesh delta
 REAL, DIMENSION(:), ALLOCATABLE :: rpos            ! mesh position
 REAL :: th_err                                     ! Doppler error
 REAL, DIMENSION(:), ALLOCATABLE :: ent             ! Coolant Enthalpy (J/Kg)
-REAL, DIMENSION(:), ALLOCATABLE :: heatf           ! Heat flux (W/m2)
-INTEGER :: th_niter = 50                           ! Maximum number of thermal-hydraulics iteration
+REAL, DIMENSION(:), ALLOCATABLE :: heatf           ! Heat flux (W/m2
 INTEGER, PARAMETER :: thunit = 300                 ! Unit number to open steam table file
 REAL, PARAMETER :: pi = 3.14159265
 

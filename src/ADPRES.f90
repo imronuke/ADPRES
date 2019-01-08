@@ -1,6 +1,6 @@
 PROGRAM main
 
-USE sdata, ONLY: mode, negxs
+USE sdata, ONLY: mode, tranw
 USE InpOutp, ONLY: ounit, inp_read, bwrst, w_rst, bther
 USE nodal, ONLY: forward, adjoint, fixedsrc, init
 USE trans, ONLY: rod_eject, trod_eject
@@ -41,16 +41,18 @@ END SELECT
 ! Write Restart File if required
 IF (bwrst == 1)    CALL w_rst()
 
-IF (negxs) THEN
+IF (tranw) THEN
     WRITE(ounit,*)
-    WRITE(ounit,*) "  WARNING: SOME NEGATIVE CXs (DUE TO CR INSERTION) ARE SUPPRESSED TO ZERO IN SUBROUTINE CROD_UPDT"
+    WRITE(ounit,*) "  WARNING: ONE OR MORE OUTER ITERATIONS DID NOT CONVERGE. YOU MAY NEED TO REDUCE TIME STEP"
 END IF
-
 
 CALL CPU_TIME(fn)
 
 WRITE(ounit,*)
 WRITE(ounit,*)
 WRITE(ounit,*) "Total time : ", fn-st, " seconds"
+
+WRITE(*,*)
+WRITE(*,*) "  CALCULATIONS IS SUCCESSFULLY DONE"
 
 END PROGRAM main
