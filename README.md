@@ -59,5 +59,5 @@ Contact me
 
 
 
-> **"The best of people are those that bring most benefit to the rest of mankind." (PROPHET)**
+> **"The best of people are those who bring most benefit to the rest of mankind." (PROPHET)**
 
