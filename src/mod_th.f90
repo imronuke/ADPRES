@@ -803,7 +803,7 @@ DO
     ke1 = ke2
     ke2 = ke
     WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') n, bcon, Ke, ser, fer, th_err
-	WRITE(*,'(I5, F15.2, F23.5)') n, bcon, Ke
+    WRITE(*,'(I5, F15.2, F23.5)') n, bcon, Ke
     IF ((ABS(Ke - 1.0) < 1.e-5) .AND. (ser < 1.e-5) .AND. (fer < 1.e-5)) EXIT
     n = n + 1
     IF (bcon > 2999. .AND. bcon < 3000.) THEN
