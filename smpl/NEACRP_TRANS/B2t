@@ -120,7 +120,7 @@ NEACRP Problem
 
 ! CRITICAL BORON SEARCH CARD
 %BCON
-1186.3  1200.2  ! BC and BC ref. in ppm
+1188.3  1200.2  ! Boron concentration ref. in ppm
 ! CX change per unit ppm change of Boron concentration
 !  sigtr          siga         nu*sigf       sigf      sigs_g1   sigs_g2
 6.11833E-08  1.87731E-07  0.00000E+00  0.00000E+00  0.0  7.91457E-10
@@ -145,6 +145,7 @@ NEACRP Problem
 -5.86898E-06  6.08443E-06  -2.77657E-06  -3.64509E-17  0.0  0.00000E+00    !COMP 10
 3.38559E-08  1.15917E-07  -2.25369E-09  -3.24873E-20  0.0  -9.73291E-08
 -5.38345E-06  5.91697E-06  -2.70780E-06  -3.55476E-17  0.0  0.00000E+00    !COMP 11
+1
 
 ! FUEL TEMPERATURE CARD
 %FTEM
@@ -249,7 +250,8 @@ NEACRP Problem
    200.                     0.0                     0.0       ! Bank 5
    200.                     0.0                     0.0       ! Bank 6
    200.                     0.0                     0.0       ! Bank 7
-5.  0.01  1.0  0.1            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
+1.  0.01  1.0  0.1            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
 0.0002584 0.00152 0.0013908 0.0030704 0.001102 0.0002584 !beta
 0.0128  0.0318  0.119   0.3181  1.4027  3.9286           !decay constants
 2.8E7    4.4E5     ! Neutron velocity
+1

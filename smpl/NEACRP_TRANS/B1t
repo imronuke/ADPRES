@@ -145,6 +145,7 @@ NEACRP Problem
 -5.868980E-06  6.084430E-06 -2.776570E-06 -2.776570E-06  0.0  0.000000E+00  ! COMP 10
  3.385590E-08  1.159170E-07 -2.253690E-09 -2.253690E-09  0.0 -9.732910E-08
 -5.383450E-06  5.916970E-06 -2.707800E-06 -2.707800E-06  0.0  0.000000E+00  ! COMP 11
+1
 
 ! FUEL TEMPERATURE CARD
 %FTEM
@@ -238,6 +239,7 @@ NEACRP Problem
 4.11950E-03  6.8E-05  5.71E-04  1.2655E-2 ! Fuel meat rad., gap thinkness, cladding thinkness and pin picth (m)
 264  25                                ! Number of fuel pin and guide tubes
 0.019                                  ! FRACTION OF HEAT DEPOSITED IN COOLANT
+1
 
 %EJCT
 ! Final Bank Pos (steps)     Starts Move (seconds)     Speed (steps/seconds)
@@ -248,7 +250,7 @@ NEACRP Problem
      0.                     0.0                     0.0       ! Bank 5
      228.                   0.0                     0.0       ! Bank 6
      228.                   0.0                     0.0       ! Bank 7
-5.  0.01  1.0  0.1            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
+5.  0.005  1.0  0.05            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
 0.0002584 0.00152 0.0013908 0.0030704 0.001102 0.0002584 !beta
 0.0128  0.0318  0.119   0.3181  1.4027  3.9286           !decay constants
 2.8E7    4.4E5     ! Neutron velocity
