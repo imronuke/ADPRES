@@ -47,6 +47,14 @@ ADPRES has been tested for both static and transient reactor problems
 * [LMW](https://www.sciencedirect.com/science/article/pii/014919709500082U) benchmark. Reactor transient benchmark without TH feedbacks. Here are the [input](https://github.com/imronuke/ADPRES/blob/master/smpl/LMW) and [output](https://github.com/imronuke/ADPRES/blob/master/smpl/LMW.out)
 * [NEACRP 3D PWR Core transient](https://www.oecd-nea.org/science/docs/1991/neacrp-l-1991-335.pdf) bechmark.  PWR transient benchmark with TH feedbacks. Inputs and the coressponding outputs are located in [this folder](https://github.com/imronuke/ADPRES/tree/master/smpl/NEACRP_TRANS)
 
+## What to do next
+- [] Develop subroutine for pin power reconstrurution
+- [] Develop ADPRES for hexagonal geometry reactor problems (or might be used further for Molten Salt Reactor analysis with new transient module)
+- [] Develop subroutine for decay heat calculation
+- [] develop subroutine for Xenon and Samarium treatment during transient
+- [] Develop inteface with other TH codes such as RELAP or COBRA for coupling calculations
+- [] Develop ADPRES for multiphysics calculation
+
 
 ## How to give feedbacks
 Contact me
@@ -59,5 +67,5 @@ Contact me
 
 
 
-> **"The best of people are those who bring most benefit to the rest of mankind." (PROPHET)**
+> **"The best of people are those who bring most benefit to the rest of mankind." (THE PROPHET)**
 
