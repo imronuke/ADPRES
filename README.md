@@ -48,12 +48,13 @@ ADPRES has been tested for both static and transient reactor problems
 * [NEACRP 3D PWR Core transient](https://www.oecd-nea.org/science/docs/1991/neacrp-l-1991-335.pdf) bechmark.  PWR transient benchmark with TH feedbacks. Inputs and the coressponding outputs are located in [this folder](https://github.com/imronuke/ADPRES/tree/master/smpl/NEACRP_TRANS)
 
 ## What to do next
-- [] Develop subroutine for pin power reconstrurution
-- [] Develop ADPRES for hexagonal geometry reactor problems (or might be used further for Molten Salt Reactor analysis with new transient module)
-- [] Develop subroutine for decay heat calculation
-- [] develop subroutine for Xenon and Samarium treatment during transient
-- [] Develop inteface with other TH codes such as RELAP or COBRA for coupling calculations
-- [] Develop ADPRES for multiphysics calculation
+Anyone wants to provide contribution is very welcome. Credits are given no matter how small his/her contribution. Here are the jobs list for future developments
+- [ ] Develop subroutine for pin power reconstrurution
+- [ ] Develop ADPRES for hexagonal geometry reactor problems (or might be used further for Molten Salt Reactor analysis with new transient module)
+- [ ] Develop subroutine for decay heat calculation
+- [ ] develop subroutine for Xenon and Samarium treatment during transient
+- [ ] Develop inteface with other TH codes such as RELAP or COBRA for coupling calculations
+- [ ] Develop ADPRES for multiphysics calculation
 
 
 ## How to give feedbacks
