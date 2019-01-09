@@ -52,8 +52,8 @@ Anyone wants to provide contribution is very welcome. Credits are given no matte
 - [ ] Develop subroutine for pin power reconstrurution
 - [ ] Develop ADPRES for hexagonal geometry reactor problems (or might be used further for Molten Salt Reactor analysis with new transient module)
 - [ ] Develop subroutine for decay heat calculation
-- [ ] develop subroutine for Xenon and Samarium treatment during transient
-- [ ] Develop inteface with other TH codes such as RELAP or COBRA for coupling calculations
+- [ ] Develop subroutine for Xenon and Samarium treatment during transient
+- [ ] Develop inteface with other TH codes such as RELAP or COBRA for coupled calculations
 - [ ] Develop ADPRES for multiphysics calculation
 
 
