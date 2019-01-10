@@ -2,7 +2,7 @@ MODULE nodal
 
 !=========================
 ! Nodal Module to solve diffusion equation using NEM
-! Major parts adapted from:
+! For the theoretical background of NEM used here refer to:
 ! Okumura K (1998) MOSRA-light: high speed three-dimensional nodal diffusion code for vector computers,
 ! JAERI-Data/Code 98-025. Japan Atomic Energy Research Institute, Tokaimura (in Japanese)
 ! =======================
@@ -1752,7 +1752,7 @@ REAL FUNCTION Integrate(s)
 
   !
   ! Purpose:
-  !    To perform integration
+  !    To perform volume integration
 
 USE sdata, ONLY: nnod, vdel
 
