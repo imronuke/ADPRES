@@ -29,7 +29,7 @@ then type the input file name. It will produce output file with out extension
 
 ADPRES input is designed to self-explanatory. It has 12 input cards, for example: `%mode`, `%geom`, `%xsec`, and so on. Some cards are obligatory for any problems, while some cards are conditional depend on the problem being solved and some cards are optional.
 
-Followings are some step bt step tips to develop your own input
+Followings are some step by step tips to develop your own input
 * Open and try to understand the easiest input sample, for example [IAEA 3D PWR input](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D). From here you should have some ideas about the input structure.
 * Modify the input sample for your own purposes
 * In order to get detailed explanation, you may refer to the [ADPRES User Manual](https://github.com/imronuke/ADPRES/blob/reactivity/ADPRES%20USER%20MANUAL.pdf)
