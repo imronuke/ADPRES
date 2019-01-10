@@ -3329,13 +3329,17 @@ CHARACTER(LEN=*), INTENT(IN) :: mess
 IF (ios < 0) THEN
     WRITE(funit, 1013) ln
     WRITE(funit,*) mess
-    1013 FORMAT(2x, 'Line', I4, ' needs more data')
+    WRITE(*, 1013) ln
+    WRITE(*,*) mess
+    1013 FORMAT(2x, 'ERROR: Line', I4, ' needs more data')
     STOP
 END IF
 IF (ios > 0) THEN
     WRITE(funit,1004) ln
     WRITE(funit,*) mess
-    1004 FORMAT(2X, 'Please check line number', I5)
+    WRITE(*,1004) ln
+    WRITE(*,*) mess
+    1004 FORMAT(2X, 'ERROR: Please check line number', I5)
     STOP
 END IF
 
