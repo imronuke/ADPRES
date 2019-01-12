@@ -725,8 +725,7 @@ IMPLICIT NONE
 INTEGER, INTENT(IN) :: bc, nt, gt, side
 
 IF (bc == 0) THEN
-    ! nod(nt,gt)%ji(side) = -nod(nt,gt)%jo(side)
-    nod(nt,gt)%ji(side) = 0.0
+    nod(nt,gt)%ji(side) = -nod(nt,gt)%jo(side)
 ELSE IF (bc == 1) THEN
     nod(nt,gt)%ji(side) = 0.0
 ELSE
@@ -1598,36 +1597,6 @@ DO g= 1, ng
         C(4,6) = ay1
         C(5,7) = az1
         C(6,7) = az1
-
-        IF (ix(n) == ystag(iy(n))%smax .AND. xeast == 0) THEN
-            A(1,1) = A(1,1) - 32.0*dx
-            B(1,1) = B(1,1) + 32.0*dx
-        END IF
-
-        IF (ix(n) == ystag(iy(n))%smin .AND. xwest == 0) THEN
-            A(2,2) = A(2,2) - 32.0*dx
-            B(2,2) = B(2,2) + 32.0*dx
-        END IF
-
-        IF (iy(n) == xstag(ix(n))%smax .AND. ynorth == 0) THEN
-            A(3,3) = A(3,3) - 32.0*dy
-            B(3,3) = B(3,3) + 32.0*dy
-        END IF
-
-        IF (iy(n) == xstag(ix(n))%smin .AND. ysouth == 0) THEN
-            A(4,4) = A(4,4) - 32.0*dy
-            B(4,4) = B(4,4) + 32.0*dy
-        END IF
-
-        IF (iz(n) == nzz .AND. ztop == 0) THEN
-            A(5,5) = A(5,5) - 32.0*dz
-            B(5,5) = B(5,5) + 32.0*dz
-        END IF
-
-        IF (iz(n) == 1 .AND. zbott == 0) THEN
-            A(6,6) = A(6,6) - 32.0*dz
-            B(6,6) = B(6,6) + 32.0*dz
-        END IF
 
         CALL inverse(g, n, A)
 
