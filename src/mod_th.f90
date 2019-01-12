@@ -648,8 +648,8 @@ WRITE(ounit,*) '  Itr  Boron Concentration          K-EFF    FLUX REL. ERROR' &
                //'   FISS. SOURCE REL. ERROR    DOPPLER ERROR'
 WRITE(ounit,*) ' -----------------------------------------------------------' &
               // '-------------------------------------------'
-		
-! Terminal Output		
+
+! Terminal Output
 WRITE(*,*)
 WRITE(*,*)
 WRITE(*,*) ' ==============================================' &
@@ -659,8 +659,8 @@ WRITE(*,*) &
 WRITE(*,*) ' ==============================================' &
             // '=========='
 WRITE(*,*)
-WRITE(*,*) '  Itr  Boron Concentration          K-EFF    ' 
-WRITE(*,*) ' --------------------------------------------------------' 
+WRITE(*,*) '  Itr  Boron Concentration          K-EFF    '
+WRITE(*,*) ' --------------------------------------------------------'
 
 
 bcon = rbcon
@@ -697,19 +697,22 @@ DO
   WRITE(*,'(I5, F15.2, F23.5)') n, bcon, Ke
     IF ((ABS(Ke - 1.0) < 1.e-5) .AND. (ser < 1.e-5) .AND. (fer < 1.e-5)) EXIT
     n = n + 1
-    IF (bcon > 2999. .AND. bcon < 3000.) THEN
+    IF (bcon > 3000.) THEN
         WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION EXCEEDS THE LIMIT(3000 ppm)'
         WRITE(ounit,*) '  ADPRES IS STOPPING'
+        WRITE(*,*) '  CRITICAL BORON CONCENTRATION EXCEEDS THE LIMIT(3000 ppm)'
         STOP
     END IF
-    IF (bcon > 0. .AND. bcon < 1.) THEN
+    IF (bcon < 0.) THEN
         WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION IS NOT FOUND (LESS THAN ZERO)'
         WRITE(ounit,*) '  ADPRES IS STOPPING'
+        WRITE(*,*) '  CRITICAL BORON CONCENTRATION IS NOT FOUND (LESS THAN ZERO)'
         STOP
     END IF
-    IF (n == 30) THEN
+    IF (n == 10) THEN
         WRITE(ounit,*) '  MAXIMUM ITERATION FOR CRITICAL BORON SEARCH IS REACHING MAXIMUM'
         WRITE(ounit,*) '  ADPRES IS STOPPING'
+        WRITE(*,*) '  MAXIMUM ITERATION FOR CRITICAL BORON SEARCH IS REACHING MAXIMUM'
         STOP
     END IF
 END DO
@@ -761,8 +764,8 @@ WRITE(ounit,*) '  Itr  Boron Concentration          K-EFF    FLUX REL. ERROR' &
                //'   FISS. SOURCE REL. ERROR    DOPPLER ERROR'
 WRITE(ounit,*) ' -----------------------------------------------------------' &
               // '-------------------------------------------'
-		
-! Terminal Output		
+
+! Terminal Output
 WRITE(*,*)
 WRITE(*,*)
 WRITE(*,*) ' ==============================================' &
@@ -772,8 +775,8 @@ WRITE(*,*) &
 WRITE(*,*) ' ==============================================' &
             // '=========='
 WRITE(*,*)
-WRITE(*,*) '  Itr  Boron Concentration          K-EFF    ' 
-WRITE(*,*) ' --------------------------------------------------------' 
+WRITE(*,*) '  Itr  Boron Concentration          K-EFF    '
+WRITE(*,*) ' --------------------------------------------------------'
 
 
 ALLOCATE(npow(nnod))
@@ -806,19 +809,22 @@ DO
     WRITE(*,'(I5, F15.2, F23.5)') n, bcon, Ke
     IF ((ABS(Ke - 1.0) < 1.e-5) .AND. (ser < 1.e-5) .AND. (fer < 1.e-5)) EXIT
     n = n + 1
-    IF (bcon > 2999. .AND. bcon < 3000.) THEN
+    IF (bcon > 3000.) THEN
         WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION EXCEEDS THE LIMIT(3000 ppm)'
         WRITE(ounit,*) '  ADPRES IS STOPPING'
+        WRITE(*,*) '  CRITICAL BORON CONCENTRATION EXCEEDS THE LIMIT(3000 ppm)'
         STOP
     END IF
-    IF (bcon > 0. .AND. bcon < 1.) THEN
+    IF (bcon < 0.) THEN
         WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION IS NOT FOUND (LESS THAN ZERO)'
         WRITE(ounit,*) '  ADPRES IS STOPPING'
+        WRITE(*,*) '  CRITICAL BORON CONCENTRATION IS NOT FOUND (LESS THAN ZERO)'
         STOP
     END IF
-    IF (n == 30) THEN
+    IF (n == 10) THEN
         WRITE(ounit,*) '  MAXIMUM ITERATION FOR CRITICAL BORON SEARCH IS REACHING MAXIMUM'
         WRITE(ounit,*) '  ADPRES IS STOPPING'
+        WRITE(*,*) '  MAXIMUM ITERATION FOR CRITICAL BORON SEARCH IS REACHING MAXIMUM'
         STOP
     END IF
 END DO
