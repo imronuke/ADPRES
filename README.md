@@ -17,7 +17,7 @@ This command shall produce executable file 'adpres'
 
 ## How to run a test
 
-Copy some sample inputs file from folder [smpl](https://github.com/imronuke/ADPRES/tree/master/smpl) into the [src](https://github.com/imronuke/ADPRES/tree/master/src) folder, then execute adpres
+Copy some sample inputs file from [smpl](https://github.com/imronuke/ADPRES/tree/master/smpl) folder into the [src](https://github.com/imronuke/ADPRES/tree/master/src) folder, then execute adpres
 
 ```
 ./adpres
