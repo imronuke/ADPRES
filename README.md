@@ -6,7 +6,7 @@ ADPRES is a great learning tool in the reactor theory class. The input is modula
 
 ## How to compile
 
-You need a fortran compiler to compile the ADPRES code. Any fortran fortran compiler should work (I use gfortran).
+You need a fortran compiler to compile the ADPRES code. Any fortran fortran compiler should work (I used gfortran both in Cygwin and Ubuntu).
 First, you need to clone or download this repository to your computer, then to compile using gfortran (in an Unix based OS), type this command in the [src](https://github.com/imronuke/ADPRES/tree/master/src) folder
 
 ```
