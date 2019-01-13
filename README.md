@@ -52,7 +52,7 @@ ADPRES has been tested for both static and transient reactor problems
 ## What to do next
 Anyone wants to provide contribution is very welcome. Credits are given no matter how small his/her contribution. Here are the jobs list for future developments
 - [ ] Develop subroutine for pin power reconstrurution
-- [ ] Develop ADPRES for hexagonal geometry reactor problems (or might be used further for Molten Salt Reactor analysis with new transient module)
+- [ ] Develop ADPRES to solve hexagonal geometry reactor problems (or might be used further for Molten Salt Reactor analysis with new transient module)
 - [ ] Develop subroutine for decay heat calculation
 - [ ] Develop subroutine for Xenon and Samarium treatment during transient
 - [ ] Develop inteface with other TH codes such as RELAP or COBRA for coupled calculations
