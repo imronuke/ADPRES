@@ -2,7 +2,7 @@
 
 Abu Dhabi Polytechnic Reactor Simulator (ADPRES) solves static and transient diffusion equation for two or three dimensional reactor problems in Cartesian geometry. ADPRES uses fourth order Nodal Expansion Method (NEM) to spatially discretize the neutron diffusion equation where the transverse leakage moments are approximated using quadratic leakage fit. While full-implicit method is used for temporal-discretization in the transient diffusion equation. ADPRES can handle problems with Assembly Discontinuity Factors (ADF) to imporove the accuracy. Recently, TH feedbacks module was also added that enables ADPRES to solve transient problems with TH feedbacks.
 
-ADPRES is a great learning tool in the reactor theory class. The input is modular and it is designed to be straightforward. ADPRES' main objective is to make all nuclear engineering students have access on similar nuclear computer code. It is open and completely free, so everyone has access to the source code and modify for his/her own purposes.
+ADPRES is a great learning tool for reactor theory classes. The input is modular and it is designed to be straightforward. ADPRES' main objective is to make all nuclear engineering students have access on similar nuclear computer code. It is open and completely free, so everyone has access to the source code and modify for his/her own purposes.
 
 ## How to compile
 
