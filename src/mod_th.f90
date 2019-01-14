@@ -385,7 +385,7 @@ REAL :: xa, xc, tem
 REAL :: fdens = 10.412e3            ! UO2 density (kg/m3)
 REAL :: cdens = 6.6e3               ! Cladding density (kg/m3)
 REAL :: cp                          ! Specific heat capacity
-REAL :: eta
+REAL :: eps, eta
 REAL :: mdens, vol                  ! Coolant density and channel volume
 REAL, DIMENSION(nnod) :: entp        ! previous enthalpy
 
@@ -406,19 +406,19 @@ DO k = 1, nzz
                   + cf * xpline(xyz(i,j,k)) * 100.                              ! Coolant Linear power densisty (W/m)
             vol   = farea * zdel(k) * 0.01
             IF (k == 1) THEN                                                    ! Calculate coolant enthalpy
-                eta = enti + entp(xyz(i,j,k))
+                eps = 0.5 * mdens * vol
                 ent(xyz(i,j,k)) = (cpline * zdel(k) * 0.01 * h &
-                                + (cflow * h - 0.5 * mdens * vol) * enti &
-                                + 0.5 * mdens * vol * eta) &
-                                / (0.5 * mdens * vol + cflow * h)
+                                + (cflow * h - eps) * enti &
+                                + eps * (enti + entp(xyz(i,j,k)))) &
+                                / (eps + cflow * h)
                 CALL gettd(0.5 * (enti + ent(xyz(i,j,k))), mtem(xyz(i,j,k)), &
                           cden(xyz(i,j,k)), Pr, kv, tcon)                             ! Get corresponding temp and density
             ELSE
-                eta = entp(xyz(i,j,k-1)) + entp(xyz(i,j,k))
+                eps = 0.5 * mdens * vol
                 ent(xyz(i,j,k)) = (cpline * zdel(k) * 0.01 * h &
-                                + (cflow * h - 0.5 * mdens * vol) * ent(xyz(i,j,k-1)) &
-                                + 0.5 * mdens * vol * eta) &
-                                / (0.5 * mdens * vol + cflow * h)
+                                + (cflow * h - eps) * ent(xyz(i,j,k-1)) &
+                                + eps * (entp(xyz(i,j,k-1)) + entp(xyz(i,j,k)))) &
+                                / (eps + cflow * h)
                 CALL gettd(0.5 * (ent(xyz(i,j,k-1)) + ent(xyz(i,j,k))), &
                            mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tcon)          ! Get corresponding temp and density
             END IF
