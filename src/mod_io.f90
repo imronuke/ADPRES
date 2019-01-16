@@ -68,17 +68,23 @@ USE sdata, ONLY: ng, nnod, mode, al
 
 IMPLICIT NONE
 
-INTEGER :: iost, g, i
+INTEGER :: iost, g, i, N
 CHARACTER(LEN=20) :: iname, oname
-WRITE(*,'(A,A100)',ADVANCE='NO') '  INPUT NAME : '
-READ(*,*) iname
+
+!Got this trick from: http://web.utah.edu/thorne/computing/Handy_Fortran_Tricks.pdf
+N = IARGC()
+IF (N < 1) THEN
+   WRITE(*,*) '  NOTE : You can write the input directly after the command'
+   WRITE(*,'(A,A100)',ADVANCE='NO') '  INPUT NAME : '
+   READ(*,*) iname
+ELSE
+   CALL GETARG(1,iname) !Grab the first command line argument
+ENDIF 
 
 iname = TRIM(iname)
 
 OPEN (UNIT=iunit, FILE=iname, STATUS='OLD', ACTION='READ', &
       IOSTAT = iost)
-
-
 
 IF (iost /= 0) THEN
     WRITE(*,1020) iost
@@ -564,7 +570,7 @@ SUBROUTINE inp_xsec (xbunit)
 !
 
 USE sdata, ONLY: nmat, ng, xsigtr, xsiga, xnuf, xsigf, &
-                 xsigs, xD, xsigr, xchi, mode, ccnuf, ccsigf
+                 xsigs, xD, xsigr, chi, mode, ccnuf, ccsigf
 
 IMPLICIT NONE
 
@@ -598,14 +604,14 @@ ALLOCATE(xsigf (nmat,ng))
 ALLOCATE(xsigs (nmat,ng,ng))
 ALLOCATE(xD    (nmat,ng))
 ALLOCATE(xsigr (nmat,ng))
-ALLOCATE(xchi  (nmat,ng))
+ALLOCATE(chi  (nmat,ng))
 
 ! Reading MACROSCOPIC CXs
 DO i= 1, nmat
     DO g= 1, ng
         READ(xbunit, *, IOSTAT=ios) ind, ln, xsigtr(i,g), &
         xsiga(i,g), xnuf(i,g), xsigf(i,g), &
-        xchi(i,g), (xsigs(i,g,h), h = 1, ng)
+        chi(i,g), (xsigs(i,g,h), h = 1, ng)
         message = ' error in cross section data'
         CALL er_message(ounit, ios, ln, message)
 
@@ -634,10 +640,10 @@ IF (oxsec) THEN
         WRITE(ounit,*)
         WRITE(ounit,1009) i
         WRITE(ounit,1011)'GROUP', 'TRANSPORT', 'DIFFUSION', 'ABSORPTION', &
-        'REMOVAL', 'NU*FISS', 'FISSION','FISS. SPCTR'
+        'REMOVAL', 'NU*FISS', 'KAP*FIS','FISS. SPCTR'
         DO g= 1, ng
             WRITE(ounit,1010) g, xsigtr(i,g), xD(i,g), xsiga(i,g), &
-            xsigr(i,g), xnuf(i,g), xsigf(i,g), xchi(i,g)
+            xsigr(i,g), xnuf(i,g), xsigf(i,g), chi(i,g)
         END DO
         WRITE(ounit,*)'  --SCATTERING MATRIX--'
         WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
@@ -1132,10 +1138,9 @@ SUBROUTINE misc ()
 
 USE sdata, ONLY: nxx, nyy, nzz, ix, iy, iz, xyz, &
                  nnod, sigtr, siga, nuf, sigf, &
-                 chi, sigs, D, sigr, ng, ystag, &
+                 sigs, D, sigr, ng, ystag, &
                  xdel, ydel, zdel, vdel, mode, &
-                 mat, xD, xsigr, xchi, &
-                 bcon, ftem, mtem, cden, bpos
+                 mat, xD, xsigr, bcon, ftem, mtem, cden, bpos
 
 IMPLICIT NONE
 
@@ -1167,11 +1172,6 @@ ALLOCATE(sigf (nnod,ng))
 ALLOCATE(sigs (nnod,ng,ng))
 ALLOCATE(D    (nnod,ng))
 ALLOCATE(sigr (nnod,ng))
-ALLOCATE(chi  (nnod,ng))
-
-DO n = 1, nnod
-    chi  (n,:)   = xchi  (mat(n),:)
-END DO
 
 IF (mode == 'BCSEARCH' .OR. mode == 'RODEJECT') THEN
     CONTINUE
@@ -1179,7 +1179,7 @@ ELSE
     CALL XS_updt(bcon, ftem, mtem, cden, bpos)
 END IF
 
-DEALLOCATE(xD, xsigr, xchi)
+DEALLOCATE(xD, xsigr)
 
 ! Calculate nodes' volume
 ALLOCATE(vdel(nnod))
@@ -2803,12 +2803,12 @@ INTEGER :: i, g, h
 DO i = 1, nnod
     DO g = 1, ng
         sigtr(i,g) = sigtr(i,g) + fsigtr(mat(i),g) * (SQRT(ftem(i))- SQRT(rftem))
-            siga(i,g)  = siga(i,g)  + fsiga(mat(i),g)  * (SQRT(ftem(i)) - SQRT(rftem))
-            nuf(i,g)   = nuf(i,g)   + fnuf(mat(i),g)   * (SQRT(ftem(i)) - SQRT(rftem))
-            sigf(i,g)  = sigf(i,g)  + fsigf(mat(i),g)  * (SQRT(ftem(i)) - SQRT(rftem))
-            DO h = 1, ng
-               sigs(i,g,h) = sigs(i,g,h) + fsigs(mat(i),g,h) * (SQRT(ftem(i)) - SQRT(rftem))
-            END DO
+        siga(i,g)  = siga(i,g)  + fsiga(mat(i),g)  * (SQRT(ftem(i)) - SQRT(rftem))
+        nuf(i,g)   = nuf(i,g)   + fnuf(mat(i),g)   * (SQRT(ftem(i)) - SQRT(rftem))
+        sigf(i,g)  = sigf(i,g)  + fsigf(mat(i),g)  * (SQRT(ftem(i)) - SQRT(rftem))
+        DO h = 1, ng
+           sigs(i,g,h) = sigs(i,g,h) + fsigs(mat(i),g,h) * (SQRT(ftem(i)) - SQRT(rftem))
+        END DO
       END DO
 END DO
 

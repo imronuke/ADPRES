@@ -702,7 +702,7 @@ SUBROUTINE react(af,sigrp,rho)
 !    To calculate dynamic reactivity
 !
 
-USE sdata, ONLY: nnod, ng, f0, sigs, nod, chi, fs0, &
+USE sdata, ONLY: nnod, ng, f0, sigs, nod, chi, mat, fs0, &
                  vdel, xdel, ydel, zdel, ix, iy, iz
 
 IMPLICIT NONE
@@ -724,13 +724,13 @@ DO g = 1, ng
       END DO
    END DO
    DO n = 1, nnod
-      src = src + af(n,g) * (scg(n) + chi(n,g) * fs0(n)) * vdel(n)
+      src = src + af(n,g) * (scg(n) + chi(mat(n),g) * fs0(n)) * vdel(n)
       rem = rem + af(n,g) * sigrp(n,g) * f0(n,g) * vdel(n)
       lea = lea + af(n,g) * &
                       (nod(n,g)%L(1) * ydel(iy(n)) * zdel(iz(n)) + &
                        nod(n,g)%L(2) * xdel(ix(n)) * zdel(iz(n)) + &
                        nod(n,g)%L(3) * xdel(ix(n)) * ydel(iy(n)))
-      fde = fde + af(n,g) * chi(n,g) * fs0(n) * vdel(n)
+      fde = fde + af(n,g) * chi(mat(n),g) * fs0(n) * vdel(n)
     END DO
 END DO
 

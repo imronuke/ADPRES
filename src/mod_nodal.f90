@@ -1196,7 +1196,7 @@ SUBROUTINE FSrcAd(gt, s, sx1, sy1, sz1, sx2, sy2, sz2)
 !   To calculate fission source and fission source moments for adjoint calc.
 !
 
-USE sdata, ONLY: nnod, chi, &
+USE sdata, ONLY: nnod, chi, mat, &
                  f0, fx1, fy1, fz1, fx2, fy2, fz2
 
 IMPLICIT NONE
@@ -1208,13 +1208,13 @@ REAL, DIMENSION(:), INTENT(INOUT) :: sx2, sy2, sz2
 INTEGER :: n
 
 DO n = 1, nnod
-    s(n)   = s(n)   + f0 (n,gt) * chi(n,gt)
-    sx1(n) = sx1(n) + fx1(n,gt) * chi(n,gt)
-    sy1(n) = sy1(n) + fy1(n,gt) * chi(n,gt)
-    sz1(n) = sz1(n) + fz1(n,gt) * chi(n,gt)
-    sx2(n) = sx2(n) + fx2(n,gt) * chi(n,gt)
-    sy2(n) = sy2(n) + fy2(n,gt) * chi(n,gt)
-    sz2(n) = sz2(n) + fz2(n,gt) * chi(n,gt)
+    s(n)   = s(n)   + f0 (n,gt) * chi(mat(n),gt)
+    sx1(n) = sx1(n) + fx1(n,gt) * chi(mat(n),gt)
+    sy1(n) = sy1(n) + fy1(n,gt) * chi(mat(n),gt)
+    sz1(n) = sz1(n) + fz1(n,gt) * chi(mat(n),gt)
+    sx2(n) = sx2(n) + fx2(n,gt) * chi(mat(n),gt)
+    sy2(n) = sy2(n) + fy2(n,gt) * chi(mat(n),gt)
+    sz2(n) = sz2(n) + fz2(n,gt) * chi(mat(n),gt)
 END DO
 
 END SUBROUTINE FSrcAd
@@ -1304,7 +1304,7 @@ SUBROUTINE TSrc(gt, Keff, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
 !   To update total source
 !
 
-USE sdata, ONLY: nod, chi, nnod
+USE sdata, ONLY: nod, chi, mat, nnod
 
 IMPLICIT NONE
 
@@ -1318,13 +1318,13 @@ REAL, DIMENSION(:), INTENT(IN) :: sx2, sy2, sz2
 INTEGER :: n
 
 DO n = 1, nnod
-    nod(n,gt)%Q(1) = chi(n,gt) * sf0(n)/Keff  + s0(n)
-    nod(n,gt)%Q(2) = chi(n,gt) * sfx1(n)/Keff + sx1(n)
-    nod(n,gt)%Q(3) = chi(n,gt) * sfy1(n)/Keff + sy1(n)
-    nod(n,gt)%Q(4) = chi(n,gt) * sfz1(n)/Keff + sz1(n)
-    nod(n,gt)%Q(5) = chi(n,gt) * sfx2(n)/Keff + sx2(n)
-    nod(n,gt)%Q(6) = chi(n,gt) * sfy2(n)/Keff + sy2(n)
-    nod(n,gt)%Q(7) = chi(n,gt) * sfz2(n)/Keff + sz2(n)
+    nod(n,gt)%Q(1) = chi(mat(n),gt) * sf0(n)/Keff  + s0(n)
+    nod(n,gt)%Q(2) = chi(mat(n),gt) * sfx1(n)/Keff + sx1(n)
+    nod(n,gt)%Q(3) = chi(mat(n),gt) * sfy1(n)/Keff + sy1(n)
+    nod(n,gt)%Q(4) = chi(mat(n),gt) * sfz1(n)/Keff + sz1(n)
+    nod(n,gt)%Q(5) = chi(mat(n),gt) * sfx2(n)/Keff + sx2(n)
+    nod(n,gt)%Q(6) = chi(mat(n),gt) * sfy2(n)/Keff + sy2(n)
+    nod(n,gt)%Q(7) = chi(mat(n),gt) * sfz2(n)/Keff + sz2(n)
 END DO
 
 END SUBROUTINE TSrc
@@ -1337,7 +1337,7 @@ SUBROUTINE TSrcFx(gt, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
 !   To update total source for fixed source calcs.
 !
 
-USE sdata, ONLY: nod, chi, nnod, exsrc
+USE sdata, ONLY: nod, chi, mat, nnod, exsrc
 
 IMPLICIT NONE
 
@@ -1350,13 +1350,13 @@ REAL, DIMENSION(:), INTENT(IN) :: sx2, sy2, sz2
 INTEGER :: n
 
 DO n = 1, nnod
-    nod(n,gt)%Q(1) = chi(n,gt) * sf0(n)  + s0(n)  + exsrc(n,gt)
-    nod(n,gt)%Q(2) = chi(n,gt) * sfx1(n) + sx1(n)
-    nod(n,gt)%Q(3) = chi(n,gt) * sfy1(n) + sy1(n)
-    nod(n,gt)%Q(4) = chi(n,gt) * sfz1(n) + sz1(n)
-    nod(n,gt)%Q(5) = chi(n,gt) * sfx2(n) + sx2(n)
-    nod(n,gt)%Q(6) = chi(n,gt) * sfy2(n) + sy2(n)
-    nod(n,gt)%Q(7) = chi(n,gt) * sfz2(n) + sz2(n)
+    nod(n,gt)%Q(1) = chi(mat(n),gt) * sf0(n)  + s0(n)  + exsrc(n,gt)
+    nod(n,gt)%Q(2) = chi(mat(n),gt) * sfx1(n) + sx1(n)
+    nod(n,gt)%Q(3) = chi(mat(n),gt) * sfy1(n) + sy1(n)
+    nod(n,gt)%Q(4) = chi(mat(n),gt) * sfz1(n) + sz1(n)
+    nod(n,gt)%Q(5) = chi(mat(n),gt) * sfx2(n) + sx2(n)
+    nod(n,gt)%Q(6) = chi(mat(n),gt) * sfy2(n) + sy2(n)
+    nod(n,gt)%Q(7) = chi(mat(n),gt) * sfz2(n) + sz2(n)
 END DO
 
 END SUBROUTINE TSrcFx
@@ -1370,7 +1370,7 @@ SUBROUTINE TSrcT(gt, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
 !   To update total source for transient calcs. with exponetial transformation
 !
 
-USE sdata, ONLY: nod, chi, nnod, tbeta, velo, lamb, iBeta, nf, omeg, &
+USE sdata, ONLY: nod, chi, mat, nnod, tbeta, velo, lamb, iBeta, nf, omeg, &
 c0, cx1, cy1, cz1, cx2, cy2, cz2
 
 IMPLICIT NONE
@@ -1396,23 +1396,23 @@ DO n = 1, nnod
         dtx2 = dtx2 + lamb(i) * cx2(i,n) / lat
         dty2 = dty2 + lamb(i) * cy2(i,n) / lat
         dtz2 = dtz2 + lamb(i) * cz2(i,n) / lat
-        dfis = dfis + chi(n,gt) * iBeta(i) * lamb(i) * h / lat
+        dfis = dfis + chi(mat(n),gt) * iBeta(i) * lamb(i) * h / lat
     END DO
 
-    nod(n,gt)%Q(1) = ((1. - tbeta) * chi(n,gt) + dfis) * sf0(n)  &
-    + s0(n) + chi(n,gt) * dt + ft(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
-    nod(n,gt)%Q(2) = ((1. - tbeta) * chi(n,gt) + dfis) * sfx1(n)  &
-    + sx1(n) + chi(n,gt) * dtx1 + ftx1(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
-    nod(n,gt)%Q(3) = ((1. - tbeta) * chi(n,gt) + dfis) * sfy1(n)  &
-    + sy1(n) + chi(n,gt) * dty1 + fty1(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
-    nod(n,gt)%Q(4) = ((1. - tbeta) * chi(n,gt) + dfis) * sfz1(n)  &
-    + sz1(n) + chi(n,gt) * dtz1 + ftz1(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
-    nod(n,gt)%Q(5) = ((1. - tbeta) * chi(n,gt) + dfis) * sfx2(n)  &
-    + sx2(n) + chi(n,gt) * dtx2 + ftx2(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
-    nod(n,gt)%Q(6) = ((1. - tbeta) * chi(n,gt) + dfis) * sfy2(n)  &
-    + sy2(n) + chi(n,gt) * dty2 + fty2(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
-    nod(n,gt)%Q(7) = ((1. - tbeta) * chi(n,gt) + dfis) * sfz2(n)  &
-    + sz2(n) + chi(n,gt) * dtz2 + ftz2(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
+    nod(n,gt)%Q(1) = ((1. - tbeta) * chi(mat(n),gt) + dfis) * sf0(n)  &
+    + s0(n) + chi(mat(n),gt) * dt + ft(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
+    nod(n,gt)%Q(2) = ((1. - tbeta) * chi(mat(n),gt) + dfis) * sfx1(n)  &
+    + sx1(n) + chi(mat(n),gt) * dtx1 + ftx1(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
+    nod(n,gt)%Q(3) = ((1. - tbeta) * chi(mat(n),gt) + dfis) * sfy1(n)  &
+    + sy1(n) + chi(mat(n),gt) * dty1 + fty1(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
+    nod(n,gt)%Q(4) = ((1. - tbeta) * chi(mat(n),gt) + dfis) * sfz1(n)  &
+    + sz1(n) + chi(mat(n),gt) * dtz1 + ftz1(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
+    nod(n,gt)%Q(5) = ((1. - tbeta) * chi(mat(n),gt) + dfis) * sfx2(n)  &
+    + sx2(n) + chi(mat(n),gt) * dtx2 + ftx2(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
+    nod(n,gt)%Q(6) = ((1. - tbeta) * chi(mat(n),gt) + dfis) * sfy2(n)  &
+    + sy2(n) + chi(mat(n),gt) * dty2 + fty2(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
+    nod(n,gt)%Q(7) = ((1. - tbeta) * chi(mat(n),gt) + dfis) * sfz2(n)  &
+    + sz2(n) + chi(mat(n),gt) * dtz2 + ftz2(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
 END DO
 
 END SUBROUTINE TSrcT
@@ -1478,10 +1478,8 @@ SUBROUTINE nodal_coup4()
 !    To calculate nodal coupling matrix
 !
 
-USE sdata, ONLY: ng, nnod, xdel, ydel, zdel, ystag, &
-                 ix, iy, iz, D, sigr, nod, xstag, ystag, &
-                 ix, iy, iz, nzz, xeast, xwest, ynorth, ysouth, &
-                 ztop, zbott
+USE sdata, ONLY: ng, nnod, xdel, ydel, zdel, &
+                 ix, iy, iz, D, sigr, nod
 
 IMPLICIT NONE
 

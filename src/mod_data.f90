@@ -21,7 +21,6 @@ REAL, DIMENSION(:,:), ALLOCATABLE :: xsigtr          ! Transport macroscopic cx
 REAL, DIMENSION(:,:), ALLOCATABLE :: xsiga           ! Absorption macroscopic cx
 REAL, DIMENSION(:,:), ALLOCATABLE :: xnuf            ! nu* fission macroscopic cx
 REAL, DIMENSION(:,:), ALLOCATABLE :: xsigf           ! fission macroscopic cx
-REAL, DIMENSION(:,:), ALLOCATABLE :: xchi            ! neutron fission spectrum
 REAL, DIMENSION(:,:), ALLOCATABLE :: xD              ! Diffusion coefficient
 REAL, DIMENSION(:,:), ALLOCATABLE :: xsigr           ! Removal macroscopic cx
 REAL, DIMENSION(:,:,:), ALLOCATABLE :: xsigs         ! Scattering macroscopic cx
