@@ -172,6 +172,9 @@ IF ((t < 473.15) .OR. (t > 617.91)) THEN
     WRITE(ounit,*) '  Coolant temp. : ', t
     WRITE(ounit,*) '  ERROR : MODERATOR TEMP. IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
     WRITE(ounit,*) '  CHECK INPUT MASS FLOW RATE OR POWER'
+    WRITE(*,*) '  Coolant temp. : ', t
+    WRITE(*,*) '  ERROR : MODERATOR TEMP. IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
+    WRITE(*,*) '  CHECK INPUT MASS FLOW RATE OR POWER'
     STOP
 END IF
 
@@ -213,6 +216,9 @@ IF ((ent < 858341.5) .OR. (ent > 1624307.1)) THEN
     WRITE(ounit,*) '  Enthalpy. : ', ent
     WRITE(ounit,*) '  ERROR : ENTHALPY IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
     WRITE(ounit,*) '  CHECK INPUT MASS FLOW RATE OR POWER'
+    WRITE(*,*) '  Enthalpy. : ', ent
+    WRITE(*,*) '  ERROR : ENTHALPY IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
+    WRITE(*,*) '  CHECK INPUT MASS FLOW RATE OR POWER'
     STOP
 END IF
 
