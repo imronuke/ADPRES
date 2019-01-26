@@ -1949,12 +1949,14 @@ IMPLICIT NONE
 
 REAL, DIMENSION(:), INTENT(OUT) :: p
 INTEGER :: g, n
-REAL :: tpow
+REAL :: tpow, pow
 
 p = 0.0
 DO g= 1, ng
     DO n= 1, nnod
-        p(n) = p(n) + f0(n,g) * sigf(n,g) * vdel(n)
+	    pow = f0(n,g) * sigf(n,g) * vdel(n)
+		IF (pow < 0.) pow = 0.
+        p(n) = p(n) + pow
     END DO
 END DO
 
