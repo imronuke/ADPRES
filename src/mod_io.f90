@@ -210,21 +210,6 @@ ELSE
     CONTINUE
 END IF
 
-!!CARD BCON
-IF (bbcon == 1) CALL inp_bcon (ubcon)
-
-!!CARD FTEM
-IF (bftem == 1) CALL inp_ftem (uftem)
-
-!!CARD MTEM
-IF (bmtem == 1) CALL inp_mtem (umtem)
-
-!!CARD CDEN
-IF (bcden == 1) CALL inp_cden (ucden)
-
-!CARD CROD
-IF (bcrod == 1) CALL inp_crod (ucrod)
-
 ! Card EJCT (Rod Ejection)
 IF (mode == 'RODEJECT' .AND. bejct == 1 .AND. bcrod == 1) THEN
     CALL inp_ejct(uejct)
@@ -277,6 +262,23 @@ ELSE
     WRITE(*,*)'   1. %MTEM   2. %CDEN'
     STOP
 END IF
+
+
+!!CARD BCON
+IF (bbcon == 1) CALL inp_bcon (ubcon)
+
+!!CARD FTEM
+IF (bftem == 1) CALL inp_ftem (uftem)
+
+!!CARD MTEM
+IF (bmtem == 1) CALL inp_mtem (umtem)
+
+!!CARD CDEN
+IF (bcden == 1) CALL inp_cden (ucden)
+
+!CARD CROD
+IF (bcrod == 1) CALL inp_crod (ucrod)
+
 
 !CARD ADF
 ALLOCATE(al(nnod,ng))
@@ -541,6 +543,7 @@ SELECT CASE(mode)
           WRITE(ounit,*)
     CASE DEFAULT
         WRITE(ounit,1032) mode
+        WRITE(*,1032) mode
         STOP
 END SELECT
 
@@ -1157,8 +1160,8 @@ SUBROUTINE misc ()
 USE sdata, ONLY: nxx, nyy, nzz, ix, iy, iz, xyz, &
                  nnod, sigtr, siga, nuf, sigf, &
                  sigs, D, sigr, ng, ystag, &
-                 xdel, ydel, zdel, vdel, mode, &
-                 mat, xD, xsigr, bcon, ftem, mtem, cden, bpos
+                 xdel, ydel, zdel, vdel, &
+                 mat, xD, xsigr
 
 IMPLICIT NONE
 
@@ -1190,12 +1193,6 @@ ALLOCATE(sigf (nnod,ng))
 ALLOCATE(sigs (nnod,ng,ng))
 ALLOCATE(D    (nnod,ng))
 ALLOCATE(sigr (nnod,ng))
-
-IF (mode == 'BCSEARCH' .OR. mode == 'RODEJECT') THEN
-    CONTINUE
-ELSE
-    CALL XS_updt(bcon, ftem, mtem, cden, bpos)
-END IF
 
 DEALLOCATE(xD, xsigr)
 
@@ -2743,8 +2740,8 @@ message = ' error in reading average fuel temperature and fuel temperature refer
 CALL er_message(ounit, ios, ln, message)
 
 ! ASSIGN CFTEM to FTEM
-ALLOCATE(ftem(nnod))
-IF (bther == 0) ftem = cftem
+IF (bther == 0) ALLOCATE (ftem(nnod))
+ftem = cftem
 
 ! Read CX changes fuel temperature change
 ALLOCATE(fsigtr(nmat,ng), fsiga(nmat,ng), fnuf(nmat,ng), fsigf(nmat,ng), fsigs(nmat,ng,ng))
@@ -2866,9 +2863,9 @@ message = ' error in reading Moderator temperature and Moderator temperature ref
 CALL er_message(ounit, ios, ln, message)
 
 ! ASSIGN CMTEM to MTEM
-ALLOCATE(mtem(nnod))
-IF (bther == 0) mtem = cmtem
-
+IF (bther == 0) ALLOCATE (mtem(nnod))
+mtem = cmtem
+    
 ! Read CX changes per moderator temperature change
 ALLOCATE(msigtr(nmat,ng), msiga(nmat,ng), mnuf(nmat,ng), msigf(nmat,ng), msigs(nmat,ng,ng))
 DO i = 1, nmat
@@ -2990,7 +2987,7 @@ message = ' error in reading Coolant Density and Coolant Density reference'
 CALL er_message(ounit, ios, ln, message)
 
 !ASSIGN CCDEN TO CDEN
-ALLOCATE(cden(nnod))
+IF (bther == 0) ALLOCATE (cden(nnod)) 
 cden = ccden
 
 ! Read CX changes per Coolant Density change
@@ -3092,7 +3089,7 @@ SUBROUTINE inp_ther (xbunit)
 USE sdata, ONLY: pow, tin, nx, ny, nxx, nyy, ystag, &
                  rf, tg, tc, rg, rc, ppitch, cf, dia, cflow, dh, pi, &
                  farea, xdiv, ydiv, ystag, node_nf, nm, nt, rdel, rpos, &
-                 nnod, tfm, ppow, ent, heatf, ntem, stab, thunit
+                 nnod, tfm, ppow, ent, heatf, ntem, stab, ftem, mtem, cden, thunit
 
 IMPLICIT NONE
 
@@ -3117,6 +3114,8 @@ WRITE(ounit,*)
 WRITE(ounit,*)
 WRITE(ounit,*) '           >>>>   READING THERMAL-HYDRAULIC DATA   <<<<'
 WRITE(ounit,*) '           --------------------------------------------'
+
+ALLOCATE (ftem(nnod), mtem(nnod), cden(nnod))
 
 ! Read Percent Power
 READ(xbunit, *, IOSTAT=ios) ind, ln, ppow

@@ -212,15 +212,24 @@ REAL :: ratx
 
 INTEGER :: i
 
-IF ((ent < 858341.5) .OR. (ent > 1624307.1)) THEN
-    WRITE(ounit,*) '  Enthalpy. : ', ent
-    WRITE(ounit,*) '  ERROR : ENTHALPY IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
-    WRITE(ounit,*) '  CHECK INPUT MASS FLOW RATE OR POWER'
-    WRITE(*,*) '  Enthalpy. : ', ent
-    WRITE(*,*) '  ERROR : ENTHALPY IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
-    WRITE(*,*) '  CHECK INPUT MASS FLOW RATE OR POWER'
-    STOP
+! IF ((ent < 858341.5) .OR. (ent > 1624307.1)) THEN
+    ! WRITE(ounit,*) '  Enthalpy. : ', ent
+    ! WRITE(ounit,*) '  ERROR : ENTHALPY IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
+    ! WRITE(ounit,*) '  CHECK INPUT MASS FLOW RATE OR POWER'
+    ! WRITE(*,*) '  Enthalpy. : ', ent
+    ! WRITE(*,*) '  ERROR : ENTHALPY IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
+    ! WRITE(*,*) '  CHECK INPUT MASS FLOW RATE OR POWER'
+    ! STOP
+! END IF
+
+IF (ent > 1624307.1) THEN
+    t   = stab(ntem,1)
+    rho = stab(ntem,2)
+    prx = stab(ntem,4)
+    kvx = stab(ntem,5)
+    tcx = stab(ntem,6)
 END IF
+
 
 t2 = stab(1,1); rho2 = stab(1,2); ent2 = stab(1,3)
 pr2 = stab(1,4); kv2 = stab(1,5); tc2 = stab(1,6)

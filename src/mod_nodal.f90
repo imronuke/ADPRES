@@ -2043,8 +2043,8 @@ SUBROUTINE forward()
 !    To solve forward (normal) problems
 !
 
-USE sdata, ONLY: nnod, f0, aprad, apaxi, afrad
-USE InpOutp, ONLY: ounit, AsmPow, AxiPow, AsmFlux
+USE sdata, ONLY: nnod, f0, aprad, apaxi, afrad, ftem, mtem, cden, bcon, bpos
+USE InpOutp, ONLY: ounit, AsmPow, AxiPow, AsmFlux, XS_updt
 
 IMPLICIT NONE
 
@@ -2063,6 +2063,10 @@ WRITE(ounit,*)
 WRITE(ounit,*) '  Itr     k-eff     Fis.Src Error   Inner Error'
 WRITE(ounit,*) ' ----------------------------------------------------'
 
+! Update XSEC
+CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+
+! Calculate Nodal coupling matrices
 CALL nodal_coup4()
 
 CALL outer4()
@@ -2092,8 +2096,8 @@ SUBROUTINE adjoint()
   !    To solve adjoint problems
   !
 
-USE sdata, ONLY: nnod, f0, aprad, apaxi, afrad
-USE InpOutp, ONLY: ounit, AsmPow, AxiPow, AsmFlux
+USE sdata, ONLY: nnod, f0, aprad, apaxi, afrad, ftem, mtem, cden, bcon, bpos
+USE InpOutp, ONLY: ounit, AsmPow, AxiPow, AsmFlux, XS_updt
 
 IMPLICIT NONE
 
@@ -2112,6 +2116,10 @@ WRITE(ounit,*)
 WRITE(ounit,*) '  Itr     k-eff     Fis.Src Error   Inner Error'
 WRITE(ounit,*) ' ----------------------------------------------------'
 
+! Update XSEC
+CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+
+! Calculate Nodal coupling matrices
 CALL nodal_coup4()
 
 CALL outer4ad()
@@ -2140,8 +2148,8 @@ SUBROUTINE fixedsrc()
   !    To solve fixed source problems
   !
 
-USE sdata, ONLY: nnod, f0, aprad, apaxi, afrad
-USE InpOutp, ONLY: ounit, AsmPow, AxiPow, AsmFlux
+USE sdata, ONLY: nnod, f0, aprad, apaxi, afrad, ftem, mtem, cden, bcon, bpos
+USE InpOutp, ONLY: ounit, AsmPow, AxiPow, AsmFlux, XS_updt
 
 IMPLICIT NONE
 
@@ -2160,6 +2168,10 @@ WRITE(ounit,*)
 WRITE(ounit,*) '  Itr   Fis.Src Error   Inner Error'
 WRITE(ounit,*) ' ----------------------------------------------------'
 
+! Update XSEC
+CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+
+! Calculate Nodal coupling matrices
 CALL nodal_coup4()
 
 CALL outer4Fx()
