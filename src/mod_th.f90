@@ -212,23 +212,17 @@ REAL :: ratx
 
 INTEGER :: i
 
-! IF ((ent < 858341.5) .OR. (ent > 1624307.1)) THEN
-    ! WRITE(ounit,*) '  Enthalpy. : ', ent
-    ! WRITE(ounit,*) '  ERROR : ENTHALPY IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
-    ! WRITE(ounit,*) '  CHECK INPUT MASS FLOW RATE OR POWER'
-    ! WRITE(*,*) '  Enthalpy. : ', ent
-    ! WRITE(*,*) '  ERROR : ENTHALPY IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
-    ! WRITE(*,*) '  CHECK INPUT MASS FLOW RATE OR POWER'
-    ! STOP
-! END IF
-
-IF (ent > 1624307.1) THEN
-    t   = stab(ntem,1)
-    rho = stab(ntem,2)
-    prx = stab(ntem,4)
-    kvx = stab(ntem,5)
-    tcx = stab(ntem,6)
+IF ((ent < 858341.5) .OR. (ent > 1624307.1)) THEN
+    WRITE(ounit,*) '  Enthalpy. : ', ent
+    WRITE(ounit,*) '  ERROR : ENTHALPY IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
+    WRITE(ounit,*) '  CHECK INPUT MASS FLOW RATE OR POWER'
+    WRITE(*,*) '  Enthalpy. : ', ent
+    WRITE(*,*) '  ERROR : ENTHALPY IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
+    WRITE(*,*) '  CHECK INPUT MASS FLOW RATE OR POWER'
+    STOP
 END IF
+
+
 
 
 t2 = stab(1,1); rho2 = stab(1,2); ent2 = stab(1,3)
@@ -397,7 +391,7 @@ REAL, DIMENSION(nt+1) :: a, b, c, d
 REAL :: hs, hg = 1.e4, kt           ! coolant heat transfer coef., gap heat transfer coef, and thermal conductivity
 REAL :: alpha = 0.7
 REAL :: xa, xc, tem
-REAL :: fdens = 10.412e3            ! UO2 density (kg/m3)
+REAL :: fdens = 10.24e3            ! UO2 density (kg/m3)
 REAL :: cdens = 6.6e3               ! Cladding density (kg/m3)
 REAL :: cp                          ! Specific heat capacity
 REAL :: eps, eta
