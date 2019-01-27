@@ -79,7 +79,7 @@ IF (N < 1) THEN
    READ(*,*) iname
 ELSE
    CALL GETARG(1,iname) !Grab the first command line argument
-ENDIF 
+ENDIF
 
 iname = TRIM(iname)
 
@@ -2865,7 +2865,7 @@ CALL er_message(ounit, ios, ln, message)
 ! ASSIGN CMTEM to MTEM
 IF (bther == 0) ALLOCATE (mtem(nnod))
 mtem = cmtem
-    
+
 ! Read CX changes per moderator temperature change
 ALLOCATE(msigtr(nmat,ng), msiga(nmat,ng), mnuf(nmat,ng), msigf(nmat,ng), msigs(nmat,ng,ng))
 DO i = 1, nmat
@@ -2987,7 +2987,7 @@ message = ' error in reading Coolant Density and Coolant Density reference'
 CALL er_message(ounit, ios, ln, message)
 
 !ASSIGN CCDEN TO CDEN
-IF (bther == 0) ALLOCATE (cden(nnod)) 
+IF (bther == 0) ALLOCATE (cden(nnod))
 cden = ccden
 
 ! Read CX changes per Coolant Density change
@@ -3225,7 +3225,7 @@ END DO
 
 ! Guess fuel and moderator temperature
 ALLOCATE(tfm(nnod, nt+1)) ! Allocate fuel pin mesh temperature
-tfm = 1200.
+tfm = 1200.  !Used for radial fuel temperature distribution
 
 ALLOCATE(ent(nnod))
 ALLOCATE(heatf(nnod))
