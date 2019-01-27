@@ -387,7 +387,7 @@ REAL, DIMENSION(nt+1) :: a, b, c, d
 REAL :: hs, hg = 1.e4, kt           ! coolant heat transfer coef., gap heat transfer coef, and thermal conductivity
 REAL :: alpha = 0.7
 REAL :: xa, xc, tem
-REAL :: fdens = 10.24e3            ! UO2 density (kg/m3)
+REAL :: fdens = 10.412e3            ! UO2 density (kg/m3)
 REAL :: cdens = 6.6e3               ! Cladding density (kg/m3)
 REAL :: cp                          ! Specific heat capacity
 REAL :: eps, eta
