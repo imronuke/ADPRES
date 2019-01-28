@@ -540,7 +540,7 @@ DO k = 1, nzz
     DO j = 1, nyy
         DO i = ystag(j)%smin, ystag(j)%smax
 
-            cpline = cpline = heatf(xyz(i,j,k)) * pi * dia  &
+            cpline = heatf(xyz(i,j,k)) * pi * dia  &
                    + cf * xpline(xyz(i,j,k)) * 100. * farea / (pi *rf**2)       ! Coolant Linear power densisty (W/m)                             ! Coolant Linear power densisty (W/m)
 
             IF (k == 1) THEN                                                    ! Calculate coolant enthalpy and
