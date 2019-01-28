@@ -210,6 +210,9 @@ ELSE
     CONTINUE
 END IF
 
+!CARD CROD
+IF (bcrod == 1) CALL inp_crod (ucrod)
+
 ! Card EJCT (Rod Ejection)
 IF (mode == 'RODEJECT' .AND. bejct == 1 .AND. bcrod == 1) THEN
     CALL inp_ejct(uejct)
@@ -275,9 +278,6 @@ IF (bmtem == 1) CALL inp_mtem (umtem)
 
 !!CARD CDEN
 IF (bcden == 1) CALL inp_cden (ucden)
-
-!CARD CROD
-IF (bcrod == 1) CALL inp_crod (ucrod)
 
 
 !CARD ADF
