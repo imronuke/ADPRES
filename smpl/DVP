@@ -5,12 +5,7 @@
 ! K.S. Smith, Assembly Homogenization Techniques for LWR Analysis.
 ! Progress in Nuclear Energy, Vol. 17 No.3, pp. 303-335, 1986.
 !=========
-! PDQ K-EFF: 1.027008 (HETEROGENEOUS SOLUTION) -> REF
-! QUANDRY K-EFF: 1.026773  (ANALYTIC NODAL METHOD)
-! ADPRES  K-EFF: 1.026794  (NODAL EXPANSION METHOD 4TH ORDER)
-!                                           QUANDRY       ADPRES
-! Maximum Error in assembly power            2.4%          3.4%
-! Average Error in rodded assembly power     1.5%          1.3%
+
 
 
 %MODE
