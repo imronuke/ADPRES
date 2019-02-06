@@ -3195,7 +3195,7 @@ DO j= 1, ny
                 xtot = xtot+1
                 IF ((xtot >= ystag(ytot)%smin) .AND. (xtot <= ystag(ytot)%smax )) THEN
                     div = REAL (ydiv(j) * xdiv(i))            ! Number of nodes in current assembly
-                    node_nf(xtot,ytot) = area(i,j) * nfpin / (barea * div)   ! Number of fuel pin for this node
+                    node_nf(xtot,ytot) = area(i,j) * REAL(nfpin) / (barea * div)   ! Number of fuel pin for this node
                 END IF
             END DO
         END DO
