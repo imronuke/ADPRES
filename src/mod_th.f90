@@ -358,7 +358,7 @@ REAL, INTENT(IN) :: Pr  ! Prandtl Number
 REAL :: cvelo, Nu, Re
 
 cvelo = cflow / (farea * xden * 1000.)        ! Calculate flow velocity (m/s)
-Re = cvelo * dh / (kv * 1e-6)                 ! Calculate Reynolds Number
+Re = cvelo * dh / (kv * 1.e-6)                 ! Calculate Reynolds Number
 Nu = 0.023*(Pr**0.4)*(Re**0.8)                ! Calculate Nusselt Number
 geths = (tc / dh) * Nu                        ! Calculate heat transfer coefficient
 
