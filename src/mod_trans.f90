@@ -41,7 +41,7 @@ REAL :: t1, t2
 REAL :: tpow1, tpow2
 INTEGER :: n, i, j, g, imax, step
 
-LOGICAL :: maxi
+LOGICAL :: maxi   ! Maximum Outer Iteration Reached?
 
 ! Allocate precusor density
 ALLOCATE (c0(nf,nnod),cx1(nf,nnod),cy1(nf,nnod),cz1(nf,nnod))
@@ -182,17 +182,17 @@ DO i = 1, imax
 
     WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, &
     tpow2/tpow1, (bpos(n), n = 1, nb)
-    
+
     IF (maxi) THEN
         WRITE(*,'(I4, F10.3, F10.4, ES15.4, A35)') step, t2, rho/tbeta, &
         tpow2/tpow1, 'OUTER ITERATION DID NOT CONVERGE'
     ELSE
         WRITE(*,'(I4, F10.3, F10.4, ES15.4)') step, t2, rho/tbeta, &
         tpow2/tpow1
-    END IF  
+    END IF
 
-    IF (maxi) tranw = .TRUE.    
-    
+    IF (maxi) tranw = .TRUE.
+
 END DO
 
 ! Second Time Step
@@ -256,10 +256,10 @@ DO i = 1, imax
 
     ! Calculate reactivity
     CALL react(af, sigrp, rho)
-    
+
     WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 12F9.2)') step, t2, rho/tbeta, &
     tpow2/tpow1, (bpos(n), n = 1, nb)
-    
+
     IF (maxi) THEN
         WRITE(*,'(I4, F10.3, F10.4, ES15.4, A35)') step, t2, rho/tbeta, &
         tpow2/tpow1, 'OUTER ITERATION DID NOT CONVERGE'
@@ -268,7 +268,7 @@ DO i = 1, imax
         tpow2/tpow1
     END IF
 
-    IF (maxi) tranw = .TRUE.    
+    IF (maxi) tranw = .TRUE.
 
 END DO
 
@@ -299,7 +299,7 @@ IMPLICIT NONE
 REAL, DIMENSION(nnod, ng) :: ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2  ! Flux at previous time step
 REAL, DIMENSION(nnod, ng) :: af                                      ! adjoint flux
 REAL, DIMENSION(nnod, ng) :: sigrp                                   ! Temporary sigr
-    
+
 REAL :: rho
 REAL :: t1, t2
 REAL :: tpow1, tpow2
@@ -474,7 +474,7 @@ DO i = 1, imax
 
     WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 4F10.2)') step, t2, rho/tbeta, &
     xppow, tm-273.15, mtm-273.15, tf-273.15, mtf-273.15
-    
+
     IF (maxi) THEN
         WRITE(*,'(I4, F10.3, F10.4, ES15.4, A35)') step, t2, rho/tbeta, &
         xppow, 'OUTER ITERATION DID NOT CONVERGE'
@@ -482,7 +482,7 @@ DO i = 1, imax
         WRITE(*,'(I4, F10.3, F10.4, ES15.4)') step, t2, rho/tbeta, &
         xppow
     END IF
-    
+
     IF (maxi) tranw = .TRUE.
 
     IF (step>1000) THEN
@@ -576,7 +576,7 @@ DO i = 1, imax
 
     WRITE(ounit,'(I4, F10.3, F10.4, ES15.4, 4F10.2)') step, t2, rho/tbeta, &
     xppow, tm-273.15, mtm-273.15, tf-273.15, mtf-273.15
-    
+
     IF (maxi) THEN
         WRITE(*,'(I4, F10.3, F10.4, ES15.4, A35)') step, t2, rho/tbeta, &
         xppow, 'OUTER ITERATION DID NOT CONVERGE'
@@ -584,7 +584,7 @@ DO i = 1, imax
         WRITE(*,'(I4, F10.3, F10.4, ES15.4)') step, t2, rho/tbeta, &
         xppow
     END IF
-    
+
     IF (maxi) tranw = .TRUE.
 
     IF (step>1000) THEN
