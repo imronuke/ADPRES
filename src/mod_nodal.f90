@@ -332,7 +332,7 @@ WRITE(ounit, '(A36,F9.6)') 'MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
 END SUBROUTINE outer4Fx
 
 
-SUBROUTINE outertf (ht, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2, maxi)
+SUBROUTINE outertf (ht, maxi)
 
 !
 ! Purpose:
@@ -344,7 +344,6 @@ USE sdata, ONLY: ng, nnod, serc, ferc, nout, &
 IMPLICIT NONE
 
 REAL, INTENT(IN) :: ht
-REAL, DIMENSION(:,:), INTENT(IN) :: ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2
 LOGICAL, INTENT(OUT) :: maxi
 
 REAL, DIMENSION(nnod) :: fs0c                  !Old fission source
@@ -380,9 +379,7 @@ DO p=1, nout
         CALL TSrcT(g,  fs0c, fsx1c, fsy1c, fsz1c,&
                               fsx2c, fsy2c, fsz2c, &
                         ss0 , ssx1 , ssy1 , ssz1 , &
-                              ssx2 , ssy2 , ssz2, &
-                        ht, ft(:,g), ftx1(:,g), fty1(:,g), ftz1(:,g), &
-                        ftx2(:,g), fty2(:,g), ftz2(:,g))
+                              ssx2 , ssy2 , ssz2, ht)
 
         !!!Inner Iteration
         CALL inner4(g, fer)
@@ -711,7 +708,7 @@ END SUBROUTINE inner4
 
 
 
-SUBROUTINE bcond (bc, nt, gt, side)
+SUBROUTINE bcond (bc, nt, g, side)
 
 !
 ! Purpose:
@@ -722,14 +719,14 @@ USE sdata, ONLY: nod
 
 IMPLICIT NONE
 
-INTEGER, INTENT(IN) :: bc, nt, gt, side
+INTEGER, INTENT(IN) :: bc, nt, g, side
 
 IF (bc == 0) THEN
-    nod(nt,gt)%ji(side) = -nod(nt,gt)%jo(side)
+    nod(nt,g)%ji(side) = -nod(nt,g)%jo(side)
 ELSE IF (bc == 1) THEN
-    nod(nt,gt)%ji(side) = 0.0
+    nod(nt,g)%ji(side) = 0.0
 ELSE
-    nod(nt,gt)%ji(side) = nod(nt,gt)%jo(side)
+    nod(nt,g)%ji(side) = nod(nt,g)%jo(side)
 END IF
 
 END SUBROUTINE bcond
@@ -820,7 +817,7 @@ fz2(n,g) = ( nod(n,g)%Q(7) - L(7)                &
 END SUBROUTINE FluxUpd4
 
 
-SUBROUTINE FluxUpd2 (nt, gt)
+SUBROUTINE FluxUpd2 (nt, g)
 
 USE sdata, ONLY: nod, sigr, xdel, ydel, zdel, &
                  f0, ix, iy, iz
@@ -830,14 +827,14 @@ USE sdata, ONLY: nod, sigr, xdel, ydel, zdel, &
 
 IMPLICIT NONE
 
-INTEGER, INTENT(IN) :: gt, nt
+INTEGER, INTENT(IN) :: g, nt
 
 ! Calculate Zeroth Flux
-f0(nt,gt)  = ( nod(nt,gt)%Q(1)          &
-                 - nod(nt,gt)%L(1)/xdel(ix(nt))   &
-                 - nod(nt,gt)%L(2)/ydel(iy(nt))   &
-                 - nod(nt,gt)%L(3)/zdel(iz(nt)))  &
-                 / sigr(nt,gt)
+f0(nt,g)  = ( nod(nt,g)%Q(1)          &
+                 - nod(nt,g)%L(1)/xdel(ix(nt))   &
+                 - nod(nt,g)%L(2)/ydel(iy(nt))   &
+                 - nod(nt,g)%L(3)/zdel(iz(nt)))  &
+                 / sigr(nt,g)
 
 END SUBROUTINE FluxUpd2
 
@@ -1160,7 +1157,7 @@ L(7) = ( r2zx/xdel(ix(n))+r2zy/ydel(iy(n)) ) / 20.
 END SUBROUTINE TLUpd
 
 
-SUBROUTINE FSrc(gt, s, sx1, sy1, sz1, sx2, sy2, sz2)
+SUBROUTINE FSrc(g, s, sx1, sy1, sz1, sx2, sy2, sz2)
 !
 ! Purpose:
 !   To calculate fission source and fission source moments
@@ -1171,26 +1168,26 @@ USE sdata, ONLY: nnod, nuf, &
 
 IMPLICIT NONE
 
-INTEGER, INTENT(IN) :: gt
+INTEGER, INTENT(IN) :: g
 REAL, DIMENSION(:), INTENT(INOUT) :: s, sx1, sy1, sz1
 REAL, DIMENSION(:), INTENT(INOUT) :: sx2, sy2, sz2
 
 INTEGER :: n
 
 DO n = 1, nnod
-    s(n)   = s(n)   + f0 (n,gt) * nuf(n,gt)
-    sx1(n) = sx1(n) + fx1(n,gt) * nuf(n,gt)
-    sy1(n) = sy1(n) + fy1(n,gt) * nuf(n,gt)
-    sz1(n) = sz1(n) + fz1(n,gt) * nuf(n,gt)
-    sx2(n) = sx2(n) + fx2(n,gt) * nuf(n,gt)
-    sy2(n) = sy2(n) + fy2(n,gt) * nuf(n,gt)
-    sz2(n) = sz2(n) + fz2(n,gt) * nuf(n,gt)
+    s(n)   = s(n)   + f0 (n,g) * nuf(n,g)
+    sx1(n) = sx1(n) + fx1(n,g) * nuf(n,g)
+    sy1(n) = sy1(n) + fy1(n,g) * nuf(n,g)
+    sz1(n) = sz1(n) + fz1(n,g) * nuf(n,g)
+    sx2(n) = sx2(n) + fx2(n,g) * nuf(n,g)
+    sy2(n) = sy2(n) + fy2(n,g) * nuf(n,g)
+    sz2(n) = sz2(n) + fz2(n,g) * nuf(n,g)
 END DO
 
 END SUBROUTINE FSrc
 
 
-SUBROUTINE FSrcAd(gt, s, sx1, sy1, sz1, sx2, sy2, sz2)
+SUBROUTINE FSrcAd(g, s, sx1, sy1, sz1, sx2, sy2, sz2)
 !
 ! Purpose:
 !   To calculate fission source and fission source moments for adjoint calc.
@@ -1201,27 +1198,27 @@ USE sdata, ONLY: nnod, chi, mat, &
 
 IMPLICIT NONE
 
-INTEGER, INTENT(IN) :: gt
+INTEGER, INTENT(IN) :: g
 REAL, DIMENSION(:), INTENT(INOUT) :: s, sx1, sy1, sz1
 REAL, DIMENSION(:), INTENT(INOUT) :: sx2, sy2, sz2
 
 INTEGER :: n
 
 DO n = 1, nnod
-    s(n)   = s(n)   + f0 (n,gt) * chi(mat(n),gt)
-    sx1(n) = sx1(n) + fx1(n,gt) * chi(mat(n),gt)
-    sy1(n) = sy1(n) + fy1(n,gt) * chi(mat(n),gt)
-    sz1(n) = sz1(n) + fz1(n,gt) * chi(mat(n),gt)
-    sx2(n) = sx2(n) + fx2(n,gt) * chi(mat(n),gt)
-    sy2(n) = sy2(n) + fy2(n,gt) * chi(mat(n),gt)
-    sz2(n) = sz2(n) + fz2(n,gt) * chi(mat(n),gt)
+    s(n)   = s(n)   + f0 (n,g) * chi(mat(n),g)
+    sx1(n) = sx1(n) + fx1(n,g) * chi(mat(n),g)
+    sy1(n) = sy1(n) + fy1(n,g) * chi(mat(n),g)
+    sz1(n) = sz1(n) + fz1(n,g) * chi(mat(n),g)
+    sx2(n) = sx2(n) + fx2(n,g) * chi(mat(n),g)
+    sy2(n) = sy2(n) + fy2(n,g) * chi(mat(n),g)
+    sz2(n) = sz2(n) + fz2(n,g) * chi(mat(n),g)
 END DO
 
 END SUBROUTINE FSrcAd
 
 
 
-SUBROUTINE SSrc(gt, s, sx1, sy1, sz1, sx2, sy2, sz2)
+SUBROUTINE SSrc(g, s, sx1, sy1, sz1, sx2, sy2, sz2)
 !
 ! Purpose:
 !   To calculate scattering source and scattering source moments
@@ -1232,7 +1229,7 @@ USE sdata, ONLY: ng, nnod, sigs, &
 
 IMPLICIT NONE
 
-INTEGER, INTENT(IN) :: gt
+INTEGER, INTENT(IN) :: g
 REAL, DIMENSION(:), INTENT(OUT) :: s, sx1, sy1, sz1
 REAL, DIMENSION(:), INTENT(OUT) :: sx2, sy2, sz2
 
@@ -1243,14 +1240,14 @@ sx2 = 0.; sy2 = 0.; sz2 = 0.
 
 DO h = 1, ng
     DO n = 1, nnod
-        IF (gt /= h) THEN
-            s(n)   = s(n)   + sigs(n,h,gt) * f0(n,h)
-            sx1(n) = sx1(n) + sigs(n,h,gt) * fx1(n,h)
-            sy1(n) = sy1(n) + sigs(n,h,gt) * fy1(n,h)
-            sz1(n) = sz1(n) + sigs(n,h,gt) * fz1(n,h)
-            sx2(n) = sx2(n) + sigs(n,h,gt) * fx2(n,h)
-            sy2(n) = sy2(n) + sigs(n,h,gt) * fy2(n,h)
-            sz2(n) = sz2(n) + sigs(n,h,gt) * fz2(n,h)
+        IF (g /= h) THEN
+            s(n)   = s(n)   + sigs(n,h,g) * f0(n,h)
+            sx1(n) = sx1(n) + sigs(n,h,g) * fx1(n,h)
+            sy1(n) = sy1(n) + sigs(n,h,g) * fy1(n,h)
+            sz1(n) = sz1(n) + sigs(n,h,g) * fz1(n,h)
+            sx2(n) = sx2(n) + sigs(n,h,g) * fx2(n,h)
+            sy2(n) = sy2(n) + sigs(n,h,g) * fy2(n,h)
+            sz2(n) = sz2(n) + sigs(n,h,g) * fz2(n,h)
         END IF
     END DO
 END DO
@@ -1259,7 +1256,7 @@ END SUBROUTINE SSrc
 
 
 
-SUBROUTINE SSrcAd(gt, s, sx1, sy1, sz1, sx2, sy2, sz2)
+SUBROUTINE SSrcAd(g, s, sx1, sy1, sz1, sx2, sy2, sz2)
 !
 ! Purpose:
 !   To calculate scattering source and scattering source moments for adjoint calc.
@@ -1270,7 +1267,7 @@ USE sdata, ONLY: ng, nnod, sigs, &
 
 IMPLICIT NONE
 
-INTEGER, INTENT(IN) :: gt
+INTEGER, INTENT(IN) :: g
 REAL, DIMENSION(:), INTENT(OUT) :: s, sx1, sy1, sz1
 REAL, DIMENSION(:), INTENT(OUT) :: sx2, sy2, sz2
 
@@ -1281,14 +1278,14 @@ sx2 = 0.; sy2 = 0.; sz2 = 0.
 
 DO h = 1, ng
     DO n = 1, nnod
-        IF (gt /= h) THEN
-            s(n)   = s(n)   + sigs(n,gt,h) * f0(n,h)
-            sx1(n) = sx1(n) + sigs(n,gt,h) * fx1(n,h)
-            sy1(n) = sy1(n) + sigs(n,gt,h) * fy1(n,h)
-            sz1(n) = sz1(n) + sigs(n,gt,h) * fz1(n,h)
-            sx2(n) = sx2(n) + sigs(n,gt,h) * fx2(n,h)
-            sy2(n) = sy2(n) + sigs(n,gt,h) * fy2(n,h)
-            sz2(n) = sz2(n) + sigs(n,gt,h) * fz2(n,h)
+        IF (g /= h) THEN
+            s(n)   = s(n)   + sigs(n,g,h) * f0(n,h)
+            sx1(n) = sx1(n) + sigs(n,g,h) * fx1(n,h)
+            sy1(n) = sy1(n) + sigs(n,g,h) * fy1(n,h)
+            sz1(n) = sz1(n) + sigs(n,g,h) * fz1(n,h)
+            sx2(n) = sx2(n) + sigs(n,g,h) * fx2(n,h)
+            sy2(n) = sy2(n) + sigs(n,g,h) * fy2(n,h)
+            sz2(n) = sz2(n) + sigs(n,g,h) * fz2(n,h)
         END IF
     END DO
 END DO
@@ -1297,7 +1294,7 @@ END SUBROUTINE SSrcAd
 
 
 
-SUBROUTINE TSrc(gt, Keff, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
+SUBROUTINE TSrc(g, Keff, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
                           s0,  sx1,  sy1,  sz1,  sx2,  sy2 , sz2   )
 !
 ! Purpose:
@@ -1308,7 +1305,7 @@ USE sdata, ONLY: nod, chi, mat, nnod
 
 IMPLICIT NONE
 
-INTEGER, INTENT(IN) :: gt
+INTEGER, INTENT(IN) :: g
 REAL, INTENT(IN)    :: Keff
 REAL, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1
 REAL, DIMENSION(:), INTENT(IN) :: sfx2, sfy2, sfz2
@@ -1318,19 +1315,19 @@ REAL, DIMENSION(:), INTENT(IN) :: sx2, sy2, sz2
 INTEGER :: n
 
 DO n = 1, nnod
-    nod(n,gt)%Q(1) = chi(mat(n),gt) * sf0(n)/Keff  + s0(n)
-    nod(n,gt)%Q(2) = chi(mat(n),gt) * sfx1(n)/Keff + sx1(n)
-    nod(n,gt)%Q(3) = chi(mat(n),gt) * sfy1(n)/Keff + sy1(n)
-    nod(n,gt)%Q(4) = chi(mat(n),gt) * sfz1(n)/Keff + sz1(n)
-    nod(n,gt)%Q(5) = chi(mat(n),gt) * sfx2(n)/Keff + sx2(n)
-    nod(n,gt)%Q(6) = chi(mat(n),gt) * sfy2(n)/Keff + sy2(n)
-    nod(n,gt)%Q(7) = chi(mat(n),gt) * sfz2(n)/Keff + sz2(n)
+    nod(n,g)%Q(1) = chi(mat(n),g) * sf0(n)/Keff  + s0(n)
+    nod(n,g)%Q(2) = chi(mat(n),g) * sfx1(n)/Keff + sx1(n)
+    nod(n,g)%Q(3) = chi(mat(n),g) * sfy1(n)/Keff + sy1(n)
+    nod(n,g)%Q(4) = chi(mat(n),g) * sfz1(n)/Keff + sz1(n)
+    nod(n,g)%Q(5) = chi(mat(n),g) * sfx2(n)/Keff + sx2(n)
+    nod(n,g)%Q(6) = chi(mat(n),g) * sfy2(n)/Keff + sy2(n)
+    nod(n,g)%Q(7) = chi(mat(n),g) * sfz2(n)/Keff + sz2(n)
 END DO
 
 END SUBROUTINE TSrc
 
 
-SUBROUTINE TSrcFx(gt, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
+SUBROUTINE TSrcFx(g, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
                       s0,  sx1,  sy1,  sz1,  sx2,  sy2 , sz2   )
 !
 ! Purpose:
@@ -1341,7 +1338,7 @@ USE sdata, ONLY: nod, chi, mat, nnod, exsrc
 
 IMPLICIT NONE
 
-INTEGER, INTENT(IN) :: gt
+INTEGER, INTENT(IN) :: g
 REAL, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1
 REAL, DIMENSION(:), INTENT(IN) :: sfx2, sfy2, sfz2
 REAL, DIMENSION(:), INTENT(IN) :: s0, sx1, sy1, sz1
@@ -1350,36 +1347,35 @@ REAL, DIMENSION(:), INTENT(IN) :: sx2, sy2, sz2
 INTEGER :: n
 
 DO n = 1, nnod
-    nod(n,gt)%Q(1) = chi(mat(n),gt) * sf0(n)  + s0(n)  + exsrc(n,gt)
-    nod(n,gt)%Q(2) = chi(mat(n),gt) * sfx1(n) + sx1(n)
-    nod(n,gt)%Q(3) = chi(mat(n),gt) * sfy1(n) + sy1(n)
-    nod(n,gt)%Q(4) = chi(mat(n),gt) * sfz1(n) + sz1(n)
-    nod(n,gt)%Q(5) = chi(mat(n),gt) * sfx2(n) + sx2(n)
-    nod(n,gt)%Q(6) = chi(mat(n),gt) * sfy2(n) + sy2(n)
-    nod(n,gt)%Q(7) = chi(mat(n),gt) * sfz2(n) + sz2(n)
+    nod(n,g)%Q(1) = chi(mat(n),g) * sf0(n)  + s0(n)  + exsrc(n,g)
+    nod(n,g)%Q(2) = chi(mat(n),g) * sfx1(n) + sx1(n)
+    nod(n,g)%Q(3) = chi(mat(n),g) * sfy1(n) + sy1(n)
+    nod(n,g)%Q(4) = chi(mat(n),g) * sfz1(n) + sz1(n)
+    nod(n,g)%Q(5) = chi(mat(n),g) * sfx2(n) + sx2(n)
+    nod(n,g)%Q(6) = chi(mat(n),g) * sfy2(n) + sy2(n)
+    nod(n,g)%Q(7) = chi(mat(n),g) * sfz2(n) + sz2(n)
 END DO
 
 END SUBROUTINE TSrcFx
 
 
-SUBROUTINE TSrcT(gt, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
-                      s0,  sx1,  sy1,  sz1,  sx2,  sy2 , sz2, &
-                      h, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2)
+SUBROUTINE TSrcT(g, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
+                      s0,  sx1,  sy1,  sz1,  sx2,  sy2 , sz2, h)
 !
 ! Purpose:
 !   To update total source for transient calcs. with exponetial transformation
 !
 
 USE sdata, ONLY: nod, chi, mat, nnod, tbeta, velo, lamb, iBeta, nf, omeg, &
-c0, cx1, cy1, cz1, cx2, cy2, cz2
+                 c0, cx1, cy1, cz1, cx2, cy2, cz2, &
+                 ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2
 
 IMPLICIT NONE
 
-INTEGER, INTENT(IN) :: gt
+INTEGER, INTENT(IN) :: g
 REAL, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2
 REAL, DIMENSION(:), INTENT(IN) :: s0, sx1, sy1, sz1, sx2, sy2, sz2
 REAL, INTENT(IN) :: h
-REAL, DIMENSION(:), INTENT(IN) :: ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2
 
 REAL :: dt, dtx1, dty1, dtz1, dtx2, dty2, dtz2, lat, dfis
 INTEGER :: n, i
@@ -1389,36 +1385,36 @@ DO n = 1, nnod
      dfis = 0.
      DO i = 1, nf
         lat = 1. + lamb(i) * h
-        dt = dt  + lamb(i) * c0(i,n) / lat
-        dtx1 = dtx1 + lamb(i) * cx1(i,n) / lat
-        dty1 = dty1 + lamb(i) * cy1(i,n) / lat
-        dtz1 = dtz1 + lamb(i) * cz1(i,n) / lat
-        dtx2 = dtx2 + lamb(i) * cx2(i,n) / lat
-        dty2 = dty2 + lamb(i) * cy2(i,n) / lat
-        dtz2 = dtz2 + lamb(i) * cz2(i,n) / lat
-        dfis = dfis + chi(mat(n),gt) * iBeta(i) * lamb(i) * h / lat
+        dt = dt  + lamb(i) * c0(n,i) / lat
+        dtx1 = dtx1 + lamb(i) * cx1(n,i) / lat
+        dty1 = dty1 + lamb(i) * cy1(n,i) / lat
+        dtz1 = dtz1 + lamb(i) * cz1(n,i) / lat
+        dtx2 = dtx2 + lamb(i) * cx2(n,i) / lat
+        dty2 = dty2 + lamb(i) * cy2(n,i) / lat
+        dtz2 = dtz2 + lamb(i) * cz2(n,i) / lat
+        dfis = dfis + chi(mat(n),g) * iBeta(i) * lamb(i) * h / lat
     END DO
 
-    nod(n,gt)%Q(1) = ((1. - tbeta) * chi(mat(n),gt) + dfis) * sf0(n)  &
-    + s0(n) + chi(mat(n),gt) * dt + ft(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
-    nod(n,gt)%Q(2) = ((1. - tbeta) * chi(mat(n),gt) + dfis) * sfx1(n)  &
-    + sx1(n) + chi(mat(n),gt) * dtx1 + ftx1(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
-    nod(n,gt)%Q(3) = ((1. - tbeta) * chi(mat(n),gt) + dfis) * sfy1(n)  &
-    + sy1(n) + chi(mat(n),gt) * dty1 + fty1(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
-    nod(n,gt)%Q(4) = ((1. - tbeta) * chi(mat(n),gt) + dfis) * sfz1(n)  &
-    + sz1(n) + chi(mat(n),gt) * dtz1 + ftz1(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
-    nod(n,gt)%Q(5) = ((1. - tbeta) * chi(mat(n),gt) + dfis) * sfx2(n)  &
-    + sx2(n) + chi(mat(n),gt) * dtx2 + ftx2(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
-    nod(n,gt)%Q(6) = ((1. - tbeta) * chi(mat(n),gt) + dfis) * sfy2(n)  &
-    + sy2(n) + chi(mat(n),gt) * dty2 + fty2(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
-    nod(n,gt)%Q(7) = ((1. - tbeta) * chi(mat(n),gt) + dfis) * sfz2(n)  &
-    + sz2(n) + chi(mat(n),gt) * dtz2 + ftz2(n)  * EXP(omeg(n,gt) * h) / (velo(gt) * h)
+    nod(n,g)%Q(1) = ((1. - tbeta) * chi(mat(n),g) + dfis) * sf0(n)  &
+    + s0(n) + chi(mat(n),g) * dt + ft(n,g)  * EXP(omeg(n,g) * h) / (velo(g) * h)
+    nod(n,g)%Q(2) = ((1. - tbeta) * chi(mat(n),g) + dfis) * sfx1(n)  &
+    + sx1(n) + chi(mat(n),g) * dtx1 + ftx1(n,g)  * EXP(omeg(n,g) * h) / (velo(g) * h)
+    nod(n,g)%Q(3) = ((1. - tbeta) * chi(mat(n),g) + dfis) * sfy1(n)  &
+    + sy1(n) + chi(mat(n),g) * dty1 + fty1(n,g)  * EXP(omeg(n,g) * h) / (velo(g) * h)
+    nod(n,g)%Q(4) = ((1. - tbeta) * chi(mat(n),g) + dfis) * sfz1(n)  &
+    + sz1(n) + chi(mat(n),g) * dtz1 + ftz1(n,g)  * EXP(omeg(n,g) * h) / (velo(g) * h)
+    nod(n,g)%Q(5) = ((1. - tbeta) * chi(mat(n),g) + dfis) * sfx2(n)  &
+    + sx2(n) + chi(mat(n),g) * dtx2 + ftx2(n,g)  * EXP(omeg(n,g) * h) / (velo(g) * h)
+    nod(n,g)%Q(6) = ((1. - tbeta) * chi(mat(n),g) + dfis) * sfy2(n)  &
+    + sy2(n) + chi(mat(n),g) * dty2 + fty2(n,g)  * EXP(omeg(n,g) * h) / (velo(g) * h)
+    nod(n,g)%Q(7) = ((1. - tbeta) * chi(mat(n),g) + dfis) * sfz2(n)  &
+    + sz2(n) + chi(mat(n),g) * dtz2 + ftz2(n,g)  * EXP(omeg(n,g) * h) / (velo(g) * h)
 END DO
 
 END SUBROUTINE TSrcT
 
 
-SUBROUTINE TSrcAd(gt, Keff, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
+SUBROUTINE TSrcAd(g, Keff, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
                           s0,  sx1,  sy1,  sz1,  sx2,  sy2 , sz2   )
 !
 ! Purpose:
@@ -1429,7 +1425,7 @@ USE sdata, ONLY: nod, nuf, nnod
 
 IMPLICIT NONE
 
-INTEGER, INTENT(IN) :: gt
+INTEGER, INTENT(IN) :: g
 REAL, INTENT(IN)    :: Keff
 REAL, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1
 REAL, DIMENSION(:), INTENT(IN) :: sfx2, sfy2, sfz2
@@ -1439,19 +1435,19 @@ REAL, DIMENSION(:), INTENT(IN) :: sx2, sy2, sz2
 INTEGER :: n
 
 DO n = 1, nnod
-    nod(n,gt)%Q(1) = nuf(n,gt) * sf0(n)/Keff  + s0(n)
-    nod(n,gt)%Q(2) = nuf(n,gt) * sfx1(n)/Keff + sx1(n)
-    nod(n,gt)%Q(3) = nuf(n,gt) * sfy1(n)/Keff + sy1(n)
-    nod(n,gt)%Q(4) = nuf(n,gt) * sfz1(n)/Keff + sz1(n)
-    nod(n,gt)%Q(5) = nuf(n,gt) * sfx2(n)/Keff + sx2(n)
-    nod(n,gt)%Q(6) = nuf(n,gt) * sfy2(n)/Keff + sy2(n)
-    nod(n,gt)%Q(7) = nuf(n,gt) * sfz2(n)/Keff + sz2(n)
+    nod(n,g)%Q(1) = nuf(n,g) * sf0(n)/Keff  + s0(n)
+    nod(n,g)%Q(2) = nuf(n,g) * sfx1(n)/Keff + sx1(n)
+    nod(n,g)%Q(3) = nuf(n,g) * sfy1(n)/Keff + sy1(n)
+    nod(n,g)%Q(4) = nuf(n,g) * sfz1(n)/Keff + sz1(n)
+    nod(n,g)%Q(5) = nuf(n,g) * sfx2(n)/Keff + sx2(n)
+    nod(n,g)%Q(6) = nuf(n,g) * sfy2(n)/Keff + sy2(n)
+    nod(n,g)%Q(7) = nuf(n,g) * sfz2(n)/Keff + sz2(n)
 END DO
 
 END SUBROUTINE TSrcAd
 
 
-SUBROUTINE LxyzUpd (nt,gt)
+SUBROUTINE LxyzUpd (nt,g)
 
 USE sdata, ONLY: nod
 
@@ -1460,14 +1456,14 @@ USE sdata, ONLY: nod
 
 IMPLICIT NONE
 
-INTEGER, INTENT(IN) :: gt, nt
+INTEGER, INTENT(IN) :: g, nt
 
-nod(nt,gt)%L(1) = nod(nt,gt)%jo(1) - nod(nt,gt)%ji(1) &
-                - nod(nt,gt)%ji(2) + nod(nt,gt)%jo(2)
-nod(nt,gt)%L(2) = nod(nt,gt)%jo(3) - nod(nt,gt)%ji(3) &
-                - nod(nt,gt)%ji(4) + nod(nt,gt)%jo(4)
-nod(nt,gt)%L(3) = nod(nt,gt)%jo(5) - nod(nt,gt)%ji(5) &
-                - nod(nt,gt)%ji(6) + nod(nt,gt)%jo(6)
+nod(nt,g)%L(1) = nod(nt,g)%jo(1) - nod(nt,g)%ji(1) &
+                - nod(nt,g)%ji(2) + nod(nt,g)%jo(2)
+nod(nt,g)%L(2) = nod(nt,g)%jo(3) - nod(nt,g)%ji(3) &
+                - nod(nt,g)%ji(4) + nod(nt,g)%jo(4)
+nod(nt,g)%L(3) = nod(nt,g)%jo(5) - nod(nt,g)%ji(5) &
+                - nod(nt,g)%ji(6) + nod(nt,g)%jo(6)
 
 END SUBROUTINE LxyzUpd
 
@@ -1607,7 +1603,7 @@ END DO
 END SUBROUTINE nodal_coup4
 
 
-SUBROUTINE inverse (gt, nt, mat)
+SUBROUTINE inverse (g, nt, mat)
 
 !
 ! Purpose:
@@ -1620,7 +1616,7 @@ USE sdata,   ONLY: ix, iy, iz
 IMPLICIT NONE
 
 REAL, DIMENSION(:,:), INTENT(INOUT) :: mat
-INTEGER, INTENT(IN) :: gt, nt
+INTEGER, INTENT(IN) :: g, nt
 
 REAL, DIMENSION(6,6) :: L, U, imat, pmat
 REAL, DIMENSION(6) :: y
@@ -1635,7 +1631,7 @@ L = 0.0
 DO i= 1, 6
     IF (ABS(mat(i,i)) < 10e-3) THEN
       WRITE(ounit,*) 'ERROR IN MATRIX DECOMP: DIAGONAL ELEMENTS CLOSE TO ZERO'
-      WRITE(ounit,2001) gt, ix(nt), iy(nt), iz(nt)
+      WRITE(ounit,2001) g, ix(nt), iy(nt), iz(nt)
       STOP
     END IF
     L(i,i) = 1.0
@@ -1658,7 +1654,7 @@ DO i = 1,6
         END DO
         IF (ABS(mat(i,j)-isum)/ABS(mat(i,j)) > 1.e-3) THEN
             WRITE(ounit,*) 'ERROR IN MATRIX DECOMP: DECOMPOSITION FAILED'
-            WRITE(ounit,2001) gt, ix(nt), iy(nt), iz(nt)
+            WRITE(ounit,2001) g, ix(nt), iy(nt), iz(nt)
             STOP
         END IF
     END DO
@@ -1703,7 +1699,7 @@ DO i = 1,6
         END DO
         IF (ABS(imat(i,j)-isum) > 1.e-4) THEN
             WRITE(ounit,*) 'ERROR IN MATRIX INVERSION'
-            WRITE(ounit,2001) gt, ix(nt), iy(nt), iz(nt)
+            WRITE(ounit,2001) g, ix(nt), iy(nt), iz(nt)
             STOP
         END IF
     END DO
@@ -1954,8 +1950,8 @@ REAL :: tpow, pow
 p = 0.0
 DO g= 1, ng
     DO n= 1, nnod
-	    pow = f0(n,g) * sigf(n,g) * vdel(n)
-		IF (pow < 0.) pow = 0.
+       pow = f0(n,g) * sigf(n,g) * vdel(n)
+    IF (pow < 0.) pow = 0.
         p(n) = p(n) + pow
     END DO
 END DO

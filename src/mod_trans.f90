@@ -26,13 +26,13 @@ USE sdata, ONLY: ng, nnod, sigr, nf, &
                  fbpos, bpos, tmove, bspeed, mdir, nb, velo, iBeta, &
                  f0, fx1, fy1, fz1, fx2, fy2, fz2, &
                  fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
-                 c0, cx1, cy1, cz1, cx2, cy2, cz2, tbeta, omeg, tranw
+                 c0, cx1, cy1, cz1, cx2, cy2, cz2, tbeta, omeg, tranw, &
+                 ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2
 USE InpOutp, ONLY: XS_updt, ounit
 USE nodal, ONLY: nodal_coup4, outer4, outertf, outer4ad, PowTot, Fsrc
 
 IMPLICIT NONE
 
-REAL, DIMENSION(nnod, ng) :: ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2  ! Flux at previous time step
 REAL, DIMENSION(nnod, ng) :: af                                      ! adjoint flux
 REAL, DIMENSION(nnod, ng) :: sigrp                                   ! Temporary sigr
 
@@ -44,8 +44,12 @@ INTEGER :: n, i, j, g, imax, step
 LOGICAL :: maxi   ! Maximum Outer Iteration Reached?
 
 ! Allocate precusor density
-ALLOCATE (c0(nf,nnod),cx1(nf,nnod),cy1(nf,nnod),cz1(nf,nnod))
-ALLOCATE (cx2(nf,nnod),cy2(nf,nnod),cz2(nf,nnod))
+ALLOCATE (c0(nnod,nf),cx1(nnod,nf),cy1(nnod,nf),cz1(nnod,nf))
+ALLOCATE (cx2(nnod,nf),cy2(nnod,nf),cz2(nnod,nf))
+
+! Allocate variables in previous time step
+ALLOCATE (ft(nnod,ng),ftx1(nnod,ng),fty1(nnod,ng),ftz1(nnod,ng))
+ALLOCATE (ftx2(nnod,ng),fty2(nnod,ng),ftz2(nnod,ng))
 
 ! Allocate Frequency transformation constant
 ALLOCATE (omeg(nnod,ng))
@@ -163,7 +167,7 @@ DO i = 1, imax
 
     ! Transient calculation
     CALL nodal_coup4()
-    CALL outertf(tstep1, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2, maxi)
+    CALL outertf(tstep1, maxi)
 
     ! Update fission source
     fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
@@ -240,7 +244,7 @@ DO i = 1, imax
 
     ! Transient calculation
     CALL nodal_coup4()
-    CALL outertf(tstep2, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2, maxi)
+    CALL outertf(tstep2, maxi)
 
     ! Update fission source
     fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
@@ -289,14 +293,14 @@ USE sdata, ONLY: ng, nnod, sigr, nf, &
                  f0, fx1, fy1, fz1, fx2, fy2, fz2, &
                  fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
                  c0, cx1, cy1, cz1, cx2, cy2, cz2, tbeta, omeg, &
-                 npow, pow, ppow, node_nf, ix, iy, iz, zdel, tranw
+                 npow, pow, ppow, node_nf, ix, iy, iz, zdel, tranw, &
+                 ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2
 USE InpOutp, ONLY: XS_updt, ounit
 USE nodal, ONLY: nodal_coup4, outer4, outertf, outer4ad, PowTot, powdis, Fsrc
 USE th, ONLY: th_iter, th_trans, par_ave, par_max, par_ave_f
 
 IMPLICIT NONE
 
-REAL, DIMENSION(nnod, ng) :: ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2  ! Flux at previous time step
 REAL, DIMENSION(nnod, ng) :: af                                      ! adjoint flux
 REAL, DIMENSION(nnod, ng) :: sigrp                                   ! Temporary sigr
 
@@ -315,8 +319,12 @@ LOGICAL :: maxi
 ALLOCATE(npow(nnod))
 
 ! Allocate precusor density
-ALLOCATE (c0(nf,nnod),cx1(nf,nnod),cy1(nf,nnod),cz1(nf,nnod))
-ALLOCATE (cx2(nf,nnod),cy2(nf,nnod),cz2(nf,nnod))
+ALLOCATE (c0(nnod,nf),cx1(nnod,nf),cy1(nnod,nf),cz1(nnod,nf))
+ALLOCATE (cx2(nnod,nf),cy2(nnod,nf),cz2(nnod,nf))
+
+! Allocate variables in previous time step
+ALLOCATE (ft(nnod,ng),ftx1(nnod,ng),fty1(nnod,ng),ftz1(nnod,ng))
+ALLOCATE (ftx2(nnod,ng),fty2(nnod,ng),ftz2(nnod,ng))
 
 ! Allocate Frequency transformation constant
 ALLOCATE (omeg(nnod,ng))
@@ -435,7 +443,7 @@ DO i = 1, imax
 
     ! Transient calculation
     CALL nodal_coup4()
-    CALL outertf(tstep1, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2, maxi)
+    CALL outertf(tstep1, maxi)
 
     ! Update fission source
     fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
@@ -537,7 +545,7 @@ DO i = 1, imax
 
     ! Transient calculation
     CALL nodal_coup4()
-    CALL outertf(tstep2, ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2, maxi)
+    CALL outertf(tstep2, maxi)
 
     ! Update fission source
     fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
@@ -647,13 +655,13 @@ INTEGER :: n, j
 
 DO n = 1, nnod
    DO j = 1, nf
-      c0(j,n) = iBeta(j) * fs0(n) / lamb(j)
-      cx1(j,n) = iBeta(j) * fsx1(n) / lamb(j)
-      cy1(j,n) = iBeta(j) * fsy1(n) / lamb(j)
-      cz1(j,n) = iBeta(j) * fsz1(n) / lamb(j)
-      cx2(j,n) = iBeta(j) * fsx2(n) / lamb(j)
-      cy2(j,n) = iBeta(j) * fsy2(n) / lamb(j)
-      cz2(j,n) = iBeta(j) * fsz2(n) / lamb(j)
+      c0(n,j) = iBeta(j) * fs0(n) / lamb(j)
+      cx1(n,j) = iBeta(j) * fsx1(n) / lamb(j)
+      cy1(n,j) = iBeta(j) * fsy1(n) / lamb(j)
+      cz1(n,j) = iBeta(j) * fsz1(n) / lamb(j)
+      cx2(n,j) = iBeta(j) * fsx2(n) / lamb(j)
+      cy2(n,j) = iBeta(j) * fsy2(n) / lamb(j)
+      cz2(n,j) = iBeta(j) * fsz2(n) / lamb(j)
    END DO
 END DO
 
@@ -681,13 +689,13 @@ INTEGER :: n, j
 DO n = 1, nnod
    DO j = 1, nf
       lat = (1. + lamb(j) * h)
-      c0(j,n) = (c0(j,n) + iBeta(j) * h * fs0(n)) / lat
-      cx1(j,n) = (cx1(j,n) + iBeta(j) * h * fsx1(n)) / lat
-      cy1(j,n) = (cy1(j,n) + iBeta(j) * h * fsy1(n)) / lat
-      cz1(j,n) = (cz1(j,n) + iBeta(j) * h * fsz1(n)) / lat
-      cx2(j,n) = (cx2(j,n) + iBeta(j) * h * fsx2(n)) / lat
-      cy2(j,n) = (cy2(j,n) + iBeta(j) * h * fsy2(n)) / lat
-      cz2(j,n) = (cz2(j,n) + iBeta(j) * h * fsz2(n)) / lat
+      c0(n,j) = (c0(n,j) + iBeta(j) * h * fs0(n)) / lat
+      cx1(n,j) = (cx1(n,j) + iBeta(j) * h * fsx1(n)) / lat
+      cy1(n,j) = (cy1(n,j) + iBeta(j) * h * fsy1(n)) / lat
+      cz1(n,j) = (cz1(n,j) + iBeta(j) * h * fsz1(n)) / lat
+      cx2(n,j) = (cx2(n,j) + iBeta(j) * h * fsx2(n)) / lat
+      cy2(n,j) = (cy2(n,j) + iBeta(j) * h * fsy2(n)) / lat
+      cz2(n,j) = (cz2(n,j) + iBeta(j) * h * fsz2(n)) / lat
    END DO
 END DO
 
