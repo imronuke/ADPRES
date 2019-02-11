@@ -122,6 +122,12 @@ DO i = 1, imax
     t1 = t2
     t2 = REAL(i)*tstep1
 
+    IF (i > 1) THEN
+       omeg = LOG(f0 / ft) / tstep1
+    ELSE
+       omeg = 0.
+    END IF
+
     ! Rod bank changes
     DO n = 1, nb
         IF (mdir(n) == 1) THEN   ! If CR moving down
@@ -144,21 +150,11 @@ DO i = 1, imax
 
     ! Modify removal xsec
     sigrp = sigr    ! Save sigr to sigrp
-    IF (i > 1) THEN
-      DO g = 1, ng
-         DO n = 1, nnod
-           omeg(n,g) = LOG(f0(n,g) / ft(n,g)) / tstep1
-           sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep1) + omeg(n,g) / velo(g)
-         END DO
-      END DO
-    ELSE
-       DO g = 1, ng
-          DO n = 1, nnod
-             omeg(n,g) = 0.
-             sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep1)
-          END DO
+    DO g = 1, ng
+       DO n = 1, nnod
+          sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep1) + omeg(n,g) / velo(g)
        END DO
-    END IF
+    END DO
 
     ! Save the previous flux and DN precusor density
     ft = f0
@@ -208,6 +204,8 @@ DO i = 1, imax
     t1 = t2
     t2 = tdiv + REAL(i)*tstep2
 
+    omeg = LOG(f0 / ft) / tstep2
+
     ! Rod bank changes
     DO n = 1, nb
         IF (mdir(n) == 1) THEN   ! If CR moving down
@@ -229,11 +227,10 @@ DO i = 1, imax
     CALL XS_updt(bcon, ftem, mtem, cden, bpos)
 
     ! Modify removal xsec
-    sigrp = sigr
+    sigrp = sigr    ! Save sigr to sigrp
     DO g = 1, ng
        DO n = 1, nnod
-          omeg(n,g) = 0.
-          sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep2)
+          sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep2) + omeg(n,g) / velo(g)
        END DO
     END DO
 
@@ -357,9 +354,6 @@ DO j = 1, nf
   tbeta = tbeta + iBeta(j)
 END DO
 
-! ReCalculate forward flux
-! CALL outer4(0)
-
 ! Calculate reactivity
 CALL react(af, sigr, rho)
 
@@ -394,47 +388,43 @@ imax = NINT(tdiv/tstep1)
 ! First Time Step
 DO i = 1, imax
 
-    step = step + 1
-    t1 = t2
-    t2 = REAL(i)*tstep1
+  step = step + 1
+  t1 = t2
+  t2 = REAL(i)*tstep1
 
-    ! Rod bank changes
-    DO n = 1, nb
-        IF (mdir(n) == 1) THEN   ! If CR moving down
-            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
-                bpos(n) = bpos(n) - tstep1 *  bspeed(n)
-                IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
-            END IF
-        ELSE IF (mdir(n) == 2) THEN ! If CR moving up
-            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
-                bpos(n) = bpos(n) + tstep1 *  bspeed(n)
-                IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
-            END IF
-        ELSE
-            CONTINUE
-        END IF
-     END DO
+  IF (i > 1) THEN
+     omeg = LOG(f0 / ft) / tstep1
+  ELSE
+     omeg = 0.
+  END IF
 
-    ! Calculate xsec after pertubation
-    CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+  ! Rod bank changes
+  DO n = 1, nb
+      IF (mdir(n) == 1) THEN   ! If CR moving down
+          IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
+              bpos(n) = bpos(n) - tstep1 *  bspeed(n)
+              IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
+          END IF
+      ELSE IF (mdir(n) == 2) THEN ! If CR moving up
+          IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
+              bpos(n) = bpos(n) + tstep1 *  bspeed(n)
+              IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
+          END IF
+      ELSE
+          CONTINUE
+      END IF
+   END DO
 
-    ! Modify removal xsec
-    sigrp = sigr
-    IF (i > 1) THEN
-      DO g = 1, ng
-         DO n = 1, nnod
-           omeg(n,g) = LOG(f0(n,g) / ft(n,g)) / tstep1
-           sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep1) + omeg(n,g) / velo(g)
-         END DO
-      END DO
-    ELSE
-       DO g = 1, ng
-          DO n = 1, nnod
-             omeg(n,g) = 0.
-             sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep1)
-          END DO
+  ! Calculate xsec after pertubation
+   CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+
+  ! Modify removal xsec
+  sigrp = sigr    ! Save sigr to sigrp
+    DO g = 1, ng
+       DO n = 1, nnod
+          sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep1) + omeg(n,g) / velo(g)
        END DO
-    END IF
+    END DO
 
     ! Save the previous flux and DN precusor density
     ft = f0
@@ -505,36 +495,37 @@ imax = NINT((ttot-tdiv)/tstep2)
 
 DO i = 1, imax
 
-    step = step + 1
-    t1 = t2
-    t2 = tdiv + REAL(i)*tstep2
+  step = step + 1
+  t1 = t2
+  t2 = tdiv + REAL(i)*tstep2
 
-    ! Rod bank changes
-    DO n = 1, nb
-        IF (mdir(n) == 1) THEN   ! If CR moving down
-            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
-                bpos(n) = bpos(n) - tstep2 *  bspeed(n)
-                IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
-            END IF
-        ELSE IF (mdir(n) == 2) THEN ! If CR moving up
-            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
-                bpos(n) = bpos(n) + tstep2 *  bspeed(n)
-                IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
-            END IF
-        ELSE
-            CONTINUE
-        END IF
-     END DO
+  omeg = LOG(f0 / ft) / tstep2
 
-    ! Calculate xsec after pertubation
-    CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+  ! Rod bank changes
+  DO n = 1, nb
+      IF (mdir(n) == 1) THEN   ! If CR moving down
+          IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
+              bpos(n) = bpos(n) - tstep2 *  bspeed(n)
+              IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
+          END IF
+      ELSE IF (mdir(n) == 2) THEN ! If CR moving up
+          IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
+              bpos(n) = bpos(n) + tstep2 *  bspeed(n)
+              IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
+          END IF
+      ELSE
+          CONTINUE
+      END IF
+   END DO
 
-    ! Modify removal xsec
-    sigrp = sigr
+  ! Calculate xsec after pertubation
+   CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+
+  ! Modify removal xsec
+    sigrp = sigr    ! Save sigr to sigrp
     DO g = 1, ng
        DO n = 1, nnod
-          omeg(n,g) = 0.
-          sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep2)
+          sigr(n,g) = sigr(n,g) + 1. / (velo(g) * tstep2) + omeg(n,g) / velo(g)
        END DO
     END DO
 
