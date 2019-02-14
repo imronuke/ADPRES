@@ -156,7 +156,7 @@ DO i = 1, imax
        END DO
     END DO
 
-    ! Save the previous flux and DN precusor density
+    ! Save the previous fluxes
     ft = f0
     ftx1 = fx1; fty1 = fy1; ftz1 = fz1
     ftx2 = fx2; fty2 = fy2; ftz2 = fz2
@@ -234,7 +234,7 @@ DO i = 1, imax
        END DO
     END DO
 
-    ! Save the previous flux and DN precusor density
+    ! Save the previous fluxes
     ft = f0
     ftx1 = fx1; fty1 = fy1; ftz1 = fz1
     ftx2 = fx2; fty2 = fy2; ftz2 = fz2
@@ -426,7 +426,7 @@ DO i = 1, imax
        END DO
     END DO
 
-    ! Save the previous flux and DN precusor density
+    ! Save the previous fluxes
     ft = f0
     ftx1 = fx1; fty1 = fy1; ftz1 = fz1
     ftx2 = fx2; fty2 = fy2; ftz2 = fz2
@@ -529,7 +529,7 @@ DO i = 1, imax
        END DO
     END DO
 
-    ! Save the previous flux and DN precusor density
+    ! Save the previous fluxes
     ft = f0
     ftx1 = fx1; fty1 = fy1; ftz1 = fz1
     ftx2 = fx2; fty2 = fy2; ftz2 = fz2
