@@ -68,9 +68,9 @@ REAL :: ferc = 1.e-5    ! Flux Error Criteria
 REAL :: serc = 1.e-5    ! Fission source Error CRITERIA
 REAL :: ierc = 1.e-5    ! Inner Iteration Error Criteria
 REAL :: fer, ser        ! Flux and Fission source error in BCSEARCH calcs.
-INTEGER :: nin = 2
-INTEGER :: nout = 500
-INTEGER :: nac = 5
+INTEGER :: nin = 2      ! Maximum inner iteration
+INTEGER :: nout = 500   ! Maximum outer iteration
+INTEGER :: nac = 5      ! number of outer iteration before next source EXTRAPOLATION
 INTEGER :: th_niter = 50                           ! Maximum number of thermal-hydraulics iteration
 
 ! OUTPUT PRINT OPTION
