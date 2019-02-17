@@ -553,7 +553,7 @@ INTEGER :: l, n
 REAL, DIMENSION(6) :: bvec, qvec
 
 ! Transverse Leakage Moments(0, Lx1, Ly1, Lz2, Lx2, Ly2, Lz3)
-REAL, DIMENSION(7) :: Lm
+REAL, DIMENSION(nnod,7) :: Lm
 
 ! To store old fluxes
 REAL, DIMENSION(nnod) :: flxc
@@ -565,6 +565,7 @@ DO l = 1, nin
     flxc = f0(:,g)
     DO n = 1, nnod
 
+            ! Calculate ingoing partial currents from neighborhod nodes
             IF (ix(n) == ystag(iy(n))%smax) THEN                          ! East (X+) BC
                 CALL bcond(xeast, n, g, 1)
             ELSE
@@ -615,23 +616,27 @@ DO l = 1, nin
 
 
             ! Update transverse leakage moments
-            CALL TLUpd (n, g, Lm)
+            CALL TLUpd (n, g, Lm(n,:))
+      END DO
 
+      DO n = 1, nnod
             CALL matvec(nod(n,g)%P, nod(n,g)%ji, bvec)
 
-            CALL matvec(nod(n,g)%R, nod(n,g)%Q - Lm, qvec)
+            CALL matvec(nod(n,g)%R, nod(n,g)%Q - Lm(n,:), qvec)
 
+            ! Update outgoing partial currents
             nod(n,g)%jo = qvec+bvec
 
             ! Update zeroth transverse leakages
             CALL LxyzUpd(n,g)
 
             ! Update flux and flux moments
-            CALL FluxUpd4(n, g, Lm)
+            CALL FluxUpd4(n, g, Lm(n,:))
     END DO
 
     DO n = nnod,1,-1
 
+            ! Calculate ingoing partial currents from neighborhod nodes
             IF (ix(n) == ystag(iy(n))%smax) THEN                          ! East (X+) BC
                 CALL bcond(xeast, n, g, 1)
             ELSE
@@ -682,19 +687,23 @@ DO l = 1, nin
 
 
             ! Update transverse leakage moments
-            CALL TLUpd (n, g, Lm)
+            CALL TLUpd (n, g, Lm(n,:))
 
+      END DO
+
+      DO n = nnod,1,-1
             CALL matvec(nod(n,g)%P, nod(n,g)%ji, bvec)
 
-            CALL matvec(nod(n,g)%R, nod(n,g)%Q - Lm, qvec)
+            CALL matvec(nod(n,g)%R, nod(n,g)%Q - Lm(n,:), qvec)
 
+            ! Update outgoing partial currents
             nod(n,g)%jo = qvec+bvec
 
             ! Update zeroth transverse leakages
             CALL LxyzUpd(n,g)
 
             ! Update flux and flux moments
-            CALL FluxUpd4(n, g, Lm)
+            CALL FluxUpd4(n, g, Lm(n,:))
     END DO
 
     CALL RelE(f0(:,g), flxc, fer)
