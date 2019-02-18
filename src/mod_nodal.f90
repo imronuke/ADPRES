@@ -1843,8 +1843,6 @@ ELSE
     DO g= 1, ng
         DO n = 1, nnod
             nod(n,g)%jo = 1.0
-            nod(n,g)%ji = 1.0
-            nod(n,g)%Q  = 0.0
 
             CALL LxyzUpd(n,g)
 
