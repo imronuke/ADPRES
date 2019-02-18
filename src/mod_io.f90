@@ -2215,7 +2215,7 @@ REAL :: a1, a2, a3, a4, x, tx, f1, f2
 DO j = 1, nyy
   DO i = 1, nxx
      IF (fbmap(i,j) > 0) THEN
-        !!!(rodh -> posistion the tip of the control from the top of core)
+        !!!(rodh -> posistion the tip of the control rod the top of core)
          rodh = coreh - pos0  - bpos(fbmap(i,j))*ssize
          dum = 0.d0
          DO k = nzz, 1, -1
