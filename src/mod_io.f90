@@ -28,6 +28,7 @@ INTEGER, PARAMETER :: uftem = 123, umtem = 124, ucden = 125
 INTEGER, PARAMETER :: ucbcs = 126, uejct = 127, uther = 128
 INTEGER :: bunit
 
+! Card active/inactive indicator
 INTEGER :: bmode = 0, bxsec = 0, bgeom = 0, bcase = 0, besrc = 0
 INTEGER :: bwrst = 0, brrst = 0, biter = 0, bprnt = 0, badf  = 0
 INTEGER :: bcrod = 0, bbcon = 0, bftem = 0, bmtem = 0, bcden = 0
