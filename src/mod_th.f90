@@ -433,7 +433,7 @@ DO k = 1, nzz
 
             mdens = cden(xyz(i,j,k)) * 1000.                                    ! Coolant density (kg/m3)
             cpline = heatf(xyz(i,j,k)) * pi * dia  &
-                   + cf * xpline(xyz(i,j,k)) * 100. * farea / (pi *rf**2)       ! Coolant Linear power densisty (W/m)
+                   + cf * xpline(xyz(i,j,k)) * 100.       ! Coolant Linear power densisty (W/m)
             vol   = farea * zdel(k) * 0.01
             IF (k == 1) THEN                                                    ! Calculate coolant enthalpy
                 eps = 0.5 * mdens * vol
@@ -566,7 +566,7 @@ DO k = 1, nzz
         DO i = ystag(j)%smin, ystag(j)%smax
 
             cpline = heatf(xyz(i,j,k)) * pi * dia  &
-                   + cf * xpline(xyz(i,j,k)) * 100. * farea / (pi *rf**2)       ! Coolant Linear power densisty (W/m)
+                   + cf * xpline(xyz(i,j,k)) * 100.       ! Coolant Linear power densisty (W/m)
 
             IF (k == 1) THEN                                                    ! Calculate coolant enthalpy and
                 ent(xyz(i,j,k)) = enti + cpline * zdel(k) * 0.01 / cflow        ! corresponding temp and density
