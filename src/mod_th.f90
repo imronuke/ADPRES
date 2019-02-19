@@ -56,11 +56,12 @@ SUBROUTINE th_iter(ind)
       IF (th_err < 0.01) EXIT
 
   END DO
-
-  IF ((ind == 0) .AND. (l >= 20)) THEN
-       WRITE(ounit,*) '  MAXIMUM TH ITERATION REACHED.'
-       WRITE(ounit,*) '  CALCULATION MIGHT BE NOT CONVERGED OR CHANGE ITERATION CONTROL'
-       STOP
+  IF (PRESENT(ind)) THEN
+     IF ((ind == 0) .AND. (l >= 20)) THEN
+        WRITE(ounit,*) '  MAXIMUM TH ITERATION REACHED.'
+        WRITE(ounit,*) '  CALCULATION MIGHT BE NOT CONVERGED OR CHANGE ITERATION CONTROL'
+        STOP
+     END IF
   END IF
 
 
