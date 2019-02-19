@@ -21,16 +21,13 @@ SUBROUTINE th_iter(ind)
   IMPLICIT NONE
 
   INTEGER, INTENT(IN), OPTIONAL :: ind    ! if iteration reaching th_iter and ind = 0 then STOP
-  REAL, DIMENSION(nnod) :: pline
-  REAL, DIMENSION(nnod) :: otem
-  INTEGER :: n, niter
+  DOUBLE PRECISION, DIMENSION(nnod) :: pline
+  DOUBLE PRECISION, DIMENSION(nnod) :: otem
+  INTEGER :: n, l
 
   th_err = 1.
-  niter = 0
-  DO
-      niter = niter + 1
-
-      ! Save old moderator temp
+  DO l = 1, th_niter
+      ! Save old fuel temp
       otem = ftem
 
       ! Update XS
@@ -54,12 +51,13 @@ SUBROUTINE th_iter(ind)
       ! Update fuel, moderator temp. and coolant density
       CALL th_upd(pline)
 
-      th_err = MAXVAL(ABS(ftem - otem))
-      IF ((th_err < 0.01) .OR. (niter == th_niter)) EXIT
+      CALL AbsE(ftem, otem, th_err)
+      IF (th_err < 0.01) EXIT
+
   END DO
 
   IF (PRESENT(ind)) THEN
-    IF ((niter == th_niter) .AND. (ind == 0)) THEN
+    IF (ind == 0) THEN
        WRITE(ounit,*) '  MAXIMUM TH ITERATION REACHED.'
        WRITE(ounit,*) '  CALCULATION MIGHT BE NOT CONVERGED OR CHANGE ITERATION CONTROL'
        STOP
@@ -69,6 +67,34 @@ SUBROUTINE th_iter(ind)
 
 
 END SUBROUTINE th_iter
+
+
+SUBROUTINE AbsE(newF, oldF, rel)
+
+  !
+  ! Purpose:
+  !    To calculate Max Relative error
+
+USE sdata, ONLY: nnod
+
+IMPLICIT NONE
+
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: newF, oldF
+DOUBLE PRECISION, INTENT(OUT) :: rel
+
+DOUBLE PRECISION :: error
+INTEGER :: n
+
+rel = 0.
+
+DO n= 1, nnod
+    IF (ABS(newF(n)) > 1.d-10) THEN
+        error = ABS(newF(n) - oldF(n))
+        IF (error > rel) rel = error
+    END IF
+END DO
+
+END SUBROUTINE AbsE
 
 
 SUBROUTINE par_ave_f(par, ave)
@@ -81,9 +107,9 @@ USE sdata, ONLY: vdel, nnod, ng, nuf
 
 IMPLICIT NONE
 
-REAL, DIMENSION(:), INTENT(IN) :: par
-REAL, INTENT(OUT) :: ave
-REAL :: dum, dum2
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: par
+DOUBLE PRECISION, INTENT(OUT) :: ave
+DOUBLE PRECISION :: dum, dum2
 INTEGER :: n
 
 dum = 0.; dum2 = 0.
@@ -109,9 +135,9 @@ USE sdata, ONLY: vdel, nnod
 
 IMPLICIT NONE
 
-REAL, DIMENSION(:), INTENT(IN) :: par
-REAL, INTENT(OUT) :: ave
-REAL :: dum, dum2
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: par
+DOUBLE PRECISION, INTENT(OUT) :: ave
+DOUBLE PRECISION :: dum, dum2
 INTEGER :: n
 
 dum = 0.; dum2 = 0.
@@ -135,8 +161,8 @@ USE sdata, ONLY: nnod
 
 IMPLICIT NONE
 
-REAL, DIMENSION(:), INTENT(IN) :: par
-REAL, INTENT(OUT) :: pmax
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: par
+DOUBLE PRECISION, INTENT(OUT) :: pmax
 INTEGER :: n
 
 pmax = 0.
@@ -158,10 +184,10 @@ USE InpOutp, ONLY : ounit
 
 IMPLICIT NONE
 
-REAL, INTENT(IN) :: t
-REAL, INTENT(OUT) :: ent
-REAL :: t1, ent1
-REAL :: t2, ent2
+DOUBLE PRECISION, INTENT(IN) :: t
+DOUBLE PRECISION, INTENT(OUT) :: ent
+DOUBLE PRECISION :: t1, ent1
+DOUBLE PRECISION :: t2, ent2
 INTEGER :: i
 
 IF ((t < 473.15) .OR. (t > 617.91)) THEN
@@ -200,11 +226,11 @@ USE InpOutp, ONLY : ounit
 
 IMPLICIT NONE
 
-REAL, INTENT(IN) :: ent
-REAL, INTENT(OUT) :: t, rho, prx, kvx, tcx
-REAL :: t1, rho1, ent1, kv1, pr1, tc1
-REAL :: t2, rho2, ent2, kv2, pr2, tc2
-REAL :: ratx
+DOUBLE PRECISION, INTENT(IN) :: ent
+DOUBLE PRECISION, INTENT(OUT) :: t, rho, prx, kvx, tcx
+DOUBLE PRECISION :: t1, rho1, ent1, kv1, pr1, tc1
+DOUBLE PRECISION :: t2, rho2, ent2, kv2, pr2, tc2
+DOUBLE PRECISION :: ratx
 
 INTEGER :: i
 
@@ -247,7 +273,7 @@ END DO
 END SUBROUTINE gettd
 
 
-REAL FUNCTION getkc(t)
+DOUBLE PRECISION FUNCTION getkc(t)
 !
 ! Purpose:
 !    To calculate thermal conductivity of cladding
@@ -255,14 +281,14 @@ REAL FUNCTION getkc(t)
 
 IMPLICIT NONE
 
-REAL, INTENT(IN) :: t
+DOUBLE PRECISION, INTENT(IN) :: t
 
 getkc = 7.51 + 2.09E-2*t - 1.45E-5*t**2 + 7.67E-9*t**3
 
 END FUNCTION getkc
 
 
-REAL FUNCTION getkf(t)
+DOUBLE PRECISION FUNCTION getkf(t)
 !
 ! Purpose:
 !    To calculate thermal conductivity of fuel
@@ -270,14 +296,14 @@ REAL FUNCTION getkf(t)
 
 IMPLICIT NONE
 
-REAL, INTENT(IN) :: t
+DOUBLE PRECISION, INTENT(IN) :: t
 
 getkf = 1.05 + 2150. / (t - 73.15)
 
 END FUNCTION getkf
 
 
-REAL FUNCTION getcpc(t)
+DOUBLE PRECISION FUNCTION getcpc(t)
 !
 ! Purpose:
 !    To calculate specific heat capacity of cladding
@@ -285,14 +311,14 @@ REAL FUNCTION getcpc(t)
 
 IMPLICIT NONE
 
-REAL, INTENT(IN) :: t
+DOUBLE PRECISION, INTENT(IN) :: t
 
 getcpc = 252.54 + 0.11474*t
 
 END FUNCTION getcpc
 
 
-REAL FUNCTION getcpf(t)
+DOUBLE PRECISION FUNCTION getcpf(t)
 !
 ! Purpose:
 !    To calculate specific heat capacity of fuel
@@ -300,7 +326,7 @@ REAL FUNCTION getcpf(t)
 
 IMPLICIT NONE
 
-REAL, INTENT(IN) :: t
+DOUBLE PRECISION, INTENT(IN) :: t
 
 getcpf = 162.3 + 0.3038*t - 2.391e-4*t**2 + 6.404e-8*t**3
 
@@ -315,8 +341,8 @@ SUBROUTINE TridiaSolve(a,b,c,d,x)
 
 IMPLICIT NONE
 
-REAL, DIMENSION(:), INTENT(INOUT) :: a, b, c, d
-REAL, DIMENSION(:), INTENT(OUT) :: x
+DOUBLE PRECISION, DIMENSION(:), INTENT(INOUT) :: a, b, c, d
+DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: x
 
 INTEGER :: i, n
 
@@ -340,7 +366,7 @@ END SUBROUTINE TridiaSolve
 
 
 
-REAL FUNCTION geths(xden, tc, kv, Pr)
+DOUBLE PRECISION FUNCTION geths(xden, tc, kv, Pr)
 !
 ! Purpose:
 !    To calculate heat transfer coef.
@@ -350,15 +376,15 @@ USE sdata, ONLY: dh, farea, cflow
 
 IMPLICIT NONE
 
-REAL, INTENT(IN) :: xden  ! coolant densisty
-REAL, INTENT(IN) :: tc  ! coolant thermal conductivity
-REAL, INTENT(IN) :: kv  ! kinematic viscosity
-REAL, INTENT(IN) :: Pr  ! Prandtl Number
+DOUBLE PRECISION, INTENT(IN) :: xden  ! coolant densisty
+DOUBLE PRECISION, INTENT(IN) :: tc  ! coolant thermal conductivity
+DOUBLE PRECISION, INTENT(IN) :: kv  ! kinematic viscosity
+DOUBLE PRECISION, INTENT(IN) :: Pr  ! Prandtl Number
 
-REAL :: cvelo, Nu, Re
+DOUBLE PRECISION :: cvelo, Nu, Re
 
 cvelo = cflow / (farea * xden * 1000.)        ! Calculate flow velocity (m/s)
-Re = cvelo * dh / (kv * 1.e-6)                 ! Calculate Reynolds Number
+Re = cvelo * dh / (kv * 1.d-6)                 ! Calculate Reynolds Number
 Nu = 0.023*(Pr**0.4)*(Re**0.8)                ! Calculate Nusselt Number
 geths = (tc / dh) * Nu                        ! Calculate heat transfer coefficient
 
@@ -379,25 +405,25 @@ USE sdata, ONLY: mtem, cden, ftem, tin, xyz, cflow, nyy, nzz, cf, ent, heatf, nn
 
 IMPLICIT NONE
 
-REAL, DIMENSION(:), INTENT(IN) :: xpline    ! Linear Power Density (W/cm)
-REAL, INTENT(IN) :: h                       ! Time step
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: xpline    ! Linear Power Density (W/cm)
+DOUBLE PRECISION, INTENT(IN) :: h                       ! Time step
 
 INTEGER :: i, j, k, n
-REAL, DIMENSION(nt+1) :: a, b, c, d
-REAL :: hs, hg = 1.e4, kt           ! coolant heat transfer coef., gap heat transfer coef, and thermal conductivity
-REAL :: alpha = 0.7
-REAL :: xa, xc, tem
-REAL :: fdens = 10.412e3            ! UO2 density (kg/m3)
-REAL :: cdens = 6.6e3               ! Cladding density (kg/m3)
-REAL :: cp                          ! Specific heat capacity
-REAL :: eps, eta
-REAL :: mdens, vol                  ! Coolant density and channel volume
-REAL, DIMENSION(nnod) :: entp        ! previous enthalpy
+DOUBLE PRECISION, DIMENSION(nt+1) :: a, b, c, d
+DOUBLE PRECISION :: hs, hg = 1.e4, kt           ! coolant heat transfer coef., gap heat transfer coef, and thermal conductivity
+DOUBLE PRECISION :: alpha = 0.7
+DOUBLE PRECISION :: xa, xc, tem
+DOUBLE PRECISION :: fdens = 10.412e3            ! UO2 density (kg/m3)
+DOUBLE PRECISION :: cdens = 6.6e3               ! Cladding density (kg/m3)
+DOUBLE PRECISION :: cp                          ! Specific heat capacity
+DOUBLE PRECISION :: eps, eta
+DOUBLE PRECISION :: mdens, vol                  ! Coolant density and channel volume
+DOUBLE PRECISION, DIMENSION(nnod) :: entp        ! previous enthalpy
 
-REAL :: pdens      ! power densisty  (W/m3)
-REAL :: enti       ! Coolant inlet enthalpy
-REAL :: cpline     ! Coolant Linear power densisty (W/m)
-REAL :: Pr, kv, tcon ! Coolant Prandtl Number, Kinematic viscosity, and thermal conductivity
+DOUBLE PRECISION :: pdens      ! power densisty  (W/m3)
+DOUBLE PRECISION :: enti       ! Coolant inlet enthalpy
+DOUBLE PRECISION :: cpline     ! Coolant Linear power densisty (W/m)
+DOUBLE PRECISION :: Pr, kv, tcon ! Coolant Prandtl Number, Kinematic viscosity, and thermal conductivity
 
 CALL getent(tin, enti)
 entp = ent
@@ -522,17 +548,17 @@ USE sdata, ONLY: mtem, cden, ftem, tin, xyz, cflow, nyy, nzz, cf, ent, heatf, &
 
 IMPLICIT NONE
 
-REAL, DIMENSION(:), INTENT(IN) :: xpline    ! Linear Power Density (W/cm)
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: xpline    ! Linear Power Density (W/cm)
 
 INTEGER :: i, j, k, n
-REAL, DIMENSION(nt+1) :: a, b, c, d
-REAL :: hs, Hg = 1.e4, kt
-REAL :: alp = 0.7
-REAL :: xa, xc, tem
-REAL :: pdens      ! power densisty  (W/m3)
-REAL :: enti       ! Coolant inlet enthalpy
-REAL :: cpline     ! Coolant Linear power densisty (W/m)
-REAL :: Pr, kv, tcon ! Coolant Prandtl Number, Kinematic viscosity, and thermal conductivity
+DOUBLE PRECISION, DIMENSION(nt+1) :: a, b, c, d
+DOUBLE PRECISION :: hs, Hg = 1.e4, kt
+DOUBLE PRECISION :: alp = 0.7
+DOUBLE PRECISION :: xa, xc, tem
+DOUBLE PRECISION :: pdens      ! power densisty  (W/m3)
+DOUBLE PRECISION :: enti       ! Coolant inlet enthalpy
+DOUBLE PRECISION :: cpline     ! Coolant Linear power densisty (W/m)
+DOUBLE PRECISION :: Pr, kv, tcon ! Coolant Prandtl Number, Kinematic viscosity, and thermal conductivity
 
 CALL getent(tin, enti)
 
@@ -636,8 +662,8 @@ USE nodal, ONLY: nodal_coup4, outer4, powdis
 
 IMPLICIT NONE
 
-REAL  :: bc1, bc2, bcon     ! Boron Concentration
-REAL :: ke1, ke2
+DOUBLE PRECISION  :: bc1, bc2, bcon     ! Boron Concentration
+DOUBLE PRECISION :: ke1, ke2
 INTEGER :: n
 
 ! File Output
@@ -701,7 +727,7 @@ DO
   ke2 = ke
   WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') n, bcon, Ke, ser, fer
   WRITE(*,'(I5, F15.2, F23.5)') n, bcon, Ke
-    IF ((ABS(Ke - 1.0) < 1.e-5) .AND. (ser < 1.e-5) .AND. (fer < 1.e-5)) EXIT
+    IF ((ABS(Ke - 1.0) < 1.d-5) .AND. (ser < 1.d-5) .AND. (fer < 1.d-5)) EXIT
     n = n + 1
     IF (bcon > 3000.) THEN
         WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION EXCEEDS THE LIMIT(3000 ppm)'
@@ -732,7 +758,7 @@ IF (aprad == 1) CALL AsmPow(npow)
 
 IF (apaxi == 1) CALL AxiPow(npow)
 
-IF (afrad == 1) CALL AsmFlux(f0, 1.e0)
+IF (afrad == 1) CALL AsmFlux(f0, 1.d0)
 
 END SUBROUTINE cbsearch
 
@@ -745,16 +771,17 @@ SUBROUTINE cbsearcht()
 !
 
 USE sdata, ONLY: Ke, ftem, mtem, bcon, rbcon, npow, nnod, &
-                 f0, ser, fer, tfm, aprad, apaxi, afrad, npow, th_err
+                 f0, ser, fer, tfm, aprad, apaxi, afrad, npow, th_err, &
+                 serc, ferc
 USE InpOutp, ONLY: ounit, XS_updt, AsmFlux, AsmPow, AxiPow, getfq
 USE nodal, ONLY: powdis, nodal_coup4, outer4
 
 IMPLICIT NONE
 
-REAL  :: bc1, bc2    ! Boron Concentration
-REAL :: ke1, ke2
+DOUBLE PRECISION  :: bc1, bc2    ! Boron Concentration
+DOUBLE PRECISION :: ke1, ke2
 INTEGER :: n
-REAL :: tf, tm, mtm, mtf
+DOUBLE PRECISION :: tf, tm, mtm, mtf
 
 ! File Output
 WRITE(ounit,*)
@@ -813,7 +840,7 @@ DO
     ke2 = ke
     WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') n, bcon, Ke, ser, fer, th_err
     WRITE(*,'(I5, F15.2, F23.5)') n, bcon, Ke
-    IF ((ABS(Ke - 1.0) < 1.e-5) .AND. (ser < 1.e-5) .AND. (fer < 1.e-5)) EXIT
+    IF ((ABS(Ke - 1.0) < 1.d-5) .AND. (ser < serc) .AND. (fer < ferc)) EXIT
     n = n + 1
     IF (bcon > 3000.) THEN
         WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION EXCEEDS THE LIMIT(3000 ppm)'
@@ -827,7 +854,7 @@ DO
         WRITE(*,*) '  CRITICAL BORON CONCENTRATION IS NOT FOUND (LESS THAN ZERO)'
         STOP
     END IF
-    IF (n == 20) THEN
+    IF (n == 30) THEN
         WRITE(ounit,*) '  MAXIMUM ITERATION FOR CRITICAL BORON SEARCH IS REACHING MAXIMUM'
         WRITE(ounit,*) '  ADPRES IS STOPPING'
         WRITE(*,*) '  MAXIMUM ITERATION FOR CRITICAL BORON SEARCH IS REACHING MAXIMUM'
@@ -843,7 +870,7 @@ IF (aprad == 1) CALL AsmPow(npow)
 
 IF (apaxi == 1) CALL AxiPow(npow)
 
-IF (afrad == 1) CALL AsmFlux(f0, 1.e0)
+IF (afrad == 1) CALL AsmFlux(f0, 1.d0)
 
 CALL par_ave_f(ftem, tf)
 CALL par_ave(mtem, tm)

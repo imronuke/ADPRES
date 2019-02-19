@@ -33,12 +33,12 @@ USE nodal, ONLY: nodal_coup4, outer4, outertf, outer4ad, PowTot, Fsrc
 
 IMPLICIT NONE
 
-REAL, DIMENSION(nnod, ng) :: af                                      ! adjoint flux
-REAL, DIMENSION(nnod, ng) :: sigrp                                   ! Temporary sigr
+DOUBLE PRECISION, DIMENSION(nnod, ng) :: af                                      ! adjoint flux
+DOUBLE PRECISION, DIMENSION(nnod, ng) :: sigrp                                   ! Temporary sigr
 
-REAL :: rho
-REAL :: t1, t2
-REAL :: tpow1, tpow2
+DOUBLE PRECISION :: rho
+DOUBLE PRECISION :: t1, t2
+DOUBLE PRECISION :: tpow1, tpow2
 INTEGER :: n, i, j, g, imax, step
 
 LOGICAL :: maxi   ! Maximum Outer Iteration Reached?
@@ -68,7 +68,7 @@ CALL nodal_coup4()
 CALL outer4(0)
 
 ! If K-EFF NOT EQUAL TO 1.0
-IF (ABS(Ke - 1.) > 1.e-5) CALL KNE1
+IF (ABS(Ke - 1.) > 1.d-5) CALL KNE1
 
 ! Calculate Adjoint flux
 CALL outer4ad(0)
@@ -120,7 +120,7 @@ DO i = 1, imax
 
     step = step + 1
     t1 = t2
-    t2 = REAL(i)*tstep1
+    t2 = DBLE(i)*tstep1
 
     IF (i > 1) THEN
        omeg = LOG(f0 / ft) / tstep1
@@ -202,7 +202,7 @@ DO i = 1, imax
 
     step = step + 1
     t1 = t2
-    t2 = tdiv + REAL(i)*tstep2
+    t2 = tdiv + DBLE(i)*tstep2
 
     omeg = LOG(f0 / ft) / tstep2
 
@@ -298,17 +298,17 @@ USE th, ONLY: th_iter, th_trans, par_ave, par_max, par_ave_f
 
 IMPLICIT NONE
 
-REAL, DIMENSION(nnod, ng) :: af                                      ! adjoint flux
-REAL, DIMENSION(nnod, ng) :: sigrp                                   ! Temporary sigr
+DOUBLE PRECISION, DIMENSION(nnod, ng) :: af                                      ! adjoint flux
+DOUBLE PRECISION, DIMENSION(nnod, ng) :: sigrp                                   ! Temporary sigr
 
-REAL :: rho
-REAL :: t1, t2
-REAL :: tpow1, tpow2
+DOUBLE PRECISION :: rho
+DOUBLE PRECISION :: t1, t2
+DOUBLE PRECISION :: tpow1, tpow2
 INTEGER :: n, i, j, g, imax, step
 
-REAL, DIMENSION(nnod) :: pline       ! Linear power density
-REAL :: xppow
-REAL :: tf, tm, mtf, mtm
+DOUBLE PRECISION, DIMENSION(nnod) :: pline       ! Linear power density
+DOUBLE PRECISION :: xppow
+DOUBLE PRECISION :: tf, tm, mtf, mtm
 
 LOGICAL :: maxi
 
@@ -333,7 +333,7 @@ CALL th_iter(0)
 CALL outer4(0)
 
 ! If K-EFF NOT EQUAL TO 1.0
-IF (ABS(Ke - 1.) > 1.e-5) CALL KNE1
+IF (ABS(Ke - 1.) > 1.d-5) CALL KNE1
 
 ! Calculate Adjoint flux
 CALL outer4ad(0)
@@ -390,7 +390,7 @@ DO i = 1, imax
 
   step = step + 1
   t1 = t2
-  t2 = REAL(i)*tstep1
+  t2 = DBLE(i)*tstep1
 
   IF (i > 1) THEN
      omeg = LOG(f0 / ft) / tstep1
@@ -497,7 +497,7 @@ DO i = 1, imax
 
   step = step + 1
   t1 = t2
-  t2 = tdiv + REAL(i)*tstep2
+  t2 = tdiv + DBLE(i)*tstep2
 
   omeg = LOG(f0 / ft) / tstep2
 
@@ -622,7 +622,7 @@ DO i = 1, 10
    dnuf = dnuf / Ke
    CALL XS_updt(bcon, ftem, mtem, cden, bpos)
    CALL outer4(0)
-   IF (ABS(Ke-1.0) < 1.e-5) EXIT
+   IF (ABS(Ke-1.0) < 1.d-5) EXIT
 END DO
 IF (i == 10) STOP "K-EFF STILL NOT EQUAL TO ONE. ADPRES IS STOPPING"
 
@@ -672,9 +672,9 @@ USE sdata, ONLY: nnod, nf, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
 
 IMPLICIT NONE
 
-REAL, INTENT(IN) :: h
+DOUBLE PRECISION, INTENT(IN) :: h
 
-REAL :: lat
+DOUBLE PRECISION :: lat
 INTEGER :: n, j
 
 DO n = 1, nnod
@@ -706,13 +706,13 @@ USE sdata, ONLY: nnod, ng, f0, sigs, nod, chi, mat, fs0, &
 
 IMPLICIT NONE
 
-REAL, DIMENSION(:,:), INTENT(IN) :: af
-REAL, DIMENSION(:,:), INTENT(IN) :: sigrp
-REAL, INTENT(OUT) :: rho
+DOUBLE PRECISION, DIMENSION(:,:), INTENT(IN) :: af
+DOUBLE PRECISION, DIMENSION(:,:), INTENT(IN) :: sigrp
+DOUBLE PRECISION, INTENT(OUT) :: rho
 
 INTEGER :: n, g, h
-REAL, DIMENSION(nnod) :: scg
-REAL :: rem, lea, src, fde
+DOUBLE PRECISION, DIMENSION(nnod) :: scg
+DOUBLE PRECISION :: rem, lea, src, fde
 
 src = 0.; rem = 0.; lea = 0.; fde = 0.
 DO g = 1, ng
@@ -756,7 +756,7 @@ USE nodal, ONLY: nodal_coup4, outer4, Fsrc
 
 IMPLICIT NONE
 
-REAL :: t1, t2
+DOUBLE PRECISION :: t1, t2
 INTEGER :: n, i, j, g, imax, step
 
 ! Update xsec
@@ -773,7 +773,7 @@ CALL nodal_coup4()
 CALL outer4(0)
 
 ! If K-EFF NOT EQUAL TO 1.0
-IF (ABS(Ke - 1.) > 1.e-5) CALL KNE1
+IF (ABS(Ke - 1.) > 1.d-5) CALL KNE1
 
 ! ReCalculate forward flux
 CALL outer4(0)
@@ -796,7 +796,7 @@ DO i = 1, imax
 
     step = step + 1
     t1 = t2
-    t2 = REAL(i)*tstep1
+    t2 = DBLE(i)*tstep1
 
     ! Rod bank changes
     DO n = 1, nb

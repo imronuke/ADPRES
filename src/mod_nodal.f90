@@ -29,20 +29,20 @@ IMPLICIT NONE
 
 INTEGER, OPTIONAL, INTENT(IN) :: popt
 
-REAL :: Keo                                    !Old Multiplication factor (Keff)
-REAL, DIMENSION(nnod) :: fs0c                  !old fission source
-REAL, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
-REAL, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
-REAL, DIMENSION(nnod) :: ss0                   ! Scattering source
-REAL, DIMENSION(nnod) :: ssx1, ssy1, ssz1
-REAL, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
-REAL :: f, fc                                  ! new and old integrated fission sources
-REAL :: domiR, e1, e2
+DOUBLE PRECISION :: Keo                                    !Old Multiplication factor (Keff)
+DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !old fission source
+DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
+DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
+DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
+DOUBLE PRECISION, DIMENSION(nnod) :: ssx1, ssy1, ssz1
+DOUBLE PRECISION, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
+DOUBLE PRECISION :: f, fc                                  ! new and old integrated fission sources
+DOUBLE PRECISION :: domiR, e1, e2
 INTEGER :: g
 INTEGER :: p, npos
 LOGICAL :: opt
 
-REAL, DIMENSION(nnod) :: errn, erro
+DOUBLE PRECISION, DIMENSION(nnod) :: errn, erro
 
 IF (PRESENT(popt)) THEN
     opt = .FALSE.
@@ -149,19 +149,19 @@ IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: maxn
 
-REAL :: Keo                                    !Old Multiplication factor (Keff)
-REAL, DIMENSION(nnod) :: fs0c                  !Old fission source
-REAL, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
-REAL, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
-REAL, DIMENSION(nnod) :: ss0                   ! Scattering source
-REAL, DIMENSION(nnod) :: ssx1, ssy1, ssz1
-REAL, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
-REAL :: f, fc                                  ! new and old integrated fission sources
-REAL :: domiR, e1, e2
+DOUBLE PRECISION :: Keo                                    !Old Multiplication factor (Keff)
+DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
+DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
+DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
+DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
+DOUBLE PRECISION, DIMENSION(nnod) :: ssx1, ssy1, ssz1
+DOUBLE PRECISION, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
+DOUBLE PRECISION :: f, fc                                  ! new and old integrated fission sources
+DOUBLE PRECISION :: domiR, e1, e2
 INTEGER :: g
 INTEGER :: p, npos
 
-REAL, DIMENSION(nnod) :: errn, erro
+DOUBLE PRECISION, DIMENSION(nnod) :: errn, erro
 
 
 ! Initialize fission source
@@ -244,18 +244,18 @@ USE InpOutp, ONLY: ounit
 
 IMPLICIT NONE
 
-REAL, DIMENSION(nnod) :: fs0c                  !Old fission source
-REAL, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
-REAL, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
-REAL, DIMENSION(nnod) :: ss0                   ! Scattering source
-REAL, DIMENSION(nnod) :: ssx1, ssy1, ssz1
-REAL, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
-REAL :: ser, fer                          ! Fission source and Keff error
-REAL :: domiR, e1, e2
+DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
+DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
+DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
+DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
+DOUBLE PRECISION, DIMENSION(nnod) :: ssx1, ssy1, ssz1
+DOUBLE PRECISION, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
+DOUBLE PRECISION :: ser, fer                          ! Fission source and Keff error
+DOUBLE PRECISION :: domiR, e1, e2
 INTEGER :: g
 INTEGER :: p, npos
 
-REAL, DIMENSION(nnod) :: errn, erro
+DOUBLE PRECISION, DIMENSION(nnod) :: errn, erro
 
 ! Initialize fission source
 fs0  = 0.0
@@ -343,20 +343,20 @@ USE sdata, ONLY: ng, nnod, serc, ferc, nout, &
 
 IMPLICIT NONE
 
-REAL, INTENT(IN) :: ht
+DOUBLE PRECISION, INTENT(IN) :: ht
 LOGICAL, INTENT(OUT) :: maxi
 
-REAL, DIMENSION(nnod) :: fs0c                  !Old fission source
-REAL, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
-REAL, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
-REAL, DIMENSION(nnod) :: ss0                   ! Scattering source
-REAL, DIMENSION(nnod) :: ssx1, ssy1, ssz1,ssx2, ssy2, ssz2      ! Scattering source moments
-REAL :: ser, fer                          ! Fission source and Keff error
-REAL :: domiR, e1, e2
+DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
+DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
+DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
+DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
+DOUBLE PRECISION, DIMENSION(nnod) :: ssx1, ssy1, ssz1,ssx2, ssy2, ssz2      ! Scattering source moments
+DOUBLE PRECISION :: ser, fer                          ! Fission source and Keff error
+DOUBLE PRECISION :: domiR, e1, e2
 INTEGER :: g
 INTEGER :: p, npos
 
-REAL, DIMENSION(nnod) :: errn, erro
+DOUBLE PRECISION, DIMENSION(nnod) :: errn, erro
 
 errn = 1.0
 e1 = Integrate(errn)
@@ -428,22 +428,22 @@ IMPLICIT NONE
 
 INTEGER, OPTIONAL, INTENT(IN) :: popt
 
-REAL :: Keo                                    !Old Multiplication factor (Keff)
-REAL, DIMENSION(nnod) :: fs0c                  !Old fission source
-REAL, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
-REAL, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
-REAL, DIMENSION(nnod) :: ss0                   ! Scattering source
-REAL, DIMENSION(nnod) :: ssx1, ssy1, ssz1
-REAL, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
-REAL :: ser, Ker, fer                          ! Fission source and Keff error
-REAL :: f, fc                                  ! new and old integrated fission sources
-REAL :: domiR, e1, e2
+DOUBLE PRECISION :: Keo                                    !Old Multiplication factor (Keff)
+DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
+DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
+DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
+DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
+DOUBLE PRECISION, DIMENSION(nnod) :: ssx1, ssy1, ssz1
+DOUBLE PRECISION, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
+DOUBLE PRECISION :: ser, Ker, fer                          ! Fission source and Keff error
+DOUBLE PRECISION :: f, fc                                  ! new and old integrated fission sources
+DOUBLE PRECISION :: domiR, e1, e2
 INTEGER :: g
 INTEGER :: p, npos
 
 LOGICAL :: opt
 
-REAL, DIMENSION(nnod) :: errn, erro
+DOUBLE PRECISION, DIMENSION(nnod) :: errn, erro
 
 IF (PRESENT(popt)) THEN
     opt = .FALSE.
@@ -548,15 +548,15 @@ USE sdata, ONLY: nod, nnod, xstag, ystag, ierc, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g
-REAL, INTENT(OUT) :: fer
+DOUBLE PRECISION, INTENT(OUT) :: fer
 INTEGER :: l, n
-REAL, DIMENSION(6) :: bvec, qvec
+DOUBLE PRECISION, DIMENSION(6) :: bvec, qvec
 
 ! Transverse Leakage Moments(0, Lx1, Ly1, Lz2, Lx2, Ly2, Lz3)
-REAL, DIMENSION(nnod,7) :: Lm
+DOUBLE PRECISION, DIMENSION(nnod,7) :: Lm
 
 ! To store old fluxes
-REAL, DIMENSION(nnod) :: flxc
+DOUBLE PRECISION, DIMENSION(nnod) :: flxc
 
 ! Jot Nodals' outgoing currents+flux  (X+, X-, Y+, Y-, Z+, Z-)
 ! Jin Nodals' ingoing currents+source (X+, X-, Y+, Y-, Z+, Z-)
@@ -682,9 +682,9 @@ USE sdata, ONLY: nod, D, sigr, xdel, ydel, zdel, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g, n
-REAL, DIMENSION(:), INTENT(IN) :: L
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: L
 
-REAL :: Tx, Ty, Tz
+DOUBLE PRECISION :: Tx, Ty, Tz
 
 ! Calculate Zeroth Flux
 f0(n,g)  = ( nod(n,g)%Q(1)          &
@@ -788,13 +788,13 @@ USE sdata, ONLY: nod, xdel, ydel, zdel, xstag, ystag, nzz, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g, n
-REAL, DIMENSION(:), INTENT(OUT) :: L
+DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: L
 
-REAL :: tm, tp
-REAL :: p1m, p2m, p1p, p2p, pm, pp, p1, p2, p3
-REAL :: r1xy, r2xy, r1xz, r2xz
-REAL :: r1yx, r2yx, r1yz, r2yz
-REAL :: r1zx, r2zx, r1zy, r2zy
+DOUBLE PRECISION :: tm, tp
+DOUBLE PRECISION :: p1m, p2m, p1p, p2p, pm, pp, p1, p2, p3
+DOUBLE PRECISION :: r1xy, r2xy, r1xz, r2xz
+DOUBLE PRECISION :: r1yx, r2yx, r1yz, r2yz
+DOUBLE PRECISION :: r1zx, r2zx, r1zy, r2zy
 
 ! Set paramaters for X-Direction Transverse leakage
 IF (ix(n) == ystag(iy(n))%smin) THEN
@@ -1106,8 +1106,8 @@ USE sdata, ONLY: nnod, nuf, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g
-REAL, DIMENSION(:), INTENT(INOUT) :: s, sx1, sy1, sz1
-REAL, DIMENSION(:), INTENT(INOUT) :: sx2, sy2, sz2
+DOUBLE PRECISION, DIMENSION(:), INTENT(INOUT) :: s, sx1, sy1, sz1
+DOUBLE PRECISION, DIMENSION(:), INTENT(INOUT) :: sx2, sy2, sz2
 
 INTEGER :: n
 
@@ -1136,8 +1136,8 @@ USE sdata, ONLY: nnod, chi, mat, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g
-REAL, DIMENSION(:), INTENT(INOUT) :: s, sx1, sy1, sz1
-REAL, DIMENSION(:), INTENT(INOUT) :: sx2, sy2, sz2
+DOUBLE PRECISION, DIMENSION(:), INTENT(INOUT) :: s, sx1, sy1, sz1
+DOUBLE PRECISION, DIMENSION(:), INTENT(INOUT) :: sx2, sy2, sz2
 
 INTEGER :: n
 
@@ -1167,8 +1167,8 @@ USE sdata, ONLY: ng, nnod, sigs, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g
-REAL, DIMENSION(:), INTENT(OUT) :: s, sx1, sy1, sz1
-REAL, DIMENSION(:), INTENT(OUT) :: sx2, sy2, sz2
+DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: s, sx1, sy1, sz1
+DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: sx2, sy2, sz2
 
 INTEGER :: h, n
 
@@ -1205,8 +1205,8 @@ USE sdata, ONLY: ng, nnod, sigs, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g
-REAL, DIMENSION(:), INTENT(OUT) :: s, sx1, sy1, sz1
-REAL, DIMENSION(:), INTENT(OUT) :: sx2, sy2, sz2
+DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: s, sx1, sy1, sz1
+DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: sx2, sy2, sz2
 
 INTEGER :: h, n
 
@@ -1243,11 +1243,11 @@ USE sdata, ONLY: nod, chi, mat, nnod
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g
-REAL, INTENT(IN)    :: Keff
-REAL, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1
-REAL, DIMENSION(:), INTENT(IN) :: sfx2, sfy2, sfz2
-REAL, DIMENSION(:), INTENT(IN) :: s0, sx1, sy1, sz1
-REAL, DIMENSION(:), INTENT(IN) :: sx2, sy2, sz2
+DOUBLE PRECISION, INTENT(IN)    :: Keff
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sfx2, sfy2, sfz2
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: s0, sx1, sy1, sz1
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sx2, sy2, sz2
 
 INTEGER :: n
 
@@ -1276,10 +1276,10 @@ USE sdata, ONLY: nod, chi, mat, nnod, exsrc
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g
-REAL, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1
-REAL, DIMENSION(:), INTENT(IN) :: sfx2, sfy2, sfz2
-REAL, DIMENSION(:), INTENT(IN) :: s0, sx1, sy1, sz1
-REAL, DIMENSION(:), INTENT(IN) :: sx2, sy2, sz2
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sfx2, sfy2, sfz2
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: s0, sx1, sy1, sz1
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sx2, sy2, sz2
 
 INTEGER :: n
 
@@ -1310,11 +1310,11 @@ USE sdata, ONLY: nod, chi, mat, nnod, tbeta, velo, lamb, iBeta, nf, omeg, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g
-REAL, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2
-REAL, DIMENSION(:), INTENT(IN) :: s0, sx1, sy1, sz1, sx2, sy2, sz2
-REAL, INTENT(IN) :: h
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: s0, sx1, sy1, sz1, sx2, sy2, sz2
+DOUBLE PRECISION, INTENT(IN) :: h
 
-REAL :: dt, dtx1, dty1, dtz1, dtx2, dty2, dtz2, lat, dfis
+DOUBLE PRECISION :: dt, dtx1, dty1, dtz1, dtx2, dty2, dtz2, lat, dfis
 INTEGER :: n, i
 
 DO n = 1, nnod
@@ -1363,11 +1363,11 @@ USE sdata, ONLY: nod, nuf, nnod
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g
-REAL, INTENT(IN)    :: Keff
-REAL, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1
-REAL, DIMENSION(:), INTENT(IN) :: sfx2, sfy2, sfz2
-REAL, DIMENSION(:), INTENT(IN) :: s0, sx1, sy1, sz1
-REAL, DIMENSION(:), INTENT(IN) :: sx2, sy2, sz2
+DOUBLE PRECISION, INTENT(IN)    :: Keff
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sfx2, sfy2, sfz2
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: s0, sx1, sy1, sz1
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sx2, sy2, sz2
 
 INTEGER :: n
 
@@ -1416,14 +1416,14 @@ USE sdata, ONLY: ng, nnod, xdel, ydel, zdel, &
 
 IMPLICIT NONE
 
-REAL, DIMENSION(6,6) :: A, B
-REAL, DIMENSION(6,7) :: C
+DOUBLE PRECISION, DIMENSION(6,6) :: A, B
+DOUBLE PRECISION, DIMENSION(6,7) :: C
 
 INTEGER :: n, g
 
-REAL:: dx, dy, dz, lx, ly, lz
-REAL :: ax, ay, az, ax1, ay1, az1, bx, by, bz
-REAL :: bx1, by1, bz1, xy, xz, yx, yz, zx, zy
+DOUBLE PRECISION:: dx, dy, dz, lx, ly, lz
+DOUBLE PRECISION :: ax, ay, az, ax1, ay1, az1, bx, by, bz
+DOUBLE PRECISION :: bx1, by1, bz1, xy, xz, yx, yz, zx, zy
 
 DO g= 1, ng
     DO n = 1, nnod
@@ -1552,12 +1552,12 @@ USE sdata,   ONLY: ix, iy, iz
 
 IMPLICIT NONE
 
-REAL, DIMENSION(:,:), INTENT(INOUT) :: mat
+DOUBLE PRECISION, DIMENSION(:,:), INTENT(INOUT) :: mat
 INTEGER, INTENT(IN) :: g, nt
 
-REAL, DIMENSION(6,6) :: L, U, imat, pmat
-REAL, DIMENSION(6) :: y
-REAL :: piv, isum
+DOUBLE PRECISION, DIMENSION(6,6) :: L, U, imat, pmat
+DOUBLE PRECISION, DIMENSION(6) :: y
+DOUBLE PRECISION :: piv, isum
 INTEGER :: i, j, k
 
 pmat = mat
@@ -1589,7 +1589,7 @@ DO i = 1,6
         DO k = 1,6
             isum = isum+L(i,k)*U(k,j)
         END DO
-        IF (ABS(mat(i,j)-isum)/ABS(mat(i,j)) > 1.e-3) THEN
+        IF (ABS(mat(i,j)-isum)/ABS(mat(i,j)) > 1.d-3) THEN
             WRITE(ounit,*) 'ERROR IN MATRIX DECOMP: DECOMPOSITION FAILED'
             WRITE(ounit,2001) g, ix(nt), iy(nt), iz(nt)
             STOP
@@ -1634,7 +1634,7 @@ DO i = 1,6
         DO k = 1,6
             isum = isum+pmat(i,k)*mat(k,j)
         END DO
-        IF (ABS(imat(i,j)-isum) > 1.e-4) THEN
+        IF (ABS(imat(i,j)-isum) > 1.d-4) THEN
             WRITE(ounit,*) 'ERROR IN MATRIX INVERSION'
             WRITE(ounit,2001) g, ix(nt), iy(nt), iz(nt)
             STOP
@@ -1648,7 +1648,7 @@ END DO
 END SUBROUTINE inverse
 
 
-REAL FUNCTION Integrate(s)
+DOUBLE PRECISION FUNCTION Integrate(s)
 
   !
   ! Purpose:
@@ -1658,7 +1658,7 @@ USE sdata, ONLY: nnod, vdel
 
 IMPLICIT NONE
 
-REAL, DIMENSION (:), INTENT(IN) :: s
+DOUBLE PRECISION, DIMENSION (:), INTENT(IN) :: s
 INTEGER :: n
 
 Integrate = 0.
@@ -1678,12 +1678,12 @@ SUBROUTINE matvec (mat, vec, rvec)
 
 IMPLICIT NONE
 
-REAL, DIMENSION(:,:), INTENT(IN) :: mat
-REAL, DIMENSION(:), INTENT(IN) :: vec
-REAL, DIMENSION(:), INTENT(OUT) :: rvec
+DOUBLE PRECISION, DIMENSION(:,:), INTENT(IN) :: mat
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: vec
+DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: rvec
 
 INTEGER :: i, j, n, m
-REAL :: isum
+DOUBLE PRECISION :: isum
 
 m = SIZE(mat,1)
 n = SIZE(vec,1)
@@ -1710,16 +1710,16 @@ USE sdata, ONLY: nnod
 
 IMPLICIT NONE
 
-REAL, DIMENSION(:), INTENT(IN) :: newF, oldF
-REAL, INTENT(OUT) :: rel
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: newF, oldF
+DOUBLE PRECISION, INTENT(OUT) :: rel
 
-REAL :: error
+DOUBLE PRECISION :: error
 INTEGER :: n
 
 rel = 0.
 
 DO n= 1, nnod
-    IF (ABS(newF(n)) > 1.e-10) THEN
+    IF (ABS(newF(n)) > 1.d-10) THEN
         error = ABS(newF(n) - oldF(n)) / ABS(newF(n))
         IF (error > rel) rel = error
     END IF
@@ -1738,9 +1738,9 @@ USE sdata, ONLY: ng, nnod, nod, nzz, &
 
 IMPLICIT NONE
 
-REAL, INTENT(OUT) :: k
+DOUBLE PRECISION, INTENT(OUT) :: k
 
-REAL :: leak, absp, fiss
+DOUBLE PRECISION :: leak, absp, fiss
 
 INTEGER :: g, n
 
@@ -1843,6 +1843,7 @@ ELSE
     DO g= 1, ng
         DO n = 1, nnod
             nod(n,g)%jo = 1.0
+            nod(n,g)%ji = 1.0
 
             CALL LxyzUpd(n,g)
 
@@ -1878,9 +1879,9 @@ USE InpOutp, ONLY: ounit
 
 IMPLICIT NONE
 
-REAL, DIMENSION(:), INTENT(OUT) :: p
+DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: p
 INTEGER :: g, n
-REAL :: tpow, pow
+DOUBLE PRECISION :: tpow, pow
 
 p = 0.0
 DO g= 1, ng
@@ -1923,10 +1924,10 @@ USE sdata, ONLY: ng, nnod, sigf, vdel
 
 IMPLICIT NONE
 
-REAL, DIMENSION(:,:), INTENT(IN) :: fx
-REAL, INTENT(OUT) :: tpow
+DOUBLE PRECISION, DIMENSION(:,:), INTENT(IN) :: fx
+DOUBLE PRECISION, INTENT(OUT) :: tpow
 
-REAL, DIMENSION(nnod) :: p
+DOUBLE PRECISION, DIMENSION(nnod) :: p
 INTEGER :: g, n
 
 p = 0.0
@@ -1957,8 +1958,8 @@ USE sdata, ONLY: nnod
 
 IMPLICIT NONE
 
-REAL, DIMENSION(:), INTENT(IN) :: ar
-REAL, DIMENSION(nnod) :: AbsAr
+DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: ar
+DOUBLE PRECISION, DIMENSION(nnod) :: AbsAr
 
 INTEGER :: n
 
@@ -1981,7 +1982,7 @@ USE InpOutp, ONLY: ounit, AsmPow, AxiPow, AsmFlux, XS_updt
 
 IMPLICIT NONE
 
-REAL, DIMENSION(:), ALLOCATABLE :: pow
+DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: pow
 
 
 WRITE(ounit,*)
@@ -2014,7 +2015,7 @@ IF (aprad == 1) CALL AsmPow(pow)
 
 IF (apaxi == 1) CALL AxiPow(pow)
 
-IF (afrad == 1) CALL AsmFlux(f0, 1.e0)
+IF (afrad == 1) CALL AsmFlux(f0, 1.d0)
 
 
 
@@ -2034,7 +2035,7 @@ USE InpOutp, ONLY: ounit, AsmPow, AxiPow, AsmFlux, XS_updt
 
 IMPLICIT NONE
 
-REAL, DIMENSION(:), ALLOCATABLE :: pow
+DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: pow
 
 
 WRITE(ounit,*)
@@ -2066,7 +2067,7 @@ IF (aprad == 1) CALL AsmPow(pow)
 
 IF (apaxi == 1) CALL AxiPow(pow)
 
-IF (afrad == 1) CALL AsmFlux(f0, 1.e0)
+IF (afrad == 1) CALL AsmFlux(f0, 1.d0)
 
 
 
@@ -2086,7 +2087,7 @@ USE InpOutp, ONLY: ounit, AsmPow, AxiPow, AsmFlux, XS_updt
 
 IMPLICIT NONE
 
-REAL, DIMENSION(:), ALLOCATABLE :: pow
+DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: pow
 
 
 WRITE(ounit,*)

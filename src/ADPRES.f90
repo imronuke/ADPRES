@@ -8,7 +8,7 @@ USE th, ONLY: cbsearch, cbsearcht
 
 IMPLICIT NONE
 
-REAL :: st, fn
+DOUBLE PRECISION :: st, fn
 
 
 CALL CPU_TIME(st)
