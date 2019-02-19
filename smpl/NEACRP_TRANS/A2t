@@ -120,7 +120,7 @@ NEACRP Problem
 
 ! CRITICAL BORON SEARCH CARD
 %BCON
-1159.8  1200.2  !Boron concentration ref. in ppm
+1157.82  1200.2  !Boron concentration ref. in ppm
 !  sigtr          siga         nu*sigf    kappa*sigf  sigs_g1   sigs_g2
  6.11833E-08  1.87731E-07   0.00000E+00   0.00000E+00  0.0   7.91457E-10
  5.17535E-06  1.02635E-05   0.00000E+00   0.00000E+00  0.0   0.00000E+00    !COMP 1
