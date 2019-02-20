@@ -34,7 +34,7 @@ INTEGER :: bwrst = 0, brrst = 0, biter = 0, bprnt = 0, badf  = 0
 INTEGER :: bcrod = 0, bbcon = 0, bftem = 0, bmtem = 0, bcden = 0
 INTEGER :: bcbcs = 0, bejct = 0, bther = 0
 
-CHARACTER(LEN=100):: iline
+CHARACTER(LEN=100):: iline  ! Input line
 
 ! Geometry
 INTEGER :: np                                           ! Number of planars
