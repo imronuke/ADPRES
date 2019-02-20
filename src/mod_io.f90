@@ -1209,7 +1209,7 @@ END SUBROUTINE misc
 SUBROUTINE XS_updt (xbcon, xftem, xmtem, xcden, xbpos)
 !
 ! Purpose:
-!    To update XS
+!    To update XS for given TH paramaters and rod position
 !
 
 
