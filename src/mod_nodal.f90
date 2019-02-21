@@ -574,14 +574,10 @@ DOUBLE PRECISION, DIMENSION(6) :: bvec, qvec
 ! Transverse Leakage Moments(0, Lx1, Ly1, Lz2, Lx2, Ly2, Lz3)
 DOUBLE PRECISION, DIMENSION(nnod,7) :: Lm
 
-! To store old fluxes
-DOUBLE PRECISION, DIMENSION(nnod) :: flxc
-
 ! Jot Nodals' outgoing currents+flux  (X+, X-, Y+, Y-, Z+, Z-)
 ! Jin Nodals' ingoing currents+source (X+, X-, Y+, Y-, Z+, Z-)
 
 DO l = 1, nin
-    flxc = f0(:,g)
     DO n = 1, nnod
 
             ! Calculate ingoing partial currents from neighborhod nodes

@@ -25,11 +25,10 @@ USE sdata, ONLY: ng, nnod, sigr, nf, &
                  bcon, ftem, mtem, cden, &
                  fbpos, bpos, tmove, bspeed, mdir, nb, velo, iBeta, &
                  f0, fx1, fy1, fz1, fx2, fy2, fz2, &
-                 fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
                  c0, cx1, cy1, cz1, cx2, cy2, cz2, tbeta, omeg, tranw, &
                  ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2
 USE InpOutp, ONLY: XS_updt, ounit
-USE nodal, ONLY: nodal_coup4, outer4, outertf, outer4ad, PowTot, Fsrc
+USE nodal, ONLY: nodal_coup4, outer4, outertf, outer4ad, PowTot
 
 IMPLICIT NONE
 
@@ -56,12 +55,6 @@ ALLOCATE (omeg(nnod,ng))
 
 ! Update xsec
 CALL XS_updt(bcon, ftem, mtem, cden, bpos)
-
-! Guess fission source
-fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
-DO g = 1, ng
-   CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
-END DO
 
 ! Calculate forward flux at t=0 and check if keff=1
 CALL nodal_coup4()
@@ -165,12 +158,6 @@ DO i = 1, imax
     CALL nodal_coup4()
     CALL outertf(tstep1, maxi)
 
-    ! Update fission source
-    fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
-    DO g = 1, ng
-       CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
-    END DO
-
     ! Update precursor density
     CALL uPden(tstep1)
 
@@ -243,12 +230,6 @@ DO i = 1, imax
     CALL nodal_coup4()
     CALL outertf(tstep2, maxi)
 
-    ! Update fission source
-    fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
-    DO g = 1, ng
-       CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
-    END DO
-
     ! Update precursor density
     CALL uPden(tstep2)
 
@@ -288,12 +269,11 @@ USE sdata, ONLY: ng, nnod, sigr, nf, &
                  bcon, ftem, mtem, cden, tfm, &
                  fbpos, bpos, tmove, bspeed, mdir, nb, velo, iBeta, &
                  f0, fx1, fy1, fz1, fx2, fy2, fz2, &
-                 fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
                  c0, cx1, cy1, cz1, cx2, cy2, cz2, tbeta, omeg, &
                  npow, pow, ppow, node_nf, ix, iy, iz, zdel, tranw, &
                  ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2
 USE InpOutp, ONLY: XS_updt, ounit
-USE nodal, ONLY: nodal_coup4, outer4, outertf, outer4ad, PowTot, powdis, Fsrc
+USE nodal, ONLY: nodal_coup4, outer4, outertf, outer4ad, PowTot, powdis
 USE th, ONLY: th_iter, th_trans, par_ave, par_max, par_ave_f
 
 IMPLICIT NONE
@@ -435,12 +415,6 @@ DO i = 1, imax
     CALL nodal_coup4()
     CALL outertf(tstep1, maxi)
 
-    ! Update fission source
-    fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
-    DO g = 1, ng
-       CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
-    END DO
-
     ! Update precursor density
     CALL uPden(tstep1)
 
@@ -537,12 +511,6 @@ DO i = 1, imax
     ! Transient calculation
     CALL nodal_coup4()
     CALL outertf(tstep2, maxi)
-
-    ! Update fission source
-    fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
-    DO g = 1, ng
-       CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
-    END DO
 
     ! Update precursor density
     CALL uPden(tstep2)
