@@ -2024,7 +2024,7 @@ SUBROUTINE inp_crod (xbunit)
 !    To read control rod position
 
 USE sdata, ONLY: nx, ny, nmat, ng, xdiv, ydiv, &
-                 nxx, nyy, bpos, nb, &
+                 nxx, nyy, bpos, nb, cusp, &
                  dsigtr, dsiga, dnuf, dsigf, dsigs
 
 IMPLICIT NONE
@@ -2032,7 +2032,7 @@ IMPLICIT NONE
 INTEGER, INTENT(IN) :: xbunit
 
 INTEGER :: ln   !Line number
-INTEGER :: ios  ! IOSTAT status
+INTEGER :: ios, iosc  ! IOSTAT status
 
 INTEGER :: i, j, g, h
 INTEGER, DIMENSION(nx, ny) :: bmap       ! Radial control rod bank map (assembly wise)
@@ -2112,12 +2112,18 @@ END DO
 
 !! CROD PRINT OPTION
 READ(xbunit, *, IOSTAT=ios) ind, ln, popt
+READ(xbunit, *, IOSTAT=iosc) ind, ln, cusp
 IF (ios == 0 .AND. popt > 0) THEN
 
     WRITE(ounit,1201) nb
     WRITE(ounit,1216) NINT(nstep)
     WRITE(ounit,1202) pos0
     WRITE(ounit,1203) ssize
+    IF (cusp == 0) THEN
+       WRITE(ounit,*) ' CR CUSPING CORRECTION       : NOT ACTIVE'
+    ELSE
+       WRITE(ounit,*) ' CR CUSPING CORRECTION       : ACTIVE'
+    END IF
 
     ALLOCATE(bank(nb))
     DO i = 1, nb
@@ -2155,7 +2161,7 @@ IF (ios == 0 .AND. popt > 0) THEN
 END IF
 
 1201 FORMAT(2X, 'NUMBER OF CONTROL ROD BANK  :', I3)
-1216 FORMAT(2X, 'MAX. NUMBER OF STEPS  :', I4)
+1216 FORMAT(2X, 'MAX. NUMBER OF STEPS        :', I4)
 1202 FORMAT(2X, 'FULLY INSERTED POSITION (cm): ', F4.1, ' (FROM BOTTOM OF THE CORE)')
 1203 FORMAT(2X, 'STEP SIZE (cm)              : ', F8.4)
 1204 FORMAT(2X, 10(:, 2X, 'Bank ', I2))
