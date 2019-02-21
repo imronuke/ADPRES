@@ -283,7 +283,7 @@ IMPLICIT NONE
 
 DOUBLE PRECISION, INTENT(IN) :: t
 
-getkc = 7.51 + 2.09E-2*t - 1.45E-5*t**2 + 7.67E-9*t**3
+getkc = 7.51d0 + 2.09d-2*t - 1.45d-5*t**2 + 7.67d-9*t**3
 
 END FUNCTION getkc
 
@@ -298,7 +298,7 @@ IMPLICIT NONE
 
 DOUBLE PRECISION, INTENT(IN) :: t
 
-getkf = 1.05 + 2150. / (t - 73.15)
+getkf = 1.05d0 + 2150.0d0 / (t - 73.15d0)
 
 END FUNCTION getkf
 
@@ -313,7 +313,7 @@ IMPLICIT NONE
 
 DOUBLE PRECISION, INTENT(IN) :: t
 
-getcpc = 252.54 + 0.11474*t
+getcpc = 252.54d0 + 0.11474d0*t
 
 END FUNCTION getcpc
 
@@ -328,7 +328,7 @@ IMPLICIT NONE
 
 DOUBLE PRECISION, INTENT(IN) :: t
 
-getcpf = 162.3 + 0.3038*t - 2.391e-4*t**2 + 6.404e-8*t**3
+getcpf = 162.3d0 + 0.3038d0*t - 2.391d-4*t**2 + 6.404d-8*t**3
 
 END FUNCTION getcpf
 
@@ -383,9 +383,9 @@ DOUBLE PRECISION, INTENT(IN) :: Pr  ! Prandtl Number
 
 DOUBLE PRECISION :: cvelo, Nu, Re
 
-cvelo = cflow / (farea * xden * 1000.)        ! Calculate flow velocity (m/s)
+cvelo = cflow / (farea * xden * 1000.d0)        ! Calculate flow velocity (m/s)
 Re = cvelo * dh / (kv * 1.d-6)                 ! Calculate Reynolds Number
-Nu = 0.023*(Pr**0.4)*(Re**0.8)                ! Calculate Nusselt Number
+Nu = 0.023d0*(Pr**0.4d0)*(Re**0.8d0)                ! Calculate Nusselt Number
 geths = (tc / dh) * Nu                        ! Calculate heat transfer coefficient
 
 
