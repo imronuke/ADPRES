@@ -400,7 +400,7 @@ SUBROUTINE th_trans(xpline, h)
 !    To perform fuel pin thermal transient
 !
 
-USE sdata, ONLY: mtem, cden, ftem, tin, xyz, cflow, nyy, nzz, cf, ent, heatf, nnod, &
+USE sdata, ONLY: mtem, cden, ftem, tin, xyz, cflow, nyy, nzz, nxx, cf, ent, heatf, nnod, &
                  ystag, tfm, nt, rpos, rdel, rf, rg, rc, farea, dia, pi, zdel, ystag
 
 IMPLICIT NONE
@@ -410,9 +410,9 @@ DOUBLE PRECISION, INTENT(IN) :: h                       ! Time step
 
 INTEGER :: i, j, k, n
 DOUBLE PRECISION, DIMENSION(nt+1) :: a, b, c, d
-DOUBLE PRECISION :: hs, hg = 1.e4, kt           ! coolant heat transfer coef., gap heat transfer coef, and thermal conductivity
-DOUBLE PRECISION :: alpha = 0.7
-DOUBLE PRECISION :: xa, xc, tem
+DOUBLE PRECISION :: hs, hg = 1.d4, kt , kt1, kt2          ! coolant heat transfer coef., gap heat transfer coef, and thermal conductivity
+DOUBLE PRECISION :: alpha = 0.7d0
+DOUBLE PRECISION :: xa, xc
 DOUBLE PRECISION :: fdens = 10.412e3            ! UO2 density (kg/m3)
 DOUBLE PRECISION :: cdens = 6.6e3               ! Cladding density (kg/m3)
 DOUBLE PRECISION :: cp                          ! Specific heat capacity
@@ -422,6 +422,7 @@ DOUBLE PRECISION, DIMENSION(nnod) :: entp        ! previous enthalpy
 
 DOUBLE PRECISION :: pdens      ! power densisty  (W/m3)
 DOUBLE PRECISION :: enti       ! Coolant inlet enthalpy
+DOUBLE PRECISION, DIMENSION(nxx, nyy) :: entm
 DOUBLE PRECISION :: cpline     ! Coolant Linear power densisty (W/m)
 DOUBLE PRECISION :: Pr, kv, tcon ! Coolant Prandtl Number, Kinematic viscosity, and thermal conductivity
 
@@ -432,46 +433,51 @@ DO k = 1, nzz
     DO j = 1, nyy
         DO i = ystag(j)%smin, ystag(j)%smax
 
-            mdens = cden(xyz(i,j,k)) * 1000.                                    ! Coolant density (kg/m3)
+            mdens = cden(xyz(i,j,k)) * 1000.d0                                    ! Coolant density (kg/m3)
             cpline = heatf(xyz(i,j,k)) * pi * dia  &
-                   + cf * xpline(xyz(i,j,k)) * 100.       ! Coolant Linear power densisty (W/m)
-            vol   = farea * zdel(k) * 0.01
+                   + cf * xpline(xyz(i,j,k)) * 100.d0       ! Coolant Linear power densisty (W/m)
+            vol   = farea * zdel(k) * 0.01d0
+
             IF (k == 1) THEN                                                    ! Calculate coolant enthalpy
-                eps = 0.5 * mdens * vol
-                ent(xyz(i,j,k)) = (cpline * zdel(k) * 0.01 * h &
-                                + (cflow * h - eps) * enti &
-                                + eps * (enti + entp(xyz(i,j,k)))) &
-                                / (eps + cflow * h)
-                CALL gettd(0.5 * (enti + ent(xyz(i,j,k))), mtem(xyz(i,j,k)), &
-                          cden(xyz(i,j,k)), Pr, kv, tcon)                             ! Get corresponding temp and density
+                eps = mdens * vol / h
+                ent(xyz(i,j,k)) = (cpline * zdel(k) * 0.01d0 &
+                                + 2.d0 * cflow * enti &
+                                + eps * entp(xyz(i,j,k))) &
+                                / (eps + 2.d0 * cflow)
+                CALL gettd(ent(xyz(i,j,k)), mtem(xyz(i,j,k)), &
+                          cden(xyz(i,j,k)), Pr, kv, tcon)                       ! Get corresponding temp and density
+                entm(i,j) = 2.d0 * ent(xyz(i,j,k)) - enti
             ELSE
-                eps = 0.5 * mdens * vol
-                ent(xyz(i,j,k)) = (cpline * zdel(k) * 0.01 * h &
-                                + (cflow * h - eps) * ent(xyz(i,j,k-1)) &
-                                + eps * (entp(xyz(i,j,k-1)) + entp(xyz(i,j,k)))) &
-                                / (eps + cflow * h)
-                CALL gettd(0.5 * (ent(xyz(i,j,k-1)) + ent(xyz(i,j,k))), &
-                           mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tcon)          ! Get corresponding temp and density
+                eps = mdens * vol / h
+                ent(xyz(i,j,k)) = (cpline * zdel(k) * 0.01d0 &
+                                + 2.d0 * cflow * entm(i,j) &
+                                + eps * entp(xyz(i,j,k))) &
+                                / (eps + 2.d0 * cflow)
+                CALL gettd(ent(xyz(i,j,k)), mtem(xyz(i,j,k)), &
+                          cden(xyz(i,j,k)), Pr, kv, tcon)                       ! Get corresponding temp and density
+                entm(i,j) = 2.d0 * ent(xyz(i,j,k)) - entm(i,j)
             END IF
 
 
             hs = geths(cden(xyz(i,j,k)), Pr, kv, tcon)                                               ! Calculate heat transfer coef
-            pdens = (1. - cf) * 100. * xpline(xyz(i,j,k)) / (pi * rf**2)                ! Fuel pin Power Density (W/m3)
+            pdens = (1. - cf) * 100.d0 * xpline(xyz(i,j,k)) / (pi * rf**2)                ! Fuel pin Power Density (W/m3)
 
             ! Calculate tridiagonal matrix: a, b, c and source: d
             ! For nt=1 [FUEL CENTERLINE]
-            tem = 0.5 * (tfm(xyz(i,j,k),1) + tfm(xyz(i,j,k),2))                        ! Average temp. to get thermal conductivity
-            kt = getkf(tem)                                                            ! Get thermal conductivity
+            kt1 = getkf(tfm(xyz(i,j,k),1))                                                     ! Get thermal conductivity
+            kt2 = getkf(tfm(xyz(i,j,k),2))
+            kt  = 2.d0 * kt1 * kt2 / (kt1 + kt2)
             cp = getcpf(tfm(xyz(i,j,k),1))                                                           ! Get specific heat capacity
             eta = fdens * cp * rpos(1)**2 / (2. * h)
             xc  = kt * rpos(1) / rdel(1)
             b(1) =  xc + eta
             c(1) = -xc
-            d(1) = pdens * 0.5 * rpos(1)**2 + eta * tfm(xyz(i,j,k),1)
+            d(1) = pdens * 0.5d0 * rpos(1)**2 + eta * tfm(xyz(i,j,k),1)
 
             DO n = 2, nt-2
-                tem = 0.5 * (tfm(xyz(i,j,k),n) + tfm(xyz(i,j,k),n+1))
-                kt = getkf(tem)
+                kt1 = kt2
+                kt2 = getkf(tfm(xyz(i,j,k),n+1))
+                kt  = 2.d0 * kt1 * kt2 / (kt1 + kt2)
                 cp = getcpf(tfm(xyz(i,j,k),n))
                 eta = fdens * cp * (rpos(n)**2 - rpos(n-1)**2) / (2. * h)
                 xa = xc
@@ -479,7 +485,7 @@ DO k = 1, nzz
                 a(n) = -xa
                 b(n) =  xa + xc + eta
                 c(n) = -xc
-                d(n) = pdens * 0.5 * (rpos(n)**2 - rpos(n-1)**2) &
+                d(n) = pdens * 0.5d0 * (rpos(n)**2 - rpos(n-1)**2) &
                      + eta * tfm(xyz(i,j,k),n)
             END DO
 
@@ -491,12 +497,13 @@ DO k = 1, nzz
             a(nt-1) = -xa
             b(nt-1) =  xa + xc + eta
             c(nt-1) = -xc
-            d(nt-1) = pdens * 0.5 * (rf**2 - rpos(nt-2)**2) &
+            d(nt-1) = pdens * 0.5d0 * (rf**2 - rpos(nt-2)**2) &
                     + eta * tfm(xyz(i,j,k),nt-1)
 
             ! For nt [GAP-CLADDING INTERFACE]
-            tem = 0.5 * (tfm(xyz(i,j,k),nt) + tfm(xyz(i,j,k),nt+1))
-            kt = getkc(tem)      ! For cladding
+            kt1 = getkc(tfm(xyz(i,j,k),nt))
+            kt2 = getkc(tfm(xyz(i,j,k),nt+1))
+            kt  = 2.d0 * kt1 * kt2 / (kt1 + kt2)     ! For cladding
             cp = getcpc(tfm(xyz(i,j,k),nt))
             eta = cdens * cp * (rpos(nt)**2 - rg**2) / (2. * h)
             xa = xc
@@ -533,8 +540,6 @@ END DO
 END SUBROUTINE th_trans
 
 
-
-
 SUBROUTINE th_upd(xpline)
 
 !
@@ -542,7 +547,7 @@ SUBROUTINE th_upd(xpline)
 !    To update thermal parameters
 !
 
-USE sdata, ONLY: mtem, cden, ftem, tin, xyz, cflow, nyy, nzz, cf, ent, heatf, &
+USE sdata, ONLY: mtem, cden, ftem, tin, xyz, cflow, nyy, nxx, nzz, cf, ent, heatf, &
                  ystag, tfm, nt, rpos, rdel, rf, rg, rc, pi, zdel, dia, ystag, &
                  farea
 
@@ -552,11 +557,12 @@ DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: xpline    ! Linear Power Density (
 
 INTEGER :: i, j, k, n
 DOUBLE PRECISION, DIMENSION(nt+1) :: a, b, c, d
-DOUBLE PRECISION :: hs, Hg = 1.e4, kt
-DOUBLE PRECISION :: alp = 0.7
-DOUBLE PRECISION :: xa, xc, tem
+DOUBLE PRECISION :: hs, Hg = 1.d4, kt, kt1, kt2
+DOUBLE PRECISION :: alp = 0.7d0
+DOUBLE PRECISION :: xa, xc
 DOUBLE PRECISION :: pdens      ! power densisty  (W/m3)
 DOUBLE PRECISION :: enti       ! Coolant inlet enthalpy
+DOUBLE PRECISION, DIMENSION(nxx, nyy) :: entm
 DOUBLE PRECISION :: cpline     ! Coolant Linear power densisty (W/m)
 DOUBLE PRECISION :: Pr, kv, tcon ! Coolant Prandtl Number, Kinematic viscosity, and thermal conductivity
 
@@ -567,39 +573,42 @@ DO k = 1, nzz
         DO i = ystag(j)%smin, ystag(j)%smax
 
             cpline = heatf(xyz(i,j,k)) * pi * dia  &
-                   + cf * xpline(xyz(i,j,k)) * 100.       ! Coolant Linear power densisty (W/m)
+                   + cf * xpline(xyz(i,j,k)) * 100.d0       ! Coolant Linear power densisty (W/m)
 
             IF (k == 1) THEN                                                    ! Calculate coolant enthalpy and
-                ent(xyz(i,j,k)) = enti + cpline * zdel(k) * 0.01 / cflow        ! corresponding temp and density
-                CALL gettd(0.5 * (enti + ent(xyz(i,j,k))), &
-                           mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tcon)      ! Get corresponding temp and density
+                ent(xyz(i,j,k)) = enti + 0.5d0 * cpline * zdel(k) * 0.01d0 / cflow
+                CALL gettd(ent(xyz(i,j,k)), mtem(xyz(i,j,k)), cden(xyz(i,j,k)), &
+                          Pr, kv, tcon)                                         ! Get corresponding temp and density
+                entm(i,j) = 2.d0 * ent(xyz(i,j,k)) - enti
             ELSE
-                ent(xyz(i,j,k)) = ent(xyz(i,j,k-1)) &
-                                + cpline * zdel(k) * 0.01 / cflow
-                CALL gettd(0.5 * (ent(xyz(i,j,k-1)) + ent(xyz(i,j,k))), &
-                          mtem(xyz(i,j,k)), cden(xyz(i,j,k)), Pr, kv, tcon)       ! Get corresponding temp and density
+                ent(xyz(i,j,k)) = entm(i,j) + 0.5d0 * cpline * zdel(k) * 0.01d0 / cflow
+                CALL gettd(ent(xyz(i,j,k)), mtem(xyz(i,j,k)), cden(xyz(i,j,k)), &
+                          Pr, kv, tcon)
+                entm(i,j) = 2.d0 * ent(xyz(i,j,k)) - entm(i,j)
             END IF
 
             hs = geths(cden(xyz(i,j,k)), Pr, kv, tcon)
-            pdens = (1. - cf) * 100. * xpline(xyz(i,j,k)) / (pi * rf**2)        ! Fuel pin Power Density (W/m3)
+            pdens = (1. - cf) * 100.d0 * xpline(xyz(i,j,k)) / (pi * rf**2)        ! Fuel pin Power Density (W/m3)
 
             ! Calculate tridiagonal matrix: a, b, c and source: d
-            tem = 0.5 * (tfm(xyz(i,j,k),1) + tfm(xyz(i,j,k),2))                 ! Average temp. to get thermal conductivity
-            kt = getkf(tem)                                                     ! Get thermal conductivity
+            kt1 = getkf(tfm(xyz(i,j,k),1))                                                     ! Get thermal conductivity
+            kt2 = getkf(tfm(xyz(i,j,k),2))
+            kt  = 2.d0 * kt1 * kt2 / (kt1 + kt2)
             xc  = kt * rpos(1) / rdel(1)
             b(1) =  xc
             c(1) = -xc
-            d(1) = pdens * 0.5 * rpos(1)**2
+            d(1) = pdens * 0.5d0 * rpos(1)**2
 
             DO n = 2, nt-2
-                tem = 0.5 * (tfm(xyz(i,j,k),n) + tfm(xyz(i,j,k),n+1))
-                kt = getkf(tem)
+                kt1 = kt2
+                kt2 = getkf(tfm(xyz(i,j,k),n+1))
+                kt  = 2.d0 * kt1 * kt2 / (kt1 + kt2)
                 xa = xc
                 xc = kt * rpos(n) / rdel(n)
                 a(n) = -xa
                 b(n) =  xa + xc
                 c(n) = -xc
-                d(n) = pdens * 0.5 * (rpos(n)**2 - rpos(n-1)**2)
+                d(n) = pdens * 0.5d0 * (rpos(n)**2 - rpos(n-1)**2)
             END DO
 
             ! For nt-1 [FUEL-GAP INTERFACE]
@@ -608,11 +617,12 @@ DO k = 1, nzz
             a(nt-1) = -xa
             b(nt-1) =  xa + xc
             c(nt-1) = -xc
-            d(nt-1) = pdens * 0.5 * (rf**2 - rpos(nt-2)**2)
+            d(nt-1) = pdens * 0.5d0 * (rf**2 - rpos(nt-2)**2)
 
             ! For nt [GAP-CLADDING INTERFACE]
-            tem = 0.5 * (tfm(xyz(i,j,k),nt) + tfm(xyz(i,j,k),nt+1))
-            kt = getkc(tem)      ! For cladding
+            kt1 = getkc(tfm(xyz(i,j,k),nt))
+            kt2 = getkc(tfm(xyz(i,j,k),nt+1))
+            kt  = 2.d0 * kt1 * kt2 / (kt1 + kt2)     ! For cladding
             xa = xc
             xc = kt * rpos(nt) / rdel(nt)
             a(nt) = -xa
@@ -638,9 +648,6 @@ DO k = 1, nzz
 
         END DO
     END DO
-
-
-!STOP
 END DO
 
 
