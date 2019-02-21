@@ -1354,7 +1354,8 @@ DO n = 1, nsrc
     DO g = 1, ng
         summ = summ + spec(g)
     END DO
-    IF ((summ - 1.) < 1.d-5) THEN
+    ! Check total spectrum
+    IF (ABS(summ - 1.d0) > 1.d-5) THEN
         WRITE(ounit,*) 'TOTAL SOURCE SPECTRUM AT LINE', ln, ' IS NOT EQUAL TO 1.0'
         STOP
     END IF

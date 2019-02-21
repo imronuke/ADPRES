@@ -21,7 +21,7 @@ SUBROUTINE outer4(popt)
 !    To perform normal outer iteration
 
 
-USE sdata, ONLY: ng, nnod, nout, serc, ferc, fer, ser, &
+USE sdata, ONLY: ng, nnod, nout, serc, ferc, fer, ser, f0, &
                  Ke, nac, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 USE InpOutp, ONLY: ounit
 
@@ -31,6 +31,7 @@ INTEGER, OPTIONAL, INTENT(IN) :: popt
 
 DOUBLE PRECISION :: Keo                                    !Old Multiplication factor (Keff)
 DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !old fission source
+DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old fluxes
 DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
 DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
@@ -67,6 +68,7 @@ e1 = Integrate(errn)
 DO p=1, nout
     fc = f
     fs0c  = fs0
+    f0c = f0
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
     fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
     fs0  = 0.0
@@ -90,7 +92,7 @@ DO p=1, nout
                                  ssx2 , ssy2 , ssz2   )
 
         !!!Inner Iteration
-        CALL inner4(g, fer)
+        CALL inner4(g)
 
         !!!Calculate fission source for next outer iteration
         CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
@@ -113,6 +115,8 @@ DO p=1, nout
     Ke = Keo * f / fc                              ! Update Keff
 
     CALL RelE(fs0, fs0c, ser)                      ! Search maximum point wise fission source Relative Error
+
+    CALL RelEg(f0, f0c, fer)                      ! Search maximum point wise fluxes Error
 
     IF (opt) WRITE(ounit,'(I5,F13.6,2ES15.5)') p, Ke, ser, fer
 
@@ -142,7 +146,7 @@ SUBROUTINE outer4th(maxn)
 !    To perform normal outer iteration when %THER card present
 
 
-USE sdata, ONLY: ng, nnod, serc, ferc, fer, ser, &
+USE sdata, ONLY: ng, nnod, serc, ferc, fer, ser, f0, &
                  Ke, nac, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 
 IMPLICIT NONE
@@ -151,6 +155,7 @@ INTEGER, INTENT(IN) :: maxn
 
 DOUBLE PRECISION :: Keo                                    !Old Multiplication factor (Keff)
 DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
+DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old fluxes
 DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
 DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
@@ -180,6 +185,7 @@ e1 = Integrate(errn)
 !Start outer iteration
 DO p=1, maxn
     fc = f
+    f0c = f0
     fs0c  = fs0
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
     fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
@@ -200,7 +206,7 @@ DO p=1, maxn
                                  ssx2 , ssy2 , ssz2   )
 
         !!!Inner Iteration
-        CALL inner4(g, fer)
+        CALL inner4(g)
 
         !!!Calculate fission source for next outer iteration
         CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
@@ -224,6 +230,8 @@ DO p=1, maxn
 
     CALL RelE(fs0, fs0c, ser)                      ! Search maximum point wise fission source Relative Error
 
+    CALL RelEg(f0, f0c, fer)                      ! Search maximum point wise fluxes Error
+
     IF ((ser < serc) .AND. (fer < ferc)) EXIT
 END DO
 
@@ -238,13 +246,14 @@ SUBROUTINE outer4Fx
 ! Purpose:
 !    To perform fixed-source outer iteration
 
-USE sdata, ONLY: ng, nnod, nout, serc, ferc, &
+USE sdata, ONLY: ng, nnod, nout, serc, ferc, f0, &
                  Ke, nac, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 USE InpOutp, ONLY: ounit
 
 IMPLICIT NONE
 
 DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
+DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old fluxes
 DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
 DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
@@ -272,6 +281,7 @@ e1 = Integrate(errn)
 !Start outer iteration
 DO p=1, nout
     fs0c  = fs0
+    f0c = f0
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
     fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
     fs0  = 0.0
@@ -290,7 +300,7 @@ DO p=1, nout
                               ssx2 , ssy2 , ssz2   )
 
         !!!Inner Iteration
-        CALL inner4(g, fer)
+        CALL inner4(g)
 
         !!!Calculate fission source for next outer iteration
         CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
@@ -309,6 +319,8 @@ DO p=1, nout
     e1 = e2
 
     CALL RelE(fs0, fs0c, ser)                      ! Search maximum point wise fission source Relative Error
+
+    CALL RelEg(f0, f0c, fer)                      ! Search maximum point wise fluxes Error
 
     WRITE(ounit,'(I5,2ES15.5)') p, ser, fer
 
@@ -338,7 +350,7 @@ SUBROUTINE outertf (ht, maxi)
 ! Purpose:
 !    To perform outer iteration for transient with flux transformation
 
-USE sdata, ONLY: ng, nnod, serc, ferc, nout, &
+USE sdata, ONLY: ng, nnod, serc, ferc, nout, f0, &
                  nac, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 
 IMPLICIT NONE
@@ -347,6 +359,7 @@ DOUBLE PRECISION, INTENT(IN) :: ht
 LOGICAL, INTENT(OUT) :: maxi
 
 DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
+DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old fluxes
 DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
 DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
@@ -364,6 +377,7 @@ e1 = Integrate(errn)
 !Start outer iteration
 DO p=1, nout
     fs0c  = fs0
+    f0c = f0
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
     fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
     fs0  = 0.0
@@ -382,7 +396,7 @@ DO p=1, nout
                               ssx2 , ssy2 , ssz2, ht)
 
         !!!Inner Iteration
-        CALL inner4(g, fer)
+        CALL inner4(g)
 
         !!!Calculate fission source for next outer iteration
         CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
@@ -402,6 +416,8 @@ DO p=1, nout
 
     CALL RelE(fs0, fs0c, ser)                      ! Search maximum point wise fission source Relative Error
 
+    CALL RelEg(f0, f0c, fer)                      ! Search maximum point wise fluxes Error
+
     IF ((ser < serc) .AND. (fer < ferc)) EXIT
 END DO
 
@@ -420,7 +436,7 @@ SUBROUTINE outer4ad(popt)
   ! Purpose:
   !    To perform adjoint outer iteration
 
-USE sdata, ONLY: ng, nnod, nout, serc, ferc, &
+USE sdata, ONLY: ng, nnod, nout, serc, ferc, f0, &
                  Ke, nac, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 USE InpOutp, ONLY: ounit
 
@@ -430,6 +446,7 @@ INTEGER, OPTIONAL, INTENT(IN) :: popt
 
 DOUBLE PRECISION :: Keo                                    !Old Multiplication factor (Keff)
 DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
+DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old fluxes
 DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
 DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
@@ -468,6 +485,7 @@ e1 = Integrate(errn)
 DO p=1, nout
     fc = f
     fs0c  = fs0
+    f0c = f0
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
     fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
     fs0  = 0.0
@@ -487,7 +505,7 @@ DO p=1, nout
                                  ssx2 , ssy2 , ssz2   )
 
         !!!Inner Iteration
-        CALL inner4(g, fer)
+        CALL inner4(g)
 
         !!!Calculate fission source for next outer iteration
         CALL FSrcAd (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
@@ -509,7 +527,9 @@ DO p=1, nout
 
     Ke = Keo * f / fc                              ! Update Keff
 
-    CALL RelE(fs0, fs0c, ser)                      ! Search maximum point wise fission source Relative Error\
+    CALL RelE(fs0, fs0c, ser)                      ! Search maximum point wise fission source Relative Error
+
+    CALL RelEg(f0, f0c, fer)                      ! Search maximum point wise fluxes Error
 
     Ker = ABS(Ke - Keo)                            ! Get Keff Abs Error
 
@@ -535,7 +555,7 @@ END SUBROUTINE outer4ad
 
 
 
-SUBROUTINE inner4(g,fer)
+SUBROUTINE inner4(g)
 !
 ! Purpose:
 !   To perform inner iterations
@@ -548,7 +568,6 @@ USE sdata, ONLY: nod, nnod, xstag, ystag, ierc, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g
-DOUBLE PRECISION, INTENT(OUT) :: fer
 INTEGER :: l, n
 DOUBLE PRECISION, DIMENSION(6) :: bvec, qvec
 
@@ -633,12 +652,6 @@ DO l = 1, nin
             ! Update flux and flux moments
             CALL FluxUpd4(n, g, Lm(n,:))
     END DO
-
-    CALL RelE(f0(:,g), flxc, fer)
-
-    IF (fer < ierc) EXIT
-
-
 END DO
 
 END SUBROUTINE inner4
@@ -1726,6 +1739,36 @@ DO n= 1, nnod
 END DO
 
 END SUBROUTINE RelE
+
+
+SUBROUTINE RelEg(newF, oldF, rel)
+
+  !
+  ! Purpose:
+  !    To calculate Max Relative error
+
+USE sdata, ONLY: nnod, ng
+
+IMPLICIT NONE
+
+DOUBLE PRECISION, DIMENSION(:,:), INTENT(IN) :: newF, oldF
+DOUBLE PRECISION, INTENT(OUT) :: rel
+
+DOUBLE PRECISION :: error
+INTEGER :: n, g
+
+rel = 0.
+
+DO n= 1, nnod
+   DO g = 1, ng
+      IF (ABS(newF(n,g)) > 1.d-10) THEN
+         error = ABS(newF(n,g) - oldF(n,g)) / ABS(newF(n,g))
+         IF (error > rel) rel = error
+      END IF
+  END DO
+END DO
+
+END SUBROUTINE RelEg
 
 
 SUBROUTINE MultF(k)
