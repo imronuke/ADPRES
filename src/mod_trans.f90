@@ -730,11 +730,8 @@ INTEGER :: n, i, j, g, imax, step
 ! Update xsec
 CALL XS_updt(bcon, ftem, mtem, cden, bpos)
 
-! Guess fission source
-fs0 = 0.; fsx1 = 0.; fsy1 = 0.; fsz1 = 0.; fsx2 = 0.; fsy2 = 0.; fsz2 = 0.
-DO g = 1, ng
-   CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
-END DO
+! Initialize fission source
+CALL FSrc (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
 
 ! Calculate forward flux at t=0 and check if keff=1
 CALL nodal_coup4()

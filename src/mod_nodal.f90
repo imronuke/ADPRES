@@ -52,13 +52,7 @@ ELSE
 END IF
 
 ! Initialize fission source
-fs0  = 0.0
-fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
-fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
-
-DO g= 1, ng
-    CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
-END DO
+CALL FSrc (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
 
 errn = 1.0
 f = Integrate(fs0)
@@ -71,9 +65,6 @@ DO p=1, nout
     fs0c  = fs0       ! Save old fission source
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
     fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
-    fs0  = 0.0
-    fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
-    fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
     Keo = Ke          ! Save old multiplication factor
     erro = errn       ! Save old fission source error/difference
     DO g = 1, ng
@@ -94,13 +85,10 @@ DO p=1, nout
         !!!Inner Iteration
         CALL inner4(g)
 
-        !!!Calculate fission source for next outer iteration
-        CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
     END DO
-
+    CALL FSrc (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)  !Update fission source
     errn = fs0 - fs0c
     e2 = Integrate(ABS(errn))
-
     IF (MOD(p,nac) == 0) THEN   ! Fission source extrapolation
         domiR = e2 / e1
         npos = MAXLOC(ABS(erro),1)
@@ -112,6 +100,7 @@ DO p=1, nout
     Ke = Keo * f / fc             ! Update Keff
     CALL RelE(fs0, fs0c, ser)     ! Search maximum point wise fission source Relative Error
     CALL RelJ(joc, fer)           ! Search maximum point wise outgoing current Error
+    IF (opt) WRITE(ounit,'(I5,F13.6,2ES15.5)') p, Ke, ser, fer  ! Write outer iteration evolution
     IF ((ser < serc) .AND. (fer < ferc)) EXIT  ! If converge, exit.
 END DO
 
@@ -162,13 +151,7 @@ DOUBLE PRECISION, DIMENSION(nnod) :: errn, erro
 
 
 ! Initialize fission source
-fs0  = 0.0
-fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
-fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
-
-DO g= 1, ng
-    CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
-END DO
+CALL FSrc (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
 
 errn = 1.0
 f = Integrate(fs0)
@@ -181,9 +164,6 @@ DO p=1, maxn
     fs0c  = fs0       ! Save old fission source
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
     fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
-    fs0  = 0.0
-    fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
-    fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
     Keo = Ke          ! Save old multiplication factor
     erro = errn       ! Save old fission source error/difference
     DO g = 1, ng
@@ -200,13 +180,10 @@ DO p=1, maxn
         !!!Inner Iteration
         CALL inner4(g)
 
-        !!!Calculate fission source for next outer iteration
-        CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
     END DO
-
+    CALL FSrc (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)  !Update fission source
     errn = fs0 - fs0c
     e2 = Integrate(ABS(errn))
-
     IF (MOD(p,nac) == 0) THEN   ! Fission source extrapolation
         domiR = e2 / e1
         npos = MAXLOC(ABS(erro),1)
@@ -251,13 +228,7 @@ INTEGER :: p, npos
 DOUBLE PRECISION, DIMENSION(nnod) :: errn, erro
 
 ! Initialize fission source
-fs0  = 0.0
-fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
-fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
-
-DO g= 1, ng
-    CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
-END DO
+CALL FSrc (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
 
 errn = 1.0
 e1 = Integrate(errn)
@@ -268,9 +239,6 @@ DO p=1, nout
     fs0c  = fs0       ! Save old fission source
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
     fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
-    fs0  = 0.0
-    fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
-    fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
     erro = errn       ! Save old fission source error/difference
     DO g = 1, ng
 
@@ -286,13 +254,10 @@ DO p=1, nout
         !!!Inner Iteration
         CALL inner4(g)
 
-        !!!Calculate fission source for next outer iteration
-        CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
     END DO
-
+    CALL FSrc (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)  !Update fission source
     errn = fs0 - fs0c
     e2 = Integrate(ABS(errn))
-
     IF (MOD(p,nac) == 0) THEN   ! Fission source extrapolation
         domiR = e2 / e1
         npos = MAXLOC(ABS(erro),1)
@@ -302,6 +267,7 @@ DO p=1, nout
     e1 = e2                       ! Save integrated fission source error
     CALL RelE(fs0, fs0c, ser)     ! Search maximum point wise fission source Relative Error
     CALL RelJ(joc, fer)           ! Search maximum point wise outgoing current Error
+    WRITE(ounit,'(I5,2ES15.5)') p, ser, fer
     IF ((ser < serc) .AND. (fer < ferc)) EXIT  ! If converge, exit.
 END DO
 
@@ -357,9 +323,6 @@ DO p=1, nout
     fs0c  = fs0       ! Save old fission source
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
     fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
-    fs0  = 0.0
-    fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
-    fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
     erro = errn       ! Save old fission source error/difference
     DO g = 1, ng
 
@@ -375,13 +338,10 @@ DO p=1, nout
         !!!Inner Iteration
         CALL inner4(g)
 
-        !!!Calculate fission source for next outer iteration
-        CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
     END DO
-
+    CALL FSrc (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)  !Update fission source
     errn = fs0 - fs0c
     e2 = Integrate(ABS(errn))
-
     IF (MOD(p,nac) == 0) THEN   ! Fission source extrapolation
         domiR = e2 / e1
         npos = MAXLOC(ABS(erro),1)
@@ -441,13 +401,7 @@ ELSE
 END IF
 
 ! Initialize fission source
-fs0  = 0.0
-fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
-fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
-
-DO g= 1, ng
-    CALL FSrc (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
-END DO
+CALL FSrcAd (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
 
 errn = 1.0
 f = Integrate(fs0)
@@ -460,9 +414,6 @@ DO p=1, nout
     fs0c  = fs0       ! Save old fission source
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
     fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
-    fs0  = 0.0
-    fsx1 = 0.0; fsy1 = 0.0; fsz1 = 0.0
-    fsx2 = 0.0; fsy2 = 0.0; fsz2 = 0.0
     Keo = Ke          ! Save old multiplication factor
     erro = errn       ! Save old fission source error/difference
     DO g = ng,1,-1
@@ -479,13 +430,10 @@ DO p=1, nout
         !!!Inner Iteration
         CALL inner4(g)
 
-        !!!Calculate fission source for next outer iteration
-        CALL FSrcAd (g, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
     END DO
-
+    CALL FSrcAd (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)  !Update fission source
     errn = fs0 - fs0c
     e2 = Integrate(ABS(errn))
-
     IF (MOD(p,nac) == 0) THEN   ! Fission source extrapolation
         domiR = e2 / e1
         npos = MAXLOC(ABS(erro),1)
@@ -497,6 +445,7 @@ DO p=1, nout
     Ke = Keo * f / fc             ! Update Keff
     CALL RelE(fs0, fs0c, ser)     ! Search maximum point wise fission source Relative Error
     CALL RelJ(joc, fer)           ! Search maximum point wise outgoing current Error
+    IF (opt) WRITE(ounit,'(I5,F13.6,2ES15.5)') p, Ke, ser, fer  ! Write outer iteration evolution
     IF ((ser < serc) .AND. (fer < ferc)) EXIT  ! If converge, exit.
 END DO
 
@@ -513,7 +462,6 @@ IF (opt) WRITE(ounit,*)
 IF (opt) WRITE(ounit, '(A36,F9.6)') 'MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
 
 END SUBROUTINE outer4ad
-
 
 
 
@@ -1140,61 +1088,63 @@ L(7) = ( r2zx/xdel(ix(n))+r2zy/ydel(iy(n)) ) / 20.
 END SUBROUTINE TLUpd
 
 
-SUBROUTINE FSrc(g, s, sx1, sy1, sz1, sx2, sy2, sz2)
+SUBROUTINE FSrc(s, sx1, sy1, sz1, sx2, sy2, sz2)
 !
 ! Purpose:
 !   To calculate fission source and fission source moments
 !
 
-USE sdata, ONLY: nnod, nuf, &
+USE sdata, ONLY: nnod, nuf, ng, &
                  f0, fx1, fy1, fz1, fx2, fy2, fz2
 
 IMPLICIT NONE
 
-INTEGER, INTENT(IN) :: g
-DOUBLE PRECISION, DIMENSION(:), INTENT(INOUT) :: s, sx1, sy1, sz1
-DOUBLE PRECISION, DIMENSION(:), INTENT(INOUT) :: sx2, sy2, sz2
+DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: s, sx1, sy1, sz1, sx2, sy2, sz2
 
-INTEGER :: n
+INTEGER :: n, g
 
-DO n = 1, nnod
-    s(n)   = s(n)   + f0 (n,g) * nuf(n,g)
-    sx1(n) = sx1(n) + fx1(n,g) * nuf(n,g)
-    sy1(n) = sy1(n) + fy1(n,g) * nuf(n,g)
-    sz1(n) = sz1(n) + fz1(n,g) * nuf(n,g)
-    sx2(n) = sx2(n) + fx2(n,g) * nuf(n,g)
-    sy2(n) = sy2(n) + fy2(n,g) * nuf(n,g)
-    sz2(n) = sz2(n) + fz2(n,g) * nuf(n,g)
+s = 0.; sx1 = 0.; sy1 = 0.; sz1 = 0.; sx2 = 0.; sy2 = 0.; sz2 = 0.
+DO g = 1, ng
+    DO n = 1, nnod
+       s(n)   = s(n)   + f0 (n,g) * nuf(n,g)
+       sx1(n) = sx1(n) + fx1(n,g) * nuf(n,g)
+       sy1(n) = sy1(n) + fy1(n,g) * nuf(n,g)
+       sz1(n) = sz1(n) + fz1(n,g) * nuf(n,g)
+       sx2(n) = sx2(n) + fx2(n,g) * nuf(n,g)
+       sy2(n) = sy2(n) + fy2(n,g) * nuf(n,g)
+       sz2(n) = sz2(n) + fz2(n,g) * nuf(n,g)
+    END DO
 END DO
 
 END SUBROUTINE FSrc
 
 
-SUBROUTINE FSrcAd(g, s, sx1, sy1, sz1, sx2, sy2, sz2)
+SUBROUTINE FSrcAd(s, sx1, sy1, sz1, sx2, sy2, sz2)
 !
 ! Purpose:
-!   To calculate fission source and fission source moments for adjoint calc.
+!   To calculate fission source and fission source moments
 !
 
-USE sdata, ONLY: nnod, chi, mat, &
+USE sdata, ONLY: nnod, ng, mat, chi, &
                  f0, fx1, fy1, fz1, fx2, fy2, fz2
 
 IMPLICIT NONE
 
-INTEGER, INTENT(IN) :: g
-DOUBLE PRECISION, DIMENSION(:), INTENT(INOUT) :: s, sx1, sy1, sz1
-DOUBLE PRECISION, DIMENSION(:), INTENT(INOUT) :: sx2, sy2, sz2
+DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: s, sx1, sy1, sz1, sx2, sy2, sz2
 
-INTEGER :: n
+INTEGER :: n, g
 
-DO n = 1, nnod
-    s(n)   = s(n)   + f0 (n,g) * chi(mat(n),g)
-    sx1(n) = sx1(n) + fx1(n,g) * chi(mat(n),g)
-    sy1(n) = sy1(n) + fy1(n,g) * chi(mat(n),g)
-    sz1(n) = sz1(n) + fz1(n,g) * chi(mat(n),g)
-    sx2(n) = sx2(n) + fx2(n,g) * chi(mat(n),g)
-    sy2(n) = sy2(n) + fy2(n,g) * chi(mat(n),g)
-    sz2(n) = sz2(n) + fz2(n,g) * chi(mat(n),g)
+s = 0.; sx1 = 0.; sy1 = 0.; sz1 = 0.; sx2 = 0.; sy2 = 0.; sz2 = 0.
+DO g = 1, ng
+    DO n = 1, nnod
+      s(n)   = s(n)   + f0 (n,g) * chi(mat(n),g)
+      sx1(n) = sx1(n) + fx1(n,g) * chi(mat(n),g)
+      sy1(n) = sy1(n) + fy1(n,g) * chi(mat(n),g)
+      sz1(n) = sz1(n) + fz1(n,g) * chi(mat(n),g)
+      sx2(n) = sx2(n) + fx2(n,g) * chi(mat(n),g)
+      sy2(n) = sy2(n) + fy2(n,g) * chi(mat(n),g)
+      sz2(n) = sz2(n) + fz2(n,g) * chi(mat(n),g)
+    END DO
 END DO
 
 END SUBROUTINE FSrcAd
