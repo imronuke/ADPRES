@@ -32,8 +32,6 @@ INTEGER, OPTIONAL, INTENT(IN) :: popt
 DOUBLE PRECISION :: Keo                                    !Old Multiplication factor (Keff)
 DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !old fission source
 DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old flux
-DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
-DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
 DOUBLE PRECISION, DIMENSION(nnod) :: ssx1, ssy1, ssz1
 DOUBLE PRECISION, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
@@ -63,18 +61,16 @@ DO p=1, nout
     f0c = f0          ! Save old fluxes
     fc = f            ! Save old integrated fission source
     fs0c  = fs0       ! Save old fission source
-    fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
-    fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
     Keo = Ke          ! Save old multiplication factor
     erro = errn       ! Save old fission source error/difference
     DO g = 1, ng
         !!!Calculate Scattering source
         CALL SSrc(g, ss0, ssx1, ssy1, ssz1, ssx2, ssy2, ssz2)
         !!!Calculate total source
-        CALL TSrc(g, Keo, fs0c , fsx1c, fsy1c, fsz1c, &
-                                 fsx2c, fsy2c, fsz2c, &
-                           ss0 , ssx1 , ssy1 , ssz1 , &
-                                 ssx2 , ssy2 , ssz2   )
+        CALL TSrc(g, Keo, fs0, fsx1, fsy1, fsz1, &
+                               fsx2, fsy2, fsz2, &
+                          ss0, ssx1, ssy1, ssz1, &
+                               ssx2, ssy2, ssz2   )
         !!!Inner Iteration
         CALL inner4(g)
     END DO
@@ -349,8 +345,6 @@ INTEGER, OPTIONAL, INTENT(IN) :: popt
 DOUBLE PRECISION :: Keo                                    !Old Multiplication factor (Keff)
 DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
 DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old flux
-DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
-DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
 DOUBLE PRECISION, DIMENSION(nnod) :: ssx1, ssy1, ssz1
 DOUBLE PRECISION, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
@@ -381,18 +375,16 @@ DO p=1, nout
     f0c = f0          ! Save old fluxes
     fc = f            ! Save old integrated fission source
     fs0c  = fs0       ! Save old fission source
-    fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
-    fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
     Keo = Ke          ! Save old multiplication factor
     erro = errn       ! Save old fission source error/difference
     DO g = ng,1,-1
         !!!Calculate Scattering source
         CALL SSrcAd(g, ss0, ssx1, ssy1, ssz1, ssx2, ssy2, ssz2)
         !!!Calculate total source
-        CALL TSrcAd(g, Keo, fs0c , fsx1c, fsy1c, fsz1c, &
-                                 fsx2c, fsy2c, fsz2c, &
-                           ss0 , ssx1 , ssy1 , ssz1 , &
-                                 ssx2 , ssy2 , ssz2   )
+        CALL TSrcAd(g, Keo, fs0, fsx1, fsy1, fsz1, &
+                               fsx2, fsy2, fsz2, &
+                          ss0, ssx1, ssy1, ssz1, &
+                               ssx2, ssy2, ssz2)
         !!!Inner Iteration
         CALL inner4(g)
     END DO
