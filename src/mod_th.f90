@@ -548,8 +548,7 @@ SUBROUTINE th_upd(xpline)
 !
 
 USE sdata, ONLY: mtem, cden, ftem, tin, xyz, cflow, nyy, nxx, nzz, cf, ent, heatf, &
-                 ystag, tfm, nt, rpos, rdel, rf, rg, rc, pi, zdel, dia, ystag, &
-                 farea
+                 ystag, tfm, nt, rpos, rdel, rf, rg, rc, pi, zdel, dia, ystag
 
 IMPLICIT NONE
 

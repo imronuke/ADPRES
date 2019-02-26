@@ -240,3 +240,6 @@ NEACRP Critical Boron Concentration Search - Case C1
 264  25                                ! Number of fuel pin and guide tubes
 0.019                                  ! FRACTION OF HEAT DEPOSITED IN COOLANT
 1
+
+%ITER
+500 7 1.e-7 1.e-7 1.e-7 5

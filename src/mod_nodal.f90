@@ -21,7 +21,7 @@ SUBROUTINE outer4(popt)
 !    To perform normal outer iteration
 
 
-USE sdata, ONLY: ng, nnod, nout, serc, ferc, fer, ser, &
+USE sdata, ONLY: ng, nnod, nout, serc, ferc, fer, ser, f0, &
                  Ke, nac, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 USE InpOutp, ONLY: ounit
 
@@ -31,7 +31,7 @@ INTEGER, OPTIONAL, INTENT(IN) :: popt
 
 DOUBLE PRECISION :: Keo                                    !Old Multiplication factor (Keff)
 DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !old fission source
-DOUBLE PRECISION, DIMENSION(nnod,ng,6) :: joc              !Old outgoing currents
+DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old flux
 DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
 DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
@@ -60,7 +60,7 @@ e1 = Integrate(errn)
 
 !Start outer iteration
 DO p=1, nout
-    CALL SaveJo(joc)  ! Save old outgoing currents
+    f0c = f0          ! Save old fluxes
     fc = f            ! Save old integrated fission source
     fs0c  = fs0       ! Save old fission source
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
@@ -68,23 +68,15 @@ DO p=1, nout
     Keo = Ke          ! Save old multiplication factor
     erro = errn       ! Save old fission source error/difference
     DO g = 1, ng
-
-        ss0  = 0.0
-        ssx1 = 0.0; ssy1 = 0.0; ssz1 = 0.0
-        ssx2 = 0.0; ssy2 = 0.0; ssz2 = 0.0
-
         !!!Calculate Scattering source
         CALL SSrc(g, ss0, ssx1, ssy1, ssz1, ssx2, ssy2, ssz2)
-
         !!!Calculate total source
         CALL TSrc(g, Keo, fs0c , fsx1c, fsy1c, fsz1c, &
                                  fsx2c, fsy2c, fsz2c, &
                            ss0 , ssx1 , ssy1 , ssz1 , &
                                  ssx2 , ssy2 , ssz2   )
-
         !!!Inner Iteration
         CALL inner4(g)
-
     END DO
     CALL FSrc (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)  !Update fission source
     errn = fs0 - fs0c
@@ -99,7 +91,7 @@ DO p=1, nout
     f = Integrate(fs0)            ! Integrate fission source
     Ke = Keo * f / fc             ! Update Keff
     CALL RelE(fs0, fs0c, ser)     ! Search maximum point wise fission source Relative Error
-    CALL RelJ(joc, fer)           ! Search maximum point wise outgoing current Error
+    CALL RelEg(f0, f0c, fer)      ! Search maximum point wise flux error
     IF (opt) WRITE(ounit,'(I5,F13.6,2ES15.5)') p, Ke, ser, fer  ! Write outer iteration evolution
     IF ((ser < serc) .AND. (fer < ferc)) EXIT  ! If converge, exit.
 END DO
@@ -127,7 +119,7 @@ SUBROUTINE outer4th(maxn)
 !    To perform normal outer iteration when %THER card present
 
 
-USE sdata, ONLY: ng, nnod, serc, ferc, fer, ser,  &
+USE sdata, ONLY: ng, nnod, serc, ferc, fer, ser, f0,  &
                  Ke, nac, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 
 IMPLICIT NONE
@@ -136,15 +128,13 @@ INTEGER, INTENT(IN) :: maxn
 
 DOUBLE PRECISION :: Keo                                    !Old Multiplication factor (Keff)
 DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
-DOUBLE PRECISION, DIMENSION(nnod,ng,6) :: joc              !Old outgoing currents
-DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
-DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
+DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old flux
 DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
 DOUBLE PRECISION, DIMENSION(nnod) :: ssx1, ssy1, ssz1
 DOUBLE PRECISION, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
 DOUBLE PRECISION :: f, fc                                  ! new and old integrated fission sources
 DOUBLE PRECISION :: domiR, e1, e2
-INTEGER :: g, i, n
+INTEGER :: g
 INTEGER :: p, npos
 
 DOUBLE PRECISION, DIMENSION(nnod) :: errn, erro
@@ -159,27 +149,21 @@ e1 = Integrate(errn)
 
 !Start outer iteration
 DO p=1, maxn
-    CALL SaveJo(joc)  ! Save old outgoing currents
+    f0c = f0          ! Save old fluxes
     fc = f            ! Save old integrated fission source
     fs0c  = fs0       ! Save old fission source
-    fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
-    fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
     Keo = Ke          ! Save old multiplication factor
     erro = errn       ! Save old fission source error/difference
     DO g = 1, ng
-
         !!!Calculate Scattering source
         CALL SSrc(g, ss0, ssx1, ssy1, ssz1, ssx2, ssy2, ssz2)
-
         !!!Calculate total source
-        CALL TSrc(g, Keo, fs0c , fsx1c, fsy1c, fsz1c, &
-                                 fsx2c, fsy2c, fsz2c, &
-                           ss0 , ssx1 , ssy1 , ssz1 , &
-                                 ssx2 , ssy2 , ssz2   )
-
+        CALL TSrc(g, Keo, fs0, fsx1, fsy1, fsz1, &
+                               fsx2, fsy2, fsz2, &
+                          ss0, ssx1, ssy1, ssz1, &
+                               ssx2, ssy2, ssz2)
         !!!Inner Iteration
         CALL inner4(g)
-
     END DO
     CALL FSrc (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)  !Update fission source
     errn = fs0 - fs0c
@@ -194,7 +178,7 @@ DO p=1, maxn
     f = Integrate(fs0)            ! Integrate fission source
     Ke = Keo * f / fc             ! Update Keff
     CALL RelE(fs0, fs0c, ser)     ! Search maximum point wise fission source Relative Error
-    CALL RelJ(joc, fer)           ! Search maximum point wise outgoing current Error
+    CALL RelEg(f0, f0c, fer)      ! Search maximum point wise flux error
     IF ((ser < serc) .AND. (fer < ferc)) EXIT  ! If converge, exit.
 END DO
 
@@ -208,16 +192,14 @@ SUBROUTINE outer4Fx
 ! Purpose:
 !    To perform fixed-source outer iteration
 
-USE sdata, ONLY: ng, nnod, nout, serc, ferc,  fer, ser, &
+USE sdata, ONLY: ng, nnod, nout, serc, ferc,  fer, ser, f0, &
                  Ke, nac, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 USE InpOutp, ONLY: ounit
 
 IMPLICIT NONE
 
 DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
-DOUBLE PRECISION, DIMENSION(nnod,ng,6) :: joc              !Old outgoing currents
-DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
-DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
+DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old flux
 DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
 DOUBLE PRECISION, DIMENSION(nnod) :: ssx1, ssy1, ssz1
 DOUBLE PRECISION, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
@@ -235,25 +217,20 @@ e1 = Integrate(errn)
 
 !Start outer iteration
 DO p=1, nout
-    CALL SaveJo(joc)  ! Save old outgoing currents
+    f0c = f0          ! Save old fluxes
     fs0c  = fs0       ! Save old fission source
-    fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
-    fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
     erro = errn       ! Save old fission source error/difference
     DO g = 1, ng
-
         !!!Calculate Scattering source
         CALL SSrc(g, ss0, ssx1, ssy1, ssz1, ssx2, ssy2, ssz2)
-
         !!!Calculate total source
-        CALL TSrcFx(g, fs0c , fsx1c, fsy1c, fsz1c, &
-                              fsx2c, fsy2c, fsz2c, &
-                        ss0 , ssx1 , ssy1 , ssz1 , &
-                              ssx2 , ssy2 , ssz2   )
+        CALL TSrcFx(g, fs0, fsx1, fsy1, fsz1, &
+                            fsx2, fsy2, fsz2, &
+                       ss0, ssx1, ssy1, ssz1, &
+                            ssx2, ssy2, ssz2)
 
         !!!Inner Iteration
         CALL inner4(g)
-
     END DO
     CALL FSrc (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)  !Update fission source
     errn = fs0 - fs0c
@@ -266,7 +243,7 @@ DO p=1, nout
     END IF
     e1 = e2                       ! Save integrated fission source error
     CALL RelE(fs0, fs0c, ser)     ! Search maximum point wise fission source Relative Error
-    CALL RelJ(joc, fer)           ! Search maximum point wise outgoing current Error
+    CALL RelEg(f0, f0c, fer)      ! Search maximum point wise flux error
     WRITE(ounit,'(I5,2ES15.5)') p, ser, fer
     IF ((ser < serc) .AND. (fer < ferc)) EXIT  ! If converge, exit.
 END DO
@@ -294,7 +271,7 @@ SUBROUTINE outertf (ht, maxi)
 ! Purpose:
 !    To perform outer iteration for transient with flux transformation
 
-USE sdata, ONLY: ng, nnod, serc, ferc, nout,  fer, ser, &
+USE sdata, ONLY: ng, nnod, serc, ferc, nout,  fer, ser, f0, &
                  nac, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 
 IMPLICIT NONE
@@ -303,9 +280,7 @@ DOUBLE PRECISION, INTENT(IN) :: ht
 LOGICAL, INTENT(OUT) :: maxi
 
 DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
-DOUBLE PRECISION, DIMENSION(nnod,ng,6) :: joc              !Old outgoing currents
-DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
-DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
+DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old flux
 DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
 DOUBLE PRECISION, DIMENSION(nnod) :: ssx1, ssy1, ssz1,ssx2, ssy2, ssz2      ! Scattering source moments
 DOUBLE PRECISION :: domiR, e1, e2
@@ -319,25 +294,19 @@ e1 = Integrate(errn)
 
 !Start outer iteration
 DO p=1, nout
-    CALL SaveJo(joc)  ! Save old outgoing currents
+    f0c = f0          ! Save old fluxes
     fs0c  = fs0       ! Save old fission source
-    fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
-    fsx2c = fsx2; fsy2c = fsy2; fsz2c = fsz2
     erro = errn       ! Save old fission source error/difference
     DO g = 1, ng
-
         !!!Calculate Scattering source
         CALL SSrc(g, ss0, ssx1, ssy1, ssz1, ssx2, ssy2, ssz2)
-
         !!!Calculate total source
-        CALL TSrcT(g,  fs0c, fsx1c, fsy1c, fsz1c,&
-                              fsx2c, fsy2c, fsz2c, &
-                        ss0 , ssx1 , ssy1 , ssz1 , &
-                              ssx2 , ssy2 , ssz2, ht)
-
+        CALL TSrcT(g, fs0, fsx1, fsy1, fsz1, &
+                           fsx2, fsy2, fsz2, &
+                      ss0, ssx1, ssy1, ssz1, &
+                           ssx2, ssy2, ssz2, ht)
         !!!Inner Iteration
         CALL inner4(g)
-
     END DO
     CALL FSrc (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)  !Update fission source
     errn = fs0 - fs0c
@@ -350,7 +319,7 @@ DO p=1, nout
     END IF
     e1 = e2                       ! Save integrated fission source error
     CALL RelE(fs0, fs0c, ser)     ! Search maximum point wise fission source Relative Error
-    CALL RelJ(joc, fer)           ! Search maximum point wise outgoing current Error
+    CALL RelEg(f0, f0c, fer)      ! Search maximum point wise flux error
     IF ((ser < serc) .AND. (fer < ferc)) EXIT  ! If converge, exit.
 END DO
 
@@ -369,7 +338,7 @@ SUBROUTINE outer4ad(popt)
   ! Purpose:
   !    To perform adjoint outer iteration
 
-USE sdata, ONLY: ng, nnod, nout, serc, ferc,  fer, ser, &
+USE sdata, ONLY: ng, nnod, nout, serc, ferc, fer, ser, f0, &
                  Ke, nac, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
 USE InpOutp, ONLY: ounit
 
@@ -379,7 +348,7 @@ INTEGER, OPTIONAL, INTENT(IN) :: popt
 
 DOUBLE PRECISION :: Keo                                    !Old Multiplication factor (Keff)
 DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
-DOUBLE PRECISION, DIMENSION(nnod,ng,6) :: joc              !Old outgoing currents
+DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old flux
 DOUBLE PRECISION, DIMENSION(nnod) :: fsx1c, fsy1c, fsz1c
 DOUBLE PRECISION, DIMENSION(nnod) :: fsx2c, fsy2c, fsz2c
 DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
@@ -409,7 +378,7 @@ e1 = Integrate(errn)
 
 !Start outer iteration
 DO p=1, nout
-    CALL SaveJo(joc)  ! Save old outgoing currents
+    f0c = f0          ! Save old fluxes
     fc = f            ! Save old integrated fission source
     fs0c  = fs0       ! Save old fission source
     fsx1c = fsx1; fsy1c = fsy1; fsz1c = fsz1
@@ -417,19 +386,15 @@ DO p=1, nout
     Keo = Ke          ! Save old multiplication factor
     erro = errn       ! Save old fission source error/difference
     DO g = ng,1,-1
-
         !!!Calculate Scattering source
         CALL SSrcAd(g, ss0, ssx1, ssy1, ssz1, ssx2, ssy2, ssz2)
-
         !!!Calculate total source
         CALL TSrcAd(g, Keo, fs0c , fsx1c, fsy1c, fsz1c, &
                                  fsx2c, fsy2c, fsz2c, &
                            ss0 , ssx1 , ssy1 , ssz1 , &
                                  ssx2 , ssy2 , ssz2   )
-
         !!!Inner Iteration
         CALL inner4(g)
-
     END DO
     CALL FSrcAd (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)  !Update fission source
     errn = fs0 - fs0c
@@ -444,7 +409,7 @@ DO p=1, nout
     f = Integrate(fs0)            ! Integrate fission source
     Ke = Keo * f / fc             ! Update Keff
     CALL RelE(fs0, fs0c, ser)     ! Search maximum point wise fission source Relative Error
-    CALL RelJ(joc, fer)           ! Search maximum point wise outgoing current Error
+    CALL RelEg(f0, f0c, fer)      ! Search maximum point wise flux error
     IF (opt) WRITE(ounit,'(I5,F13.6,2ES15.5)') p, Ke, ser, fer  ! Write outer iteration evolution
     IF ((ser < serc) .AND. (fer < ferc)) EXIT  ! If converge, exit.
 END DO
@@ -471,9 +436,9 @@ SUBROUTINE inner4(g)
 !   To perform inner iterations
 !
 
-USE sdata, ONLY: nod, nnod, xstag, ystag, ierc, &
+USE sdata, ONLY: nod, nnod, xstag, ystag, &
                 xwest, xeast, ynorth, ysouth, zbott, ztop, &
-                f0, ix, iy, iz, xyz, nzz, nin, al
+                ix, iy, iz, xyz, nzz, nin, al
 
 IMPLICIT NONE
 
@@ -1696,65 +1661,6 @@ END SUBROUTINE matvec
 
 
 
-SUBROUTINE SaveJo(jox)
-
-  !
-  ! Purpose:
-  !    To calculate Max Relative error for outgoing currents
-
-USE sdata, ONLY: nnod, ng, nod
-
-IMPLICIT NONE
-
-DOUBLE PRECISION, DIMENSION(:,:,:), INTENT(OUT) :: jox
-
-INTEGER :: n, g, i
-
-DO i = 1, 6
-   DO g = 1, ng
-      DO n= 1, nnod
-          jox(n,g,i) = nod(n,g)%jo(i)
-      END DO
-   END DO
-END DO
-
-END SUBROUTINE SaveJo
-
-
-
-SUBROUTINE RelJ(jox,rel)
-
-  !
-  ! Purpose:
-  !    To calculate Max Relative error for outgoing currents
-
-USE sdata, ONLY: nnod, ng, nod
-
-IMPLICIT NONE
-
-DOUBLE PRECISION, DIMENSION(:,:,:), INTENT(IN) :: jox
-DOUBLE PRECISION, INTENT(OUT) :: rel
-
-DOUBLE PRECISION :: error
-INTEGER :: n, g, i
-
-rel = 0.
-
-DO i = 1, 6
-   DO g = 1, ng
-      DO n= 1, nnod
-         IF (ABS(nod(n,g)%jo(i)) > 1.d-10) THEN
-             error = ABS(nod(n,g)%jo(i) - jox(n,g,i)) / ABS(nod(n,g)%jo(i))
-             IF (error > rel) rel = error
-         END IF
-      END DO
-  END DO
-END DO
-
-END SUBROUTINE RelJ
-
-
-
 SUBROUTINE RelE(newF, oldF, rel)
 
   !
@@ -1781,6 +1687,36 @@ DO n= 1, nnod
 END DO
 
 END SUBROUTINE RelE
+
+
+SUBROUTINE RelEg(newF, oldF, rel)
+
+  !
+  ! Purpose:
+  !    To calculate Max Relative error for flux
+
+USE sdata, ONLY: nnod, ng
+
+IMPLICIT NONE
+
+DOUBLE PRECISION, DIMENSION(:,:), INTENT(IN) :: newF, oldF
+DOUBLE PRECISION, INTENT(OUT) :: rel
+
+DOUBLE PRECISION :: error
+INTEGER :: n, g
+
+rel = 0.
+
+DO n= 1, nnod
+   DO g = 1, ng
+      IF (ABS(newF(n,g)) > 1.d-10) THEN
+         error = ABS(newF(n,g) - oldF(n,g)) / ABS(newF(n,g))
+         IF (error > rel) rel = error
+      END IF
+  END DO
+END DO
+
+END SUBROUTINE RelEg
 
 
 SUBROUTINE MultF(k)

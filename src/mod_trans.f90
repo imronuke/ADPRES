@@ -715,7 +715,7 @@ SUBROUTINE kreact()
 !    shall be used only to calculate control rod worth, not to be used with transient calc.
 !
 
-USE sdata, ONLY: ng, nf, ttot, tstep1, Ke, &
+USE sdata, ONLY: nf, ttot, tstep1, Ke, &
                  bcon, ftem, mtem, cden, &
                  fbpos, bpos, tmove, bspeed, mdir, nb, iBeta, &
                  fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, tbeta
@@ -725,7 +725,7 @@ USE nodal, ONLY: nodal_coup4, outer4, Fsrc
 IMPLICIT NONE
 
 DOUBLE PRECISION :: t1, t2
-INTEGER :: n, i, j, g, imax, step
+INTEGER :: n, i, j, imax, step
 
 ! Update xsec
 CALL XS_updt(bcon, ftem, mtem, cden, bpos)
