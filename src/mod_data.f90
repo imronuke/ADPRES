@@ -68,7 +68,7 @@ DOUBLE PRECISION :: ferc = 1.e-5    ! Flux Error Criteria
 DOUBLE PRECISION :: serc = 1.e-5    ! Fission source Error CRITERIA
 DOUBLE PRECISION :: ierc = 1.e-5    ! Inner Iteration Error Criteria
 DOUBLE PRECISION :: fer, ser        ! Flux and Fission source error in BCSEARCH calcs.
-INTEGER :: nin = 4      ! Maximum inner iteration
+INTEGER :: nin = 2      ! Maximum inner iteration
 INTEGER :: nout = 500   ! Maximum outer iteration
 INTEGER :: nac = 5      ! number of outer iteration before next source EXTRAPOLATION
 INTEGER :: th_niter = 20                           ! Maximum number of thermal-hydraulics iteration
