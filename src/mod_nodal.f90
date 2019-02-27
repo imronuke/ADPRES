@@ -62,7 +62,7 @@ DO p=1, nout
     erro = errn       ! Save old fission source error/difference
     DO g = 1, ng
         !!!Calculate total source
-        CALL TSrc2(g, Keo)
+        CALL TSrc(g, Keo)
         !!!Inner Iteration
         CALL inner4(g)
     END DO
@@ -141,7 +141,7 @@ DO p=1, maxn
     erro = errn       ! Save old fission source error/difference
     DO g = 1, ng
         !!!Calculate total source
-        CALL TSrc2(g, Keo)
+        CALL TSrc(g, Keo)
         !!!Inner Iteration
         CALL inner4(g)
     END DO
@@ -199,8 +199,7 @@ DO p=1, nout
     erro = errn       ! Save old fission source error/difference
     DO g = 1, ng
         !!!Calculate total source
-        CALL TSrcFx2(g)
-
+        CALL TSrcFx(g)
         !!!Inner Iteration
         CALL inner4(g)
     END DO
@@ -253,8 +252,6 @@ LOGICAL, INTENT(OUT) :: maxi
 
 DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
 DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old flux
-DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
-DOUBLE PRECISION, DIMENSION(nnod) :: ssx1, ssy1, ssz1,ssx2, ssy2, ssz2      ! Scattering source moments
 DOUBLE PRECISION :: domiR, e1, e2
 INTEGER :: g
 INTEGER :: p, npos
@@ -270,8 +267,6 @@ DO p=1, nout
     fs0c  = fs0       ! Save old fission source
     erro = errn       ! Save old fission source error/difference
     DO g = 1, ng
-        !!!Calculate Scattering source
-        CALL SSrc(g, ss0, ssx1, ssy1, ssz1, ssx2, ssy2, ssz2)
         !!!Calculate total source
         CALL TSrcT(g, ht)
         !!!Inner Iteration
@@ -318,9 +313,6 @@ INTEGER, OPTIONAL, INTENT(IN) :: popt
 DOUBLE PRECISION :: Keo                                    !Old Multiplication factor (Keff)
 DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
 DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old flux
-DOUBLE PRECISION, DIMENSION(nnod) :: ss0                   ! Scattering source
-DOUBLE PRECISION, DIMENSION(nnod) :: ssx1, ssy1, ssz1
-DOUBLE PRECISION, DIMENSION(nnod) :: ssx2, ssy2, ssz2      ! Scattering source moments
 DOUBLE PRECISION :: f, fc                                  ! new and old integrated fission sources
 DOUBLE PRECISION :: domiR, e1, e2
 INTEGER :: g
@@ -351,10 +343,8 @@ DO p=1, nout
     Keo = Ke          ! Save old multiplication factor
     erro = errn       ! Save old fission source error/difference
     DO g = ng,1,-1
-        !!!Calculate Scattering source
-        CALL SSrcAd(g, ss0, ssx1, ssy1, ssz1, ssx2, ssy2, ssz2)
         !!!Calculate total source
-        CALL TSrcAd2(g, Keo)
+        CALL TSrcAd(g, Keo)
         !!!Inner Iteration
         CALL inner4(g)
     END DO
@@ -1078,44 +1068,7 @@ END SUBROUTINE FSrcAd
 
 
 
-SUBROUTINE SSrc(g, s, sx1, sy1, sz1, sx2, sy2, sz2)
-!
-! Purpose:
-!   To calculate scattering source and scattering source moments
-!
-
-USE sdata, ONLY: ng, nnod, sigs, &
-                 f0, fx1, fy1, fz1, fx2, fy2, fz2
-
-IMPLICIT NONE
-
-INTEGER, INTENT(IN) :: g
-DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: s, sx1, sy1, sz1
-DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: sx2, sy2, sz2
-
-INTEGER :: h, n
-
-s = 0.; sx1 = 0.; sy1 = 0.; sz1 = 0.
-sx2 = 0.; sy2 = 0.; sz2 = 0.
-
-DO h = 1, ng
-    DO n = 1, nnod
-        IF (g /= h) THEN
-            s(n)   = s(n)   + sigs(n,h,g) * f0(n,h)
-            sx1(n) = sx1(n) + sigs(n,h,g) * fx1(n,h)
-            sy1(n) = sy1(n) + sigs(n,h,g) * fy1(n,h)
-            sz1(n) = sz1(n) + sigs(n,h,g) * fz1(n,h)
-            sx2(n) = sx2(n) + sigs(n,h,g) * fx2(n,h)
-            sy2(n) = sy2(n) + sigs(n,h,g) * fy2(n,h)
-            sz2(n) = sz2(n) + sigs(n,h,g) * fz2(n,h)
-        END IF
-    END DO
-END DO
-
-END SUBROUTINE SSrc
-
-
-SUBROUTINE TSrc2(g, Keff)
+SUBROUTINE TSrc(g, Keff)
 !
 ! Purpose:
 !   To update total source
@@ -1159,113 +1112,10 @@ DO n = 1, nnod
     nod(n,g)%Q(7) = chi(mat(n),g) * fsz2(n)/Keff + sz2(n)
 END DO
 
-END SUBROUTINE TSrc2
-
-
-SUBROUTINE SSrcAd(g, s, sx1, sy1, sz1, sx2, sy2, sz2)
-!
-! Purpose:
-!   To calculate scattering source and scattering source moments for adjoint calc.
-!
-
-USE sdata, ONLY: ng, nnod, sigs, &
-                 f0, fx1, fy1, fz1, fx2, fy2, fz2
-
-IMPLICIT NONE
-
-INTEGER, INTENT(IN) :: g
-DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: s, sx1, sy1, sz1
-DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: sx2, sy2, sz2
-
-INTEGER :: h, n
-
-s = 0.; sx1 = 0.; sy1 = 0.; sz1 = 0.
-sx2 = 0.; sy2 = 0.; sz2 = 0.
-
-DO h = 1, ng
-    DO n = 1, nnod
-        IF (g /= h) THEN
-            s(n)   = s(n)   + sigs(n,g,h) * f0(n,h)
-            sx1(n) = sx1(n) + sigs(n,g,h) * fx1(n,h)
-            sy1(n) = sy1(n) + sigs(n,g,h) * fy1(n,h)
-            sz1(n) = sz1(n) + sigs(n,g,h) * fz1(n,h)
-            sx2(n) = sx2(n) + sigs(n,g,h) * fx2(n,h)
-            sy2(n) = sy2(n) + sigs(n,g,h) * fy2(n,h)
-            sz2(n) = sz2(n) + sigs(n,g,h) * fz2(n,h)
-        END IF
-    END DO
-END DO
-
-END SUBROUTINE SSrcAd
-
-
-
-SUBROUTINE TSrc(g, Keff, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
-                          s0,  sx1,  sy1,  sz1,  sx2,  sy2 , sz2   )
-!
-! Purpose:
-!   To update total source
-!
-
-USE sdata, ONLY: nod, chi, mat, nnod
-
-IMPLICIT NONE
-
-INTEGER, INTENT(IN) :: g
-DOUBLE PRECISION, INTENT(IN)    :: Keff
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sfx2, sfy2, sfz2
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: s0, sx1, sy1, sz1
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sx2, sy2, sz2
-
-INTEGER :: n
-
-DO n = 1, nnod
-    nod(n,g)%Q(1) = chi(mat(n),g) * sf0(n)/Keff  + s0(n)
-    nod(n,g)%Q(2) = chi(mat(n),g) * sfx1(n)/Keff + sx1(n)
-    nod(n,g)%Q(3) = chi(mat(n),g) * sfy1(n)/Keff + sy1(n)
-    nod(n,g)%Q(4) = chi(mat(n),g) * sfz1(n)/Keff + sz1(n)
-    nod(n,g)%Q(5) = chi(mat(n),g) * sfx2(n)/Keff + sx2(n)
-    nod(n,g)%Q(6) = chi(mat(n),g) * sfy2(n)/Keff + sy2(n)
-    nod(n,g)%Q(7) = chi(mat(n),g) * sfz2(n)/Keff + sz2(n)
-END DO
-
 END SUBROUTINE TSrc
 
 
-SUBROUTINE TSrcFx(g, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
-                      s0,  sx1,  sy1,  sz1,  sx2,  sy2 , sz2   )
-!
-! Purpose:
-!   To update total source for fixed source calcs.
-!
-
-USE sdata, ONLY: nod, chi, mat, nnod, exsrc
-
-IMPLICIT NONE
-
-INTEGER, INTENT(IN) :: g
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sfx2, sfy2, sfz2
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: s0, sx1, sy1, sz1
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sx2, sy2, sz2
-
-INTEGER :: n
-
-DO n = 1, nnod
-    nod(n,g)%Q(1) = chi(mat(n),g) * sf0(n)  + s0(n)  + exsrc(n,g)
-    nod(n,g)%Q(2) = chi(mat(n),g) * sfx1(n) + sx1(n)
-    nod(n,g)%Q(3) = chi(mat(n),g) * sfy1(n) + sy1(n)
-    nod(n,g)%Q(4) = chi(mat(n),g) * sfz1(n) + sz1(n)
-    nod(n,g)%Q(5) = chi(mat(n),g) * sfx2(n) + sx2(n)
-    nod(n,g)%Q(6) = chi(mat(n),g) * sfy2(n) + sy2(n)
-    nod(n,g)%Q(7) = chi(mat(n),g) * sfz2(n) + sz2(n)
-END DO
-
-END SUBROUTINE TSrcFx
-
-
-SUBROUTINE TSrcFx2(g)
+SUBROUTINE TSrcFx(g)
 !
 ! Purpose:
 !   To update total source
@@ -1308,7 +1158,7 @@ DO n = 1, nnod
     nod(n,g)%Q(7) = chi(mat(n),g) * fsz2(n) + sz2(n)
 END DO
 
-END SUBROUTINE TSrcFx2
+END SUBROUTINE TSrcFx
 
 
 SUBROUTINE TSrcT(g, ht)
@@ -1382,46 +1232,13 @@ END DO
 END SUBROUTINE TSrcT
 
 
-SUBROUTINE TSrcAd(g, Keff, sf0, sfx1, sfy1, sfz1, sfx2, sfy2, sfz2, &
-                          s0,  sx1,  sy1,  sz1,  sx2,  sy2 , sz2   )
-!
-! Purpose:
-!   To update total source for adjoint calc.
-!
-
-USE sdata, ONLY: nod, nuf, nnod
-
-IMPLICIT NONE
-
-INTEGER, INTENT(IN) :: g
-DOUBLE PRECISION, INTENT(IN)    :: Keff
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sf0, sfx1, sfy1, sfz1
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sfx2, sfy2, sfz2
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: s0, sx1, sy1, sz1
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: sx2, sy2, sz2
-
-INTEGER :: n
-
-DO n = 1, nnod
-    nod(n,g)%Q(1) = nuf(n,g) * sf0(n)/Keff  + s0(n)
-    nod(n,g)%Q(2) = nuf(n,g) * sfx1(n)/Keff + sx1(n)
-    nod(n,g)%Q(3) = nuf(n,g) * sfy1(n)/Keff + sy1(n)
-    nod(n,g)%Q(4) = nuf(n,g) * sfz1(n)/Keff + sz1(n)
-    nod(n,g)%Q(5) = nuf(n,g) * sfx2(n)/Keff + sx2(n)
-    nod(n,g)%Q(6) = nuf(n,g) * sfy2(n)/Keff + sy2(n)
-    nod(n,g)%Q(7) = nuf(n,g) * sfz2(n)/Keff + sz2(n)
-END DO
-
-END SUBROUTINE TSrcAd
-
-
-SUBROUTINE TSrcAd2(g, Keff)
+SUBROUTINE TSrcAd(g, Keff)
 !
 ! Purpose:
 !   To update total source
 !
 
-USE sdata, ONLY: nod, nuf, mat, nnod, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
+USE sdata, ONLY: nod, nuf, nnod, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
                  f0, fx1, fy1, fz1, fx2, fy2, fz2, ng, sigs
 
 IMPLICIT NONE
@@ -1459,7 +1276,7 @@ DO n = 1, nnod
     nod(n,g)%Q(7) = nuf(n,g) * fsz2(n)/Keff + sz2(n)
 END DO
 
-END SUBROUTINE TSrcAd2
+END SUBROUTINE TSrcAd
 
 
 SUBROUTINE LxyzUpd (nt,g)
