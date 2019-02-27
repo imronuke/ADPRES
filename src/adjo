@@ -2,12 +2,12 @@
 ! ADJOINT PROBLEM
 ! NODE SIZE = 20 CM
 
-%MODE  
+%MODE
 ADJOINT
 %CASE
 IAEA2D
-PROBLEM TEST 
-%XSEC                                                                                                                                  
+PROBLEM TEST
+%XSEC
 2  4    ! Number of groups and number of materials
 ! sigtr   siga   nu*sigf sigf   chi   sigs_g1  sigs_g2
 !	MATERIAL 1
@@ -33,11 +33,11 @@ PROBLEM TEST
  4 4 4 4 0 0 0 0 0
  1 1 1 4 4 4 0 0 0
  2 2 1 1 1 4 4 0 0
- 2 2 2 2 1 1 4 4 0 
+ 2 2 2 2 1 1 4 4 0
  3 2 2 2 3 1 1 4 0
  2 2 2 2 2 2 1 4 4
  2 2 2 2 2 2 1 1 4
  2 2 2 2 2 2 2 1 4
- 3 2 2 2 3 2 2 1 4  
+ 3 2 2 2 3 2 2 1 4
 ! Boundary conditions (east), (west), (north), (south), (bottom), (top)
 1 2 1 2 2 2
