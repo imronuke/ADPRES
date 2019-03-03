@@ -5,6 +5,7 @@ MODULE trans
 ! Using Fully Implicit method with exponetial transformation
 ! =======================
 
+USE sdata, ONLY: DP
 
 IMPLICIT NONE
 
@@ -32,12 +33,12 @@ USE nodal, ONLY: nodal_coup4, outer4, outertf, outer4ad, PowTot
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(nnod, ng) :: af                                      ! adjoint flux
-DOUBLE PRECISION, DIMENSION(nnod, ng) :: sigrp                                   ! Temporary sigr
+REAL(DP), DIMENSION(nnod, ng) :: af                                      ! adjoint flux
+REAL(DP), DIMENSION(nnod, ng) :: sigrp                                   ! Temporary sigr
 
-DOUBLE PRECISION :: rho
-DOUBLE PRECISION :: t1, t2
-DOUBLE PRECISION :: tpow1, tpow2
+REAL(DP) :: rho
+REAL(DP) :: t1, t2
+REAL(DP) :: tpow1, tpow2
 INTEGER :: n, i, j, g, imax, step
 
 LOGICAL :: maxi   ! Maximum Outer Iteration Reached?
@@ -61,7 +62,7 @@ CALL nodal_coup4()
 CALL outer4(0)
 
 ! If K-EFF NOT EQUAL TO 1.0
-IF (ABS(Ke - 1.) > 1.d-5) CALL KNE1
+IF (ABS(Ke - 1._DP) > 1.e-5_DP) CALL KNE1
 
 ! Calculate Adjoint flux
 CALL outer4ad(0)
@@ -113,7 +114,7 @@ DO i = 1, imax
 
     step = step + 1
     t1 = t2
-    t2 = DBLE(i)*tstep1
+    t2 = REAL(i)*tstep1
 
     IF (i > 1) THEN
        omeg = LOG(f0 / ft) / tstep1
@@ -124,12 +125,12 @@ DO i = 1, imax
     ! Rod bank changes
     DO n = 1, nb
         IF (mdir(n) == 1) THEN   ! If CR moving down
-            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
+            IF (t2-tmove(n) > 1.e-5_DP .AND. fbpos(n)-bpos(n) < 1.e-5_DP) THEN
                 bpos(n) = bpos(n) - tstep1 *  bspeed(n)
                 IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
             END IF
         ELSE IF (mdir(n) == 2) THEN ! If CR moving up
-            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
+            IF (t2-tmove(n) > 1.e-5_DP .AND. fbpos(n)-bpos(n) > 1.e-5_DP) THEN
                 bpos(n) = bpos(n) + tstep1 *  bspeed(n)
                 IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
             END IF
@@ -189,19 +190,19 @@ DO i = 1, imax
 
     step = step + 1
     t1 = t2
-    t2 = tdiv + DBLE(i)*tstep2
+    t2 = tdiv + REAL(i)*tstep2
 
     omeg = LOG(f0 / ft) / tstep2
 
     ! Rod bank changes
     DO n = 1, nb
         IF (mdir(n) == 1) THEN   ! If CR moving down
-            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
+            IF (t2-tmove(n) > 1.e-5_DP .AND. fbpos(n)-bpos(n) < 1.e-5_DP) THEN
                 bpos(n) = bpos(n) - tstep2 *  bspeed(n)
                 IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
             END IF
         ELSE IF (mdir(n) == 2) THEN ! If CR moving up
-            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
+            IF (t2-tmove(n) > 1.e-5_DP .AND. fbpos(n)-bpos(n) > 1.e-5_DP) THEN
                 bpos(n) = bpos(n) + tstep2 *  bspeed(n)
                 IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
             END IF
@@ -278,17 +279,17 @@ USE th, ONLY: th_iter, th_trans, par_ave, par_max, par_ave_f
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(nnod, ng) :: af                                      ! adjoint flux
-DOUBLE PRECISION, DIMENSION(nnod, ng) :: sigrp                                   ! Temporary sigr
+REAL(DP), DIMENSION(nnod, ng) :: af                                      ! adjoint flux
+REAL(DP), DIMENSION(nnod, ng) :: sigrp                                   ! Temporary sigr
 
-DOUBLE PRECISION :: rho
-DOUBLE PRECISION :: t1, t2
-DOUBLE PRECISION :: tpow1, tpow2
+REAL(DP) :: rho
+REAL(DP) :: t1, t2
+REAL(DP) :: tpow1, tpow2
 INTEGER :: n, i, j, g, imax, step
 
-DOUBLE PRECISION, DIMENSION(nnod) :: pline       ! Linear power density
-DOUBLE PRECISION :: xppow
-DOUBLE PRECISION :: tf, tm, mtf, mtm
+REAL(DP), DIMENSION(nnod) :: pline       ! Linear power density
+REAL(DP) :: xppow
+REAL(DP) :: tf, tm, mtf, mtm
 
 LOGICAL :: maxi
 
@@ -313,7 +314,7 @@ CALL th_iter(0)
 CALL outer4(0)
 
 ! If K-EFF NOT EQUAL TO 1.0
-IF (ABS(Ke - 1.) > 1.d-5) CALL KNE1
+IF (ABS(Ke - 1._DP) > 1.e-5_DP) CALL KNE1
 
 ! Calculate Adjoint flux
 CALL outer4ad(0)
@@ -370,7 +371,7 @@ DO i = 1, imax
 
   step = step + 1
   t1 = t2
-  t2 = DBLE(i)*tstep1
+  t2 = REAL(i)*tstep1
 
   IF (i > 1) THEN
      omeg = LOG(f0 / ft) / tstep1
@@ -381,12 +382,12 @@ DO i = 1, imax
   ! Rod bank changes
   DO n = 1, nb
       IF (mdir(n) == 1) THEN   ! If CR moving down
-          IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
+          IF (t2-tmove(n) > 1.e-5_DP .AND. fbpos(n)-bpos(n) < 1.e-5_DP) THEN
               bpos(n) = bpos(n) - tstep1 *  bspeed(n)
               IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
           END IF
       ELSE IF (mdir(n) == 2) THEN ! If CR moving up
-          IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
+          IF (t2-tmove(n) > 1.e-5_DP .AND. fbpos(n)-bpos(n) > 1.e-5_DP) THEN
               bpos(n) = bpos(n) + tstep1 *  bspeed(n)
               IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
           END IF
@@ -471,19 +472,19 @@ DO i = 1, imax
 
   step = step + 1
   t1 = t2
-  t2 = tdiv + DBLE(i)*tstep2
+  t2 = tdiv + REAL(i)*tstep2
 
   omeg = LOG(f0 / ft) / tstep2
 
   ! Rod bank changes
   DO n = 1, nb
       IF (mdir(n) == 1) THEN   ! If CR moving down
-          IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
+          IF (t2-tmove(n) > 1.e-5_DP .AND. fbpos(n)-bpos(n) < 1.e-5_DP) THEN
               bpos(n) = bpos(n) - tstep2 *  bspeed(n)
               IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
           END IF
       ELSE IF (mdir(n) == 2) THEN ! If CR moving up
-          IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
+          IF (t2-tmove(n) > 1.e-5_DP .AND. fbpos(n)-bpos(n) > 1.e-5_DP) THEN
               bpos(n) = bpos(n) + tstep2 *  bspeed(n)
               IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
           END IF
@@ -590,7 +591,7 @@ DO i = 1, 10
    dnuf = dnuf / Ke
    CALL XS_updt(bcon, ftem, mtem, cden, bpos)
    CALL outer4(0)
-   IF (ABS(Ke-1.0) < 1.d-5) EXIT
+   IF (ABS(Ke-1._DP) < 1.e-5_DP) EXIT
 END DO
 IF (i == 10) STOP "K-EFF STILL NOT EQUAL TO ONE. ADPRES IS STOPPING"
 
@@ -640,9 +641,9 @@ USE sdata, ONLY: nnod, nf, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, INTENT(IN) :: h
+REAL(DP), INTENT(IN) :: h
 
-DOUBLE PRECISION :: lat
+REAL(DP) :: lat
 INTEGER :: n, j
 
 DO n = 1, nnod
@@ -674,13 +675,13 @@ USE sdata, ONLY: nnod, ng, f0, sigs, nod, chi, mat, fs0, &
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:,:), INTENT(IN) :: af
-DOUBLE PRECISION, DIMENSION(:,:), INTENT(IN) :: sigrp
-DOUBLE PRECISION, INTENT(OUT) :: rho
+REAL(DP), DIMENSION(:,:), INTENT(IN) :: af
+REAL(DP), DIMENSION(:,:), INTENT(IN) :: sigrp
+REAL(DP), INTENT(OUT) :: rho
 
 INTEGER :: n, g, h
-DOUBLE PRECISION, DIMENSION(nnod) :: scg
-DOUBLE PRECISION :: rem, lea, src, fde
+REAL(DP), DIMENSION(nnod) :: scg
+REAL(DP) :: rem, lea, src, fde
 
 src = 0.; rem = 0.; lea = 0.; fde = 0.
 DO g = 1, ng
@@ -724,7 +725,7 @@ USE nodal, ONLY: nodal_coup4, outer4, Fsrc
 
 IMPLICIT NONE
 
-DOUBLE PRECISION :: t1, t2
+REAL(DP) :: t1, t2
 INTEGER :: n, i, j, imax, step
 
 ! Update xsec
@@ -738,7 +739,7 @@ CALL nodal_coup4()
 CALL outer4(0)
 
 ! If K-EFF NOT EQUAL TO 1.0
-IF (ABS(Ke - 1.) > 1.d-5) CALL KNE1
+IF (ABS(Ke - 1._DP) > 1.e-5_DP) CALL KNE1
 
 ! ReCalculate forward flux
 CALL outer4(0)
@@ -761,17 +762,17 @@ DO i = 1, imax
 
     step = step + 1
     t1 = t2
-    t2 = DBLE(i)*tstep1
+    t2 = REAL(i)*tstep1
 
     ! Rod bank changes
     DO n = 1, nb
         IF (mdir(n) == 1) THEN   ! If CR moving down
-            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) < 1.d-5) THEN
+            IF (t2-tmove(n) > 1.e-5_DP .AND. fbpos(n)-bpos(n) < 1.e-5_DP) THEN
                 bpos(n) = bpos(n) - tstep1 *  bspeed(n)
                 IF (bpos(n) < fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
             END IF
         ELSE IF (mdir(n) == 2) THEN ! If CR moving up
-            IF (t2-tmove(n) > 1.d-5 .AND. fbpos(n)-bpos(n) > 1.d-5) THEN
+            IF (t2-tmove(n) > 1.e-5_DP .AND. fbpos(n)-bpos(n) > 1.e-5_DP) THEN
                 bpos(n) = bpos(n) + tstep1 *  bspeed(n)
                 IF (bpos(n) > fbpos(n)) bpos(n) = fbpos(n)  ! If bpos exceed, set to fbpos
             END IF

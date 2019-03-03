@@ -1,5 +1,7 @@
 MODULE th
 
+USE sdata, ONLY: DP
+
 IMPLICIT NONE
 
 SAVE
@@ -21,8 +23,8 @@ SUBROUTINE th_iter(ind)
   IMPLICIT NONE
 
   INTEGER, INTENT(IN), OPTIONAL :: ind    ! if iteration reaching th_iter and ind = 0 then STOP
-  DOUBLE PRECISION, DIMENSION(nnod) :: pline
-  DOUBLE PRECISION, DIMENSION(nnod) :: otem
+  REAL(DP), DIMENSION(nnod) :: pline
+  REAL(DP), DIMENSION(nnod) :: otem
   INTEGER :: n, l
 
   th_err = 1.
@@ -79,16 +81,16 @@ USE sdata, ONLY: nnod
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: newF, oldF
-DOUBLE PRECISION, INTENT(OUT) :: rel
+REAL(DP), DIMENSION(:), INTENT(IN) :: newF, oldF
+REAL(DP), INTENT(OUT) :: rel
 
-DOUBLE PRECISION :: error
+REAL(DP) :: error
 INTEGER :: n
 
 rel = 0.
 
 DO n= 1, nnod
-    IF (ABS(newF(n)) > 1.d-10) THEN
+    IF (ABS(newF(n)) > 1.e-10_DP) THEN
         error = ABS(newF(n) - oldF(n))
         IF (error > rel) rel = error
     END IF
@@ -107,9 +109,9 @@ USE sdata, ONLY: vdel, nnod, ng, nuf
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: par
-DOUBLE PRECISION, INTENT(OUT) :: ave
-DOUBLE PRECISION :: dum, dum2
+REAL(DP), DIMENSION(:), INTENT(IN) :: par
+REAL(DP), INTENT(OUT) :: ave
+REAL(DP) :: dum, dum2
 INTEGER :: n
 
 dum = 0.; dum2 = 0.
@@ -135,9 +137,9 @@ USE sdata, ONLY: vdel, nnod
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: par
-DOUBLE PRECISION, INTENT(OUT) :: ave
-DOUBLE PRECISION :: dum, dum2
+REAL(DP), DIMENSION(:), INTENT(IN) :: par
+REAL(DP), INTENT(OUT) :: ave
+REAL(DP) :: dum, dum2
 INTEGER :: n
 
 dum = 0.; dum2 = 0.
@@ -161,8 +163,8 @@ USE sdata, ONLY: nnod
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: par
-DOUBLE PRECISION, INTENT(OUT) :: pmax
+REAL(DP), DIMENSION(:), INTENT(IN) :: par
+REAL(DP), INTENT(OUT) :: pmax
 INTEGER :: n
 
 pmax = 0.
@@ -184,10 +186,10 @@ USE InpOutp, ONLY : ounit
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, INTENT(IN) :: t
-DOUBLE PRECISION, INTENT(OUT) :: ent
-DOUBLE PRECISION :: t1, ent1
-DOUBLE PRECISION :: t2, ent2
+REAL(DP), INTENT(IN) :: t
+REAL(DP), INTENT(OUT) :: ent
+REAL(DP) :: t1, ent1
+REAL(DP) :: t2, ent2
 INTEGER :: i
 
 IF ((t < 473.15) .OR. (t > 617.91)) THEN
@@ -226,11 +228,11 @@ USE InpOutp, ONLY : ounit
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, INTENT(IN) :: ent
-DOUBLE PRECISION, INTENT(OUT) :: t, rho, prx, kvx, tcx
-DOUBLE PRECISION :: t1, rho1, ent1, kv1, pr1, tc1
-DOUBLE PRECISION :: t2, rho2, ent2, kv2, pr2, tc2
-DOUBLE PRECISION :: ratx
+REAL(DP), INTENT(IN) :: ent
+REAL(DP), INTENT(OUT) :: t, rho, prx, kvx, tcx
+REAL(DP) :: t1, rho1, ent1, kv1, pr1, tc1
+REAL(DP) :: t2, rho2, ent2, kv2, pr2, tc2
+REAL(DP) :: ratx
 
 INTEGER :: i
 
@@ -273,7 +275,7 @@ END DO
 END SUBROUTINE gettd
 
 
-DOUBLE PRECISION FUNCTION getkc(t)
+REAL(DP) FUNCTION getkc(t)
 !
 ! Purpose:
 !    To calculate thermal conductivity of cladding
@@ -281,14 +283,14 @@ DOUBLE PRECISION FUNCTION getkc(t)
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, INTENT(IN) :: t
+REAL(DP), INTENT(IN) :: t
 
-getkc = 7.51d0 + 2.09d-2*t - 1.45d-5*t**2 + 7.67d-9*t**3
+getkc = 7.51_DP + 2.09e-2_DP*t - 1.45e-5_DP*t**2 + 7.67e-9_DP*t**3
 
 END FUNCTION getkc
 
 
-DOUBLE PRECISION FUNCTION getkf(t)
+REAL(DP) FUNCTION getkf(t)
 !
 ! Purpose:
 !    To calculate thermal conductivity of fuel
@@ -296,14 +298,14 @@ DOUBLE PRECISION FUNCTION getkf(t)
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, INTENT(IN) :: t
+REAL(DP), INTENT(IN) :: t
 
-getkf = 1.05d0 + 2150.0d0 / (t - 73.15d0)
+getkf = 1.05_DP + 2150.0_DP / (t - 73.15_DP)
 
 END FUNCTION getkf
 
 
-DOUBLE PRECISION FUNCTION getcpc(t)
+REAL(DP) FUNCTION getcpc(t)
 !
 ! Purpose:
 !    To calculate specific heat capacity of cladding
@@ -311,14 +313,14 @@ DOUBLE PRECISION FUNCTION getcpc(t)
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, INTENT(IN) :: t
+REAL(DP), INTENT(IN) :: t
 
-getcpc = 252.54d0 + 0.11474d0*t
+getcpc = 252.54_DP + 0.11474_DP*t
 
 END FUNCTION getcpc
 
 
-DOUBLE PRECISION FUNCTION getcpf(t)
+REAL(DP) FUNCTION getcpf(t)
 !
 ! Purpose:
 !    To calculate specific heat capacity of fuel
@@ -326,9 +328,9 @@ DOUBLE PRECISION FUNCTION getcpf(t)
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, INTENT(IN) :: t
+REAL(DP), INTENT(IN) :: t
 
-getcpf = 162.3d0 + 0.3038d0*t - 2.391d-4*t**2 + 6.404d-8*t**3
+getcpf = 162.3_DP + 0.3038_DP*t - 2.391e-4_DP*t**2 + 6.404e-8_DP*t**3
 
 END FUNCTION getcpf
 
@@ -341,8 +343,8 @@ SUBROUTINE TridiaSolve(a,b,c,d,x)
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(INOUT) :: a, b, c, d
-DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: x
+REAL(DP), DIMENSION(:), INTENT(INOUT) :: a, b, c, d
+REAL(DP), DIMENSION(:), INTENT(OUT) :: x
 
 INTEGER :: i, n
 
@@ -366,7 +368,7 @@ END SUBROUTINE TridiaSolve
 
 
 
-DOUBLE PRECISION FUNCTION geths(xden, tc, kv, Pr)
+REAL(DP) FUNCTION geths(xden, tc, kv, Pr)
 !
 ! Purpose:
 !    To calculate heat transfer coef.
@@ -376,16 +378,16 @@ USE sdata, ONLY: dh, farea, cflow
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, INTENT(IN) :: xden  ! coolant densisty
-DOUBLE PRECISION, INTENT(IN) :: tc  ! coolant thermal conductivity
-DOUBLE PRECISION, INTENT(IN) :: kv  ! kinematic viscosity
-DOUBLE PRECISION, INTENT(IN) :: Pr  ! Prandtl Number
+REAL(DP), INTENT(IN) :: xden  ! coolant densisty
+REAL(DP), INTENT(IN) :: tc  ! coolant thermal conductivity
+REAL(DP), INTENT(IN) :: kv  ! kinematic viscosity
+REAL(DP), INTENT(IN) :: Pr  ! Prandtl Number
 
-DOUBLE PRECISION :: cvelo, Nu, Re
+REAL(DP) :: cvelo, Nu, Re
 
-cvelo = cflow / (farea * xden * 1000.d0)        ! Calculate flow velocity (m/s)
-Re = cvelo * dh / (kv * 1.d-6)                 ! Calculate Reynolds Number
-Nu = 0.023d0*(Pr**0.4d0)*(Re**0.8d0)                ! Calculate Nusselt Number
+cvelo = cflow / (farea * xden * 1000._DP)        ! Calculate flow velocity (m/s)
+Re = cvelo * dh / (kv * 1.e-6_DP)                 ! Calculate Reynolds Number
+Nu = 0.023_DP*(Pr**0.4_DP)*(Re**0.8_DP)                ! Calculate Nusselt Number
 geths = (tc / dh) * Nu                        ! Calculate heat transfer coefficient
 
 
@@ -405,26 +407,26 @@ USE sdata, ONLY: mtem, cden, ftem, tin, xyz, cflow, nyy, nzz, nxx, cf, ent, heat
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: xpline    ! Linear Power Density (W/cm)
-DOUBLE PRECISION, INTENT(IN) :: h                       ! Time step
+REAL(DP), DIMENSION(:), INTENT(IN) :: xpline    ! Linear Power Density (W/cm)
+REAL(DP), INTENT(IN) :: h                       ! Time step
 
 INTEGER :: i, j, k, n
-DOUBLE PRECISION, DIMENSION(nt+1) :: a, b, c, d
-DOUBLE PRECISION :: hs, hg = 1.d4, kt , kt1, kt2          ! coolant heat transfer coef., gap heat transfer coef, and thermal conductivity
-DOUBLE PRECISION :: alpha = 0.7d0
-DOUBLE PRECISION :: xa, xc
-DOUBLE PRECISION :: fdens = 10.412e3            ! UO2 density (kg/m3)
-DOUBLE PRECISION :: cdens = 6.6e3               ! Cladding density (kg/m3)
-DOUBLE PRECISION :: cp                          ! Specific heat capacity
-DOUBLE PRECISION :: eps, eta
-DOUBLE PRECISION :: mdens, vol                  ! Coolant density and channel volume
-DOUBLE PRECISION, DIMENSION(nnod) :: entp        ! previous enthalpy
+REAL(DP), DIMENSION(nt+1) :: a, b, c, d
+REAL(DP) :: hs, hg = 1.d4, kt , kt1, kt2          ! coolant heat transfer coef., gap heat transfer coef, and thermal conductivity
+REAL(DP) :: alpha = 0.7_DP
+REAL(DP) :: xa, xc
+REAL(DP) :: fdens = 10.412e3            ! UO2 density (kg/m3)
+REAL(DP) :: cdens = 6.6e3               ! Cladding density (kg/m3)
+REAL(DP) :: cp                          ! Specific heat capacity
+REAL(DP) :: eps, eta
+REAL(DP) :: mdens, vol                  ! Coolant density and channel volume
+REAL(DP), DIMENSION(nnod) :: entp        ! previous enthalpy
 
-DOUBLE PRECISION :: pdens      ! power densisty  (W/m3)
-DOUBLE PRECISION :: enti       ! Coolant inlet enthalpy
-DOUBLE PRECISION, DIMENSION(nxx, nyy) :: entm
-DOUBLE PRECISION :: cpline     ! Coolant Linear power densisty (W/m)
-DOUBLE PRECISION :: Pr, kv, tcon ! Coolant Prandtl Number, Kinematic viscosity, and thermal conductivity
+REAL(DP) :: pdens      ! power densisty  (W/m3)
+REAL(DP) :: enti       ! Coolant inlet enthalpy
+REAL(DP), DIMENSION(nxx, nyy) :: entm
+REAL(DP) :: cpline     ! Coolant Linear power densisty (W/m)
+REAL(DP) :: Pr, kv, tcon ! Coolant Prandtl Number, Kinematic viscosity, and thermal conductivity
 
 CALL getent(tin, enti)
 entp = ent
@@ -433,51 +435,51 @@ DO k = 1, nzz
     DO j = 1, nyy
         DO i = ystag(j)%smin, ystag(j)%smax
 
-            mdens = cden(xyz(i,j,k)) * 1000.d0                                    ! Coolant density (kg/m3)
+            mdens = cden(xyz(i,j,k)) * 1000._DP                                    ! Coolant density (kg/m3)
             cpline = heatf(xyz(i,j,k)) * pi * dia  &
-                   + cf * xpline(xyz(i,j,k)) * 100.d0       ! Coolant Linear power densisty (W/m)
-            vol   = farea * zdel(k) * 0.01d0
+                   + cf * xpline(xyz(i,j,k)) * 100._DP       ! Coolant Linear power densisty (W/m)
+            vol   = farea * zdel(k) * 0.01_DP
 
             IF (k == 1) THEN                                                    ! Calculate coolant enthalpy
                 eps = mdens * vol / h
-                ent(xyz(i,j,k)) = (cpline * zdel(k) * 0.01d0 &
-                                + 2.d0 * cflow * enti &
+                ent(xyz(i,j,k)) = (cpline * zdel(k) * 0.01_DP &
+                                + 2._DP * cflow * enti &
                                 + eps * entp(xyz(i,j,k))) &
-                                / (eps + 2.d0 * cflow)
+                                / (eps + 2._DP * cflow)
                 CALL gettd(ent(xyz(i,j,k)), mtem(xyz(i,j,k)), &
                           cden(xyz(i,j,k)), Pr, kv, tcon)                       ! Get corresponding temp and density
-                entm(i,j) = 2.d0 * ent(xyz(i,j,k)) - enti
+                entm(i,j) = 2._DP * ent(xyz(i,j,k)) - enti
             ELSE
                 eps = mdens * vol / h
-                ent(xyz(i,j,k)) = (cpline * zdel(k) * 0.01d0 &
-                                + 2.d0 * cflow * entm(i,j) &
+                ent(xyz(i,j,k)) = (cpline * zdel(k) * 0.01_DP &
+                                + 2._DP * cflow * entm(i,j) &
                                 + eps * entp(xyz(i,j,k))) &
-                                / (eps + 2.d0 * cflow)
+                                / (eps + 2._DP * cflow)
                 CALL gettd(ent(xyz(i,j,k)), mtem(xyz(i,j,k)), &
                           cden(xyz(i,j,k)), Pr, kv, tcon)                       ! Get corresponding temp and density
-                entm(i,j) = 2.d0 * ent(xyz(i,j,k)) - entm(i,j)
+                entm(i,j) = 2._DP * ent(xyz(i,j,k)) - entm(i,j)
             END IF
 
 
             hs = geths(cden(xyz(i,j,k)), Pr, kv, tcon)                                               ! Calculate heat transfer coef
-            pdens = (1. - cf) * 100.d0 * xpline(xyz(i,j,k)) / (pi * rf**2)                ! Fuel pin Power Density (W/m3)
+            pdens = (1. - cf) * 100._DP * xpline(xyz(i,j,k)) / (pi * rf**2)                ! Fuel pin Power Density (W/m3)
 
             ! Calculate tridiagonal matrix: a, b, c and source: d
             ! For nt=1 [FUEL CENTERLINE]
             kt1 = getkf(tfm(xyz(i,j,k),1))                                                     ! Get thermal conductivity
             kt2 = getkf(tfm(xyz(i,j,k),2))
-            kt  = 2.d0 * kt1 * kt2 / (kt1 + kt2)
+            kt  = 2._DP * kt1 * kt2 / (kt1 + kt2)
             cp = getcpf(tfm(xyz(i,j,k),1))                                                           ! Get specific heat capacity
             eta = fdens * cp * rpos(1)**2 / (2. * h)
             xc  = kt * rpos(1) / rdel(1)
             b(1) =  xc + eta
             c(1) = -xc
-            d(1) = pdens * 0.5d0 * rpos(1)**2 + eta * tfm(xyz(i,j,k),1)
+            d(1) = pdens * 0.5_DP * rpos(1)**2 + eta * tfm(xyz(i,j,k),1)
 
             DO n = 2, nt-2
                 kt1 = kt2
                 kt2 = getkf(tfm(xyz(i,j,k),n+1))
-                kt  = 2.d0 * kt1 * kt2 / (kt1 + kt2)
+                kt  = 2._DP * kt1 * kt2 / (kt1 + kt2)
                 cp = getcpf(tfm(xyz(i,j,k),n))
                 eta = fdens * cp * (rpos(n)**2 - rpos(n-1)**2) / (2. * h)
                 xa = xc
@@ -485,7 +487,7 @@ DO k = 1, nzz
                 a(n) = -xa
                 b(n) =  xa + xc + eta
                 c(n) = -xc
-                d(n) = pdens * 0.5d0 * (rpos(n)**2 - rpos(n-1)**2) &
+                d(n) = pdens * 0.5_DP * (rpos(n)**2 - rpos(n-1)**2) &
                      + eta * tfm(xyz(i,j,k),n)
             END DO
 
@@ -497,13 +499,13 @@ DO k = 1, nzz
             a(nt-1) = -xa
             b(nt-1) =  xa + xc + eta
             c(nt-1) = -xc
-            d(nt-1) = pdens * 0.5d0 * (rf**2 - rpos(nt-2)**2) &
+            d(nt-1) = pdens * 0.5_DP * (rf**2 - rpos(nt-2)**2) &
                     + eta * tfm(xyz(i,j,k),nt-1)
 
             ! For nt [GAP-CLADDING INTERFACE]
             kt1 = getkc(tfm(xyz(i,j,k),nt))
             kt2 = getkc(tfm(xyz(i,j,k),nt+1))
-            kt  = 2.d0 * kt1 * kt2 / (kt1 + kt2)     ! For cladding
+            kt  = 2._DP * kt1 * kt2 / (kt1 + kt2)     ! For cladding
             cp = getcpc(tfm(xyz(i,j,k),nt))
             eta = cdens * cp * (rpos(nt)**2 - rg**2) / (2. * h)
             xa = xc
@@ -552,18 +554,18 @@ USE sdata, ONLY: mtem, cden, ftem, tin, xyz, cflow, nyy, nxx, nzz, cf, ent, heat
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: xpline    ! Linear Power Density (W/cm)
+REAL(DP), DIMENSION(:), INTENT(IN) :: xpline    ! Linear Power Density (W/cm)
 
 INTEGER :: i, j, k, n
-DOUBLE PRECISION, DIMENSION(nt+1) :: a, b, c, d
-DOUBLE PRECISION :: hs, Hg = 1.d4, kt, kt1, kt2
-DOUBLE PRECISION :: alp = 0.7d0
-DOUBLE PRECISION :: xa, xc
-DOUBLE PRECISION :: pdens      ! power densisty  (W/m3)
-DOUBLE PRECISION :: enti       ! Coolant inlet enthalpy
-DOUBLE PRECISION, DIMENSION(nxx, nyy) :: entm
-DOUBLE PRECISION :: cpline     ! Coolant Linear power densisty (W/m)
-DOUBLE PRECISION :: Pr, kv, tcon ! Coolant Prandtl Number, Kinematic viscosity, and thermal conductivity
+REAL(DP), DIMENSION(nt+1) :: a, b, c, d
+REAL(DP) :: hs, Hg = 1.d4, kt, kt1, kt2
+REAL(DP) :: alp = 0.7_DP
+REAL(DP) :: xa, xc
+REAL(DP) :: pdens      ! power densisty  (W/m3)
+REAL(DP) :: enti       ! Coolant inlet enthalpy
+REAL(DP), DIMENSION(nxx, nyy) :: entm
+REAL(DP) :: cpline     ! Coolant Linear power densisty (W/m)
+REAL(DP) :: Pr, kv, tcon ! Coolant Prandtl Number, Kinematic viscosity, and thermal conductivity
 
 CALL getent(tin, enti)
 
@@ -572,42 +574,42 @@ DO k = 1, nzz
         DO i = ystag(j)%smin, ystag(j)%smax
 
             cpline = heatf(xyz(i,j,k)) * pi * dia  &
-                   + cf * xpline(xyz(i,j,k)) * 100.d0       ! Coolant Linear power densisty (W/m)
+                   + cf * xpline(xyz(i,j,k)) * 100._DP       ! Coolant Linear power densisty (W/m)
 
             IF (k == 1) THEN                                                    ! Calculate coolant enthalpy and
-                ent(xyz(i,j,k)) = enti + 0.5d0 * cpline * zdel(k) * 0.01d0 / cflow
+                ent(xyz(i,j,k)) = enti + 0.5_DP * cpline * zdel(k) * 0.01_DP / cflow
                 CALL gettd(ent(xyz(i,j,k)), mtem(xyz(i,j,k)), cden(xyz(i,j,k)), &
                           Pr, kv, tcon)                                         ! Get corresponding temp and density
-                entm(i,j) = 2.d0 * ent(xyz(i,j,k)) - enti
+                entm(i,j) = 2._DP * ent(xyz(i,j,k)) - enti
             ELSE
-                ent(xyz(i,j,k)) = entm(i,j) + 0.5d0 * cpline * zdel(k) * 0.01d0 / cflow
+                ent(xyz(i,j,k)) = entm(i,j) + 0.5_DP * cpline * zdel(k) * 0.01_DP / cflow
                 CALL gettd(ent(xyz(i,j,k)), mtem(xyz(i,j,k)), cden(xyz(i,j,k)), &
                           Pr, kv, tcon)
-                entm(i,j) = 2.d0 * ent(xyz(i,j,k)) - entm(i,j)
+                entm(i,j) = 2._DP * ent(xyz(i,j,k)) - entm(i,j)
             END IF
 
             hs = geths(cden(xyz(i,j,k)), Pr, kv, tcon)
-            pdens = (1. - cf) * 100.d0 * xpline(xyz(i,j,k)) / (pi * rf**2)        ! Fuel pin Power Density (W/m3)
+            pdens = (1. - cf) * 100._DP * xpline(xyz(i,j,k)) / (pi * rf**2)        ! Fuel pin Power Density (W/m3)
 
             ! Calculate tridiagonal matrix: a, b, c and source: d
             kt1 = getkf(tfm(xyz(i,j,k),1))                                                     ! Get thermal conductivity
             kt2 = getkf(tfm(xyz(i,j,k),2))
-            kt  = 2.d0 * kt1 * kt2 / (kt1 + kt2)
+            kt  = 2._DP * kt1 * kt2 / (kt1 + kt2)
             xc  = kt * rpos(1) / rdel(1)
             b(1) =  xc
             c(1) = -xc
-            d(1) = pdens * 0.5d0 * rpos(1)**2
+            d(1) = pdens * 0.5_DP * rpos(1)**2
 
             DO n = 2, nt-2
                 kt1 = kt2
                 kt2 = getkf(tfm(xyz(i,j,k),n+1))
-                kt  = 2.d0 * kt1 * kt2 / (kt1 + kt2)
+                kt  = 2._DP * kt1 * kt2 / (kt1 + kt2)
                 xa = xc
                 xc = kt * rpos(n) / rdel(n)
                 a(n) = -xa
                 b(n) =  xa + xc
                 c(n) = -xc
-                d(n) = pdens * 0.5d0 * (rpos(n)**2 - rpos(n-1)**2)
+                d(n) = pdens * 0.5_DP * (rpos(n)**2 - rpos(n-1)**2)
             END DO
 
             ! For nt-1 [FUEL-GAP INTERFACE]
@@ -616,12 +618,12 @@ DO k = 1, nzz
             a(nt-1) = -xa
             b(nt-1) =  xa + xc
             c(nt-1) = -xc
-            d(nt-1) = pdens * 0.5d0 * (rf**2 - rpos(nt-2)**2)
+            d(nt-1) = pdens * 0.5_DP * (rf**2 - rpos(nt-2)**2)
 
             ! For nt [GAP-CLADDING INTERFACE]
             kt1 = getkc(tfm(xyz(i,j,k),nt))
             kt2 = getkc(tfm(xyz(i,j,k),nt+1))
-            kt  = 2.d0 * kt1 * kt2 / (kt1 + kt2)     ! For cladding
+            kt  = 2._DP * kt1 * kt2 / (kt1 + kt2)     ! For cladding
             xa = xc
             xc = kt * rpos(nt) / rdel(nt)
             a(nt) = -xa
@@ -668,8 +670,8 @@ USE nodal, ONLY: nodal_coup4, outer4, powdis
 
 IMPLICIT NONE
 
-DOUBLE PRECISION  :: bc1, bc2, bcon     ! Boron Concentration
-DOUBLE PRECISION :: ke1, ke2
+REAL(DP)  :: bc1, bc2, bcon     ! Boron Concentration
+REAL(DP) :: ke1, ke2
 INTEGER :: n
 
 ! File Output
@@ -723,7 +725,7 @@ WRITE(*,'(I5, F15.2, F23.5)') 2, bc2, Ke2
 
 n = 3
 DO
-  bcon = bc2 + (1.0 - ke2) / (ke1 - ke2) * (bc1 - bc2)
+  bcon = bc2 + (1._DP - ke2) / (ke1 - ke2) * (bc1 - bc2)
   CALL XS_updt(bcon, ftem, mtem, cden, bpos)
   CALL nodal_coup4()
   CALL outer4(0)
@@ -733,7 +735,7 @@ DO
   ke2 = ke
   WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') n, bcon, Ke, ser, fer
   WRITE(*,'(I5, F15.2, F23.5)') n, bcon, Ke
-    IF ((ABS(Ke - 1.0) < 1.d-5) .AND. (ser < 1.d-5) .AND. (fer < 1.d-5)) EXIT
+    IF ((ABS(Ke - 1._DP) < 1.e-5_DP) .AND. (ser < 1.e-5_DP) .AND. (fer < 1.e-5_DP)) EXIT
     n = n + 1
     IF (bcon > 3000.) THEN
         WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION EXCEEDS THE LIMIT(3000 ppm)'
@@ -764,7 +766,7 @@ IF (aprad == 1) CALL AsmPow(npow)
 
 IF (apaxi == 1) CALL AxiPow(npow)
 
-IF (afrad == 1) CALL AsmFlux(f0, 1.d0)
+IF (afrad == 1) CALL AsmFlux(f0, 1._DP)
 
 END SUBROUTINE cbsearch
 
@@ -784,10 +786,10 @@ USE nodal, ONLY: powdis, nodal_coup4, outer4
 
 IMPLICIT NONE
 
-DOUBLE PRECISION  :: bc1, bc2    ! Boron Concentration
-DOUBLE PRECISION :: ke1, ke2
+REAL(DP)  :: bc1, bc2    ! Boron Concentration
+REAL(DP) :: ke1, ke2
 INTEGER :: n
-DOUBLE PRECISION :: tf, tm, mtm, mtf
+REAL(DP) :: tf, tm, mtm, mtf
 
 ! File Output
 WRITE(ounit,*)
@@ -838,7 +840,7 @@ WRITE(*,'(I5, F15.2, F23.5)') 2, bc2, Ke2
 
 n = 3
 DO
-    bcon = bc2 + (1.0 - ke2) / (ke1 - ke2) * (bc1 - bc2)
+    bcon = bc2 + (1._DP - ke2) / (ke1 - ke2) * (bc1 - bc2)
     CALL th_iter()
     bc1 = bc2
     bc2 = bcon
@@ -846,7 +848,7 @@ DO
     ke2 = ke
     WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') n, bcon, Ke, ser, fer, th_err
     WRITE(*,'(I5, F15.2, F23.5)') n, bcon, Ke
-    IF ((ABS(Ke - 1.0) < 1.d-5) .AND. (ser < serc) .AND. (fer < ferc)) EXIT
+    IF ((ABS(Ke - 1._DP) < 1.e-5_DP) .AND. (ser < serc) .AND. (fer < ferc)) EXIT
     n = n + 1
     IF (bcon > 3000.) THEN
         WRITE(ounit,*) '  CRITICAL BORON CONCENTRATION EXCEEDS THE LIMIT(3000 ppm)'
@@ -876,7 +878,7 @@ IF (aprad == 1) CALL AsmPow(npow)
 
 IF (apaxi == 1) CALL AxiPow(npow)
 
-IF (afrad == 1) CALL AsmFlux(f0, 1.d0)
+IF (afrad == 1) CALL AsmFlux(f0, 1._DP)
 
 CALL par_ave_f(ftem, tf)
 CALL par_ave(mtem, tm)

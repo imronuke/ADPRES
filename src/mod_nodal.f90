@@ -7,6 +7,8 @@ MODULE nodal
 ! JAERI-Data/Code 98-025. Japan Atomic Energy Research Institute, Tokaimura (in Japanese)
 ! =======================
 
+USE sdata, ONLY: DP
+
 IMPLICIT NONE
 
 SAVE
@@ -29,16 +31,16 @@ IMPLICIT NONE
 
 INTEGER, OPTIONAL, INTENT(IN) :: popt
 
-DOUBLE PRECISION :: Keo                                    !Old Multiplication factor (Keff)
-DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !old fission source
-DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old flux
-DOUBLE PRECISION :: f, fc                                  ! new and old integrated fission sources
-DOUBLE PRECISION :: domiR, e1, e2
+REAL(DP) :: Keo                                    !Old Multiplication factor (Keff)
+REAL(DP), DIMENSION(nnod) :: fs0c                  !old fission source
+REAL(DP), DIMENSION(nnod,ng) :: f0c                !Old flux
+REAL(DP) :: f, fc                                  ! new and old integrated fission sources
+REAL(DP) :: domiR, e1, e2
 INTEGER :: g
 INTEGER :: p, npos
 LOGICAL :: opt
 
-DOUBLE PRECISION, DIMENSION(nnod) :: errn, erro
+REAL(DP), DIMENSION(nnod) :: errn, erro
 
 IF (PRESENT(popt)) THEN
     opt = .FALSE.
@@ -114,15 +116,15 @@ IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: maxn
 
-DOUBLE PRECISION :: Keo                                    !Old Multiplication factor (Keff)
-DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
-DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old flux
-DOUBLE PRECISION :: f, fc                                  ! new and old integrated fission sources
-DOUBLE PRECISION :: domiR, e1, e2
+REAL(DP) :: Keo                                    !Old Multiplication factor (Keff)
+REAL(DP), DIMENSION(nnod) :: fs0c                  !Old fission source
+REAL(DP), DIMENSION(nnod,ng) :: f0c                !Old flux
+REAL(DP) :: f, fc                                  ! new and old integrated fission sources
+REAL(DP) :: domiR, e1, e2
 INTEGER :: g
 INTEGER :: p, npos
 
-DOUBLE PRECISION, DIMENSION(nnod) :: errn, erro
+REAL(DP), DIMENSION(nnod) :: errn, erro
 
 
 ! Initialize fission source
@@ -178,13 +180,13 @@ USE InpOutp, ONLY: ounit
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
-DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old flux
-DOUBLE PRECISION :: domiR, e1, e2
+REAL(DP), DIMENSION(nnod) :: fs0c                  !Old fission source
+REAL(DP), DIMENSION(nnod,ng) :: f0c                !Old flux
+REAL(DP) :: domiR, e1, e2
 INTEGER :: g
 INTEGER :: p, npos
 
-DOUBLE PRECISION, DIMENSION(nnod) :: errn, erro
+REAL(DP), DIMENSION(nnod) :: errn, erro
 
 ! Initialize fission source
 CALL FSrc (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
@@ -247,16 +249,16 @@ USE sdata, ONLY: ng, nnod, serc, ferc, nout,  fer, ser, f0, &
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, INTENT(IN) :: ht
+REAL(DP), INTENT(IN) :: ht
 LOGICAL, INTENT(OUT) :: maxi
 
-DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
-DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old flux
-DOUBLE PRECISION :: domiR, e1, e2
+REAL(DP), DIMENSION(nnod) :: fs0c                  !Old fission source
+REAL(DP), DIMENSION(nnod,ng) :: f0c                !Old flux
+REAL(DP) :: domiR, e1, e2
 INTEGER :: g
 INTEGER :: p, npos
 
-DOUBLE PRECISION, DIMENSION(nnod) :: errn, erro
+REAL(DP), DIMENSION(nnod) :: errn, erro
 
 errn = 1.0
 e1 = Integrate(errn)
@@ -310,17 +312,17 @@ IMPLICIT NONE
 
 INTEGER, OPTIONAL, INTENT(IN) :: popt
 
-DOUBLE PRECISION :: Keo                                    !Old Multiplication factor (Keff)
-DOUBLE PRECISION, DIMENSION(nnod) :: fs0c                  !Old fission source
-DOUBLE PRECISION, DIMENSION(nnod,ng) :: f0c                !Old flux
-DOUBLE PRECISION :: f, fc                                  ! new and old integrated fission sources
-DOUBLE PRECISION :: domiR, e1, e2
+REAL(DP) :: Keo                                    !Old Multiplication factor (Keff)
+REAL(DP), DIMENSION(nnod) :: fs0c                  !Old fission source
+REAL(DP), DIMENSION(nnod,ng) :: f0c                !Old flux
+REAL(DP) :: f, fc                                  ! new and old integrated fission sources
+REAL(DP) :: domiR, e1, e2
 INTEGER :: g
 INTEGER :: p, npos
 
 LOGICAL :: opt
 
-DOUBLE PRECISION, DIMENSION(nnod) :: errn, erro
+REAL(DP), DIMENSION(nnod) :: errn, erro
 
 IF (PRESENT(popt)) THEN
     opt = .FALSE.
@@ -396,10 +398,10 @@ IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g
 INTEGER :: l, n
-DOUBLE PRECISION, DIMENSION(6) :: bvec, qvec
+REAL(DP), DIMENSION(6) :: bvec, qvec
 
 ! Transverse Leakage Moments(0, Lx1, Ly1, Lz2, Lx2, Ly2, Lz3)
-DOUBLE PRECISION, DIMENSION(nnod,7) :: Lm
+REAL(DP), DIMENSION(nnod,7) :: Lm
 
 ! Jot Nodals' outgoing currents+flux  (X+, X-, Y+, Y-, Z+, Z-)
 ! Jin Nodals' ingoing currents+source (X+, X-, Y+, Y-, Z+, Z-)
@@ -593,9 +595,9 @@ USE sdata, ONLY: nod, D, sigr, xdel, ydel, zdel, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g, n
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: L
+REAL(DP), DIMENSION(:), INTENT(IN) :: L
 
-DOUBLE PRECISION :: Tx, Ty, Tz
+REAL(DP) :: Tx, Ty, Tz
 
 ! Calculate Zeroth Flux
 f0(n,g)  = ( nod(n,g)%Q(1)          &
@@ -699,13 +701,13 @@ USE sdata, ONLY: nod, xdel, ydel, zdel, xstag, ystag, nzz, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g, n
-DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: L
+REAL(DP), DIMENSION(:), INTENT(OUT) :: L
 
-DOUBLE PRECISION :: tm, tp
-DOUBLE PRECISION :: p1m, p2m, p1p, p2p, pm, pp, p1, p2, p3
-DOUBLE PRECISION :: r1xy, r2xy, r1xz, r2xz
-DOUBLE PRECISION :: r1yx, r2yx, r1yz, r2yz
-DOUBLE PRECISION :: r1zx, r2zx, r1zy, r2zy
+REAL(DP) :: tm, tp
+REAL(DP) :: p1m, p2m, p1p, p2p, pm, pp, p1, p2, p3
+REAL(DP) :: r1xy, r2xy, r1xz, r2xz
+REAL(DP) :: r1yx, r2yx, r1yz, r2yz
+REAL(DP) :: r1zx, r2zx, r1zy, r2zy
 
 ! Set paramaters for X-Direction Transverse leakage
 IF (ix(n) == ystag(iy(n))%smin) THEN
@@ -1016,7 +1018,7 @@ USE sdata, ONLY: nnod, nuf, ng, &
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: s, sx1, sy1, sz1, sx2, sy2, sz2
+REAL(DP), DIMENSION(:), INTENT(OUT) :: s, sx1, sy1, sz1, sx2, sy2, sz2
 
 INTEGER :: n, g
 
@@ -1047,7 +1049,7 @@ USE sdata, ONLY: nnod, ng, mat, chi, &
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: s, sx1, sy1, sz1, sx2, sy2, sz2
+REAL(DP), DIMENSION(:), INTENT(OUT) :: s, sx1, sy1, sz1, sx2, sy2, sz2
 
 INTEGER :: n, g
 
@@ -1080,8 +1082,8 @@ USE sdata, ONLY: nod, chi, mat, nnod, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g
-DOUBLE PRECISION, INTENT(IN) :: Keff
-DOUBLE PRECISION, DIMENSION(nnod) :: s0, sx1, sy1, sz1, sx2, sy2, sz2
+REAL(DP), INTENT(IN) :: Keff
+REAL(DP), DIMENSION(nnod) :: s0, sx1, sy1, sz1, sx2, sy2, sz2
 
 INTEGER :: n, h
 
@@ -1127,7 +1129,7 @@ USE sdata, ONLY: nod, chi, mat, nnod, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g
-DOUBLE PRECISION, DIMENSION(nnod) :: s0, sx1, sy1, sz1, sx2, sy2, sz2
+REAL(DP), DIMENSION(nnod) :: s0, sx1, sy1, sz1, sx2, sy2, sz2
 
 INTEGER :: n, h
 
@@ -1176,10 +1178,10 @@ USE sdata, ONLY: nod, chi, mat, nnod, ng, tbeta, velo, lamb, iBeta, nf, omeg, si
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g
-DOUBLE PRECISION, INTENT(IN) :: ht
+REAL(DP), INTENT(IN) :: ht
 
-DOUBLE PRECISION, DIMENSION(nnod) :: s0, sx1, sy1, sz1, sx2, sy2, sz2
-DOUBLE PRECISION :: dt, dtx1, dty1, dtz1, dtx2, dty2, dtz2, lat, dfis
+REAL(DP), DIMENSION(nnod) :: s0, sx1, sy1, sz1, sx2, sy2, sz2
+REAL(DP) :: dt, dtx1, dty1, dtz1, dtx2, dty2, dtz2, lat, dfis
 INTEGER :: n, i, h
 
 s0 = 0.; sx1 = 0.; sy1 = 0.; sz1 = 0.
@@ -1244,8 +1246,8 @@ USE sdata, ONLY: nod, nuf, nnod, fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, &
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: g
-DOUBLE PRECISION, INTENT(IN) :: Keff
-DOUBLE PRECISION, DIMENSION(nnod) :: s0, sx1, sy1, sz1, sx2, sy2, sz2
+REAL(DP), INTENT(IN) :: Keff
+REAL(DP), DIMENSION(nnod) :: s0, sx1, sy1, sz1, sx2, sy2, sz2
 
 INTEGER :: n, h
 
@@ -1311,14 +1313,14 @@ USE sdata, ONLY: ng, nnod, xdel, ydel, zdel, &
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(6,6) :: A, B
-DOUBLE PRECISION, DIMENSION(6,7) :: C
+REAL(DP), DIMENSION(6,6) :: A, B
+REAL(DP), DIMENSION(6,7) :: C
 
 INTEGER :: n, g
 
-DOUBLE PRECISION:: dx, dy, dz, lx, ly, lz
-DOUBLE PRECISION :: ax, ay, az, ax1, ay1, az1, bx, by, bz
-DOUBLE PRECISION :: bx1, by1, bz1, xy, xz, yx, yz, zx, zy
+REAL(DP):: dx, dy, dz, lx, ly, lz
+REAL(DP) :: ax, ay, az, ax1, ay1, az1, bx, by, bz
+REAL(DP) :: bx1, by1, bz1, xy, xz, yx, yz, zx, zy
 
 DO g= 1, ng
     DO n = 1, nnod
@@ -1447,12 +1449,12 @@ USE sdata,   ONLY: ix, iy, iz
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:,:), INTENT(INOUT) :: mat
+REAL(DP), DIMENSION(:,:), INTENT(INOUT) :: mat
 INTEGER, INTENT(IN) :: g, nt
 
-DOUBLE PRECISION, DIMENSION(6,6) :: L, U, imat, pmat
-DOUBLE PRECISION, DIMENSION(6) :: y
-DOUBLE PRECISION :: piv, isum
+REAL(DP), DIMENSION(6,6) :: L, U, imat, pmat
+REAL(DP), DIMENSION(6) :: y
+REAL(DP) :: piv, isum
 INTEGER :: i, j, k
 
 pmat = mat
@@ -1484,7 +1486,7 @@ DO i = 1,6
         DO k = 1,6
             isum = isum+L(i,k)*U(k,j)
         END DO
-        IF (ABS(mat(i,j)-isum)/ABS(mat(i,j)) > 1.d-3) THEN
+        IF (ABS(mat(i,j)-isum)/ABS(mat(i,j)) > 1.e-3_DP) THEN
             WRITE(ounit,*) 'ERROR IN MATRIX DECOMP: DECOMPOSITION FAILED'
             WRITE(ounit,2001) g, ix(nt), iy(nt), iz(nt)
             STOP
@@ -1529,7 +1531,7 @@ DO i = 1,6
         DO k = 1,6
             isum = isum+pmat(i,k)*mat(k,j)
         END DO
-        IF (ABS(imat(i,j)-isum) > 1.d-4) THEN
+        IF (ABS(imat(i,j)-isum) > 1.e-4_DP) THEN
             WRITE(ounit,*) 'ERROR IN MATRIX INVERSION'
             WRITE(ounit,2001) g, ix(nt), iy(nt), iz(nt)
             STOP
@@ -1543,7 +1545,7 @@ END DO
 END SUBROUTINE inverse
 
 
-DOUBLE PRECISION FUNCTION Integrate(s)
+REAL(DP) FUNCTION Integrate(s)
 
   !
   ! Purpose:
@@ -1553,7 +1555,7 @@ USE sdata, ONLY: nnod, vdel
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION (:), INTENT(IN) :: s
+REAL(DP), DIMENSION (:), INTENT(IN) :: s
 INTEGER :: n
 
 Integrate = 0.
@@ -1573,12 +1575,12 @@ SUBROUTINE matvec (mat, vec, rvec)
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:,:), INTENT(IN) :: mat
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: vec
-DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: rvec
+REAL(DP), DIMENSION(:,:), INTENT(IN) :: mat
+REAL(DP), DIMENSION(:), INTENT(IN) :: vec
+REAL(DP), DIMENSION(:), INTENT(OUT) :: rvec
 
 INTEGER :: i, j, n, m
-DOUBLE PRECISION :: isum
+REAL(DP) :: isum
 
 m = SIZE(mat,1)
 n = SIZE(vec,1)
@@ -1605,16 +1607,16 @@ USE sdata, ONLY: nnod
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: newF, oldF
-DOUBLE PRECISION, INTENT(OUT) :: rel
+REAL(DP), DIMENSION(:), INTENT(IN) :: newF, oldF
+REAL(DP), INTENT(OUT) :: rel
 
-DOUBLE PRECISION :: error
+REAL(DP) :: error
 INTEGER :: n
 
 rel = 0.
 
 DO n= 1, nnod
-    IF (ABS(newF(n)) > 1.d-10) THEN
+    IF (ABS(newF(n)) > 1.e-10_DP) THEN
         error = ABS(newF(n) - oldF(n)) / ABS(newF(n))
         IF (error > rel) rel = error
     END IF
@@ -1633,10 +1635,10 @@ USE sdata, ONLY: nnod, ng
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:,:), INTENT(IN) :: newF, oldF
-DOUBLE PRECISION, INTENT(OUT) :: rel
+REAL(DP), DIMENSION(:,:), INTENT(IN) :: newF, oldF
+REAL(DP), INTENT(OUT) :: rel
 
-DOUBLE PRECISION :: error
+REAL(DP) :: error
 INTEGER :: n, g
 
 rel = 0.
@@ -1663,9 +1665,9 @@ USE sdata, ONLY: ng, nnod, nod, nzz, &
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, INTENT(OUT) :: k
+REAL(DP), INTENT(OUT) :: k
 
-DOUBLE PRECISION :: leak, absp, fiss
+REAL(DP) :: leak, absp, fiss
 
 INTEGER :: g, n
 
@@ -1804,9 +1806,9 @@ USE InpOutp, ONLY: ounit
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(OUT) :: p
+REAL(DP), DIMENSION(:), INTENT(OUT) :: p
 INTEGER :: g, n
-DOUBLE PRECISION :: tpow, pow
+REAL(DP) :: tpow, pow
 
 p = 0.0
 DO g= 1, ng
@@ -1849,10 +1851,10 @@ USE sdata, ONLY: ng, nnod, sigf, vdel
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:,:), INTENT(IN) :: fx
-DOUBLE PRECISION, INTENT(OUT) :: tpow
+REAL(DP), DIMENSION(:,:), INTENT(IN) :: fx
+REAL(DP), INTENT(OUT) :: tpow
 
-DOUBLE PRECISION, DIMENSION(nnod) :: p
+REAL(DP), DIMENSION(nnod) :: p
 INTEGER :: g, n
 
 p = 0.0
@@ -1883,8 +1885,8 @@ USE sdata, ONLY: nnod
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: ar
-DOUBLE PRECISION, DIMENSION(nnod) :: AbsAr
+REAL(DP), DIMENSION(:), INTENT(IN) :: ar
+REAL(DP), DIMENSION(nnod) :: AbsAr
 
 INTEGER :: n
 
@@ -1907,7 +1909,7 @@ USE InpOutp, ONLY: ounit, AsmPow, AxiPow, AsmFlux, XS_updt
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: pow
+REAL(DP), DIMENSION(:), ALLOCATABLE :: pow
 
 
 WRITE(ounit,*)
@@ -1940,7 +1942,7 @@ IF (aprad == 1) CALL AsmPow(pow)
 
 IF (apaxi == 1) CALL AxiPow(pow)
 
-IF (afrad == 1) CALL AsmFlux(f0, 1.d0)
+IF (afrad == 1) CALL AsmFlux(f0, 1.e0_DP)
 
 
 
@@ -1960,7 +1962,7 @@ USE InpOutp, ONLY: ounit, AsmPow, AxiPow, AsmFlux, XS_updt
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: pow
+REAL(DP), DIMENSION(:), ALLOCATABLE :: pow
 
 
 WRITE(ounit,*)
@@ -1992,7 +1994,7 @@ IF (aprad == 1) CALL AsmPow(pow)
 
 IF (apaxi == 1) CALL AxiPow(pow)
 
-IF (afrad == 1) CALL AsmFlux(f0, 1.d0)
+IF (afrad == 1) CALL AsmFlux(f0, 1.e0_DP)
 
 
 
@@ -2012,7 +2014,7 @@ USE InpOutp, ONLY: ounit, AsmPow, AxiPow, AsmFlux, XS_updt
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: pow
+REAL(DP), DIMENSION(:), ALLOCATABLE :: pow
 
 
 WRITE(ounit,*)

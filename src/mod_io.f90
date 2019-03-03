@@ -4,6 +4,8 @@ MODULE InpOutp
 ! Input output module to read, process and echo input, as well as writing output
 ! =======================
 
+USE sdata, ONLY: DP
+
 IMPLICIT NONE
 
 SAVE
@@ -39,7 +41,7 @@ CHARACTER(LEN=100):: iline  ! Input line
 ! Geometry
 INTEGER :: np                                           ! Number of planars
 INTEGER, DIMENSION(:), ALLOCATABLE :: zpln              ! Planar assignment to z direction
-DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: xsize, ysize, zsize  !Assembly size
+REAL(DP), DIMENSION(:), ALLOCATABLE :: xsize, ysize, zsize  !Assembly size
 TYPE :: MAT_ASGN                                        ! Material assignment
     INTEGER, DIMENSION(:,:), ALLOCATABLE :: asm         ! Material assignment into assembly
     INTEGER, DIMENSION(:,:), ALLOCATABLE :: node        ! Material assignment into nodes
@@ -48,10 +50,10 @@ TYPE(MAT_ASGN), DIMENSION(:), ALLOCATABLE :: plnr       ! planar
 INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: mnum
 
 ! CROD CHANGES
-DOUBLE PRECISION :: nstep                                                  ! Number of steps
-DOUBLE PRECISION    :: coreh                                                  ! Core Height
+REAL(DP) :: nstep                                                  ! Number of steps
+REAL(DP)    :: coreh                                                  ! Core Height
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: fbmap                     ! Radial control rod bank map (node wise)
-DOUBLE PRECISION :: pos0, ssize                                               ! Zero step position and step size
+REAL(DP) :: pos0, ssize                                               ! Zero step position and step size
 
 
 CONTAINS
@@ -285,7 +287,7 @@ IF (bcden == 1) CALL inp_cden (ucden)
 ALLOCATE(al(nnod,ng))
 DO g = 1, ng
     DO i = 1, nnod
-        al(i,g)%dc = 0.d0 ! Default alpha = 0.0
+        al(i,g)%dc = 0._DP ! Default alpha = 0.0
     END DO
 END DO
 IF (badf == 1) CALL inp_adf (uadf)
@@ -601,7 +603,7 @@ INTEGER, INTENT(IN) :: xbunit
 INTEGER :: i, g, h
 INTEGER :: ln   !Line number
 INTEGER :: ios  ! IOSTAT status
-DOUBLE PRECISION :: dum
+REAL(DP) :: dum
 INTEGER, DIMENSION(:), ALLOCATABLE :: group
 
 WRITE(ounit,*)
@@ -714,7 +716,7 @@ INTEGER, INTENT(IN) :: xbunit
 INTEGER :: ln, ios
 
 INTEGER :: i, j, k, lx, ly, lz, xtot, ytot, ztot
-DOUBLE PRECISION :: div
+REAL(DP) :: div
 
 WRITE(ounit,*)
 WRITE(ounit,*)
@@ -815,7 +817,7 @@ ALLOCATE(xdel(nxx), ydel(nyy), zdel(nzz))
 !Delta x
 xtot=0
 DO i= 1,nx
-    div = xsize(i)/DBLE(xdiv(i))
+    div = xsize(i)/REAL(xdiv(i))
     DO lx= 1, xdiv(i)
     xtot = xtot+1
     xdel(xtot) = div
@@ -824,7 +826,7 @@ END DO
 !Delta y
 ytot=0
 DO j= 1,ny
-    div = ysize(j)/DBLE(ydiv(j))
+    div = ysize(j)/REAL(ydiv(j))
     DO ly= 1, ydiv(j)
     ytot = ytot+1
     ydel(ytot) = div
@@ -833,7 +835,7 @@ END DO
 !Delta z
 ztot=0
 DO k= 1,nz
-    div = zsize(k)/DBLE(zdiv(k))
+    div = zsize(k)/REAL(zdiv(k))
     DO lz= 1, zdiv(k)
     ztot = ztot+1
     zdel(ztot) = div
@@ -1132,7 +1134,7 @@ WRITE(ounit,*)
 WRITE(ounit,*) ' ...Core geometry is sucessfully read...'
 
 ! Calculate core height
-coreh = 0.d0
+coreh = 0._DP
 DO k = 1, nzz
     coreh = coreh + zdel(k)
 END DO
@@ -1217,11 +1219,11 @@ USE sdata, ONLY:
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, INTENT(IN) :: xbcon  ! Provided Boron Concentration
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: xftem  ! Provided fuel temperature
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: xmtem  ! Provided moderator temperature
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: xcden  ! Provided coolant density
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: xbpos  ! Provided control rod bank position
+REAL(DP), INTENT(IN) :: xbcon  ! Provided Boron Concentration
+REAL(DP), DIMENSION(:), INTENT(IN) :: xftem  ! Provided fuel temperature
+REAL(DP), DIMENSION(:), INTENT(IN) :: xmtem  ! Provided moderator temperature
+REAL(DP), DIMENSION(:), INTENT(IN) :: xcden  ! Provided coolant density
+REAL(DP), DIMENSION(:), INTENT(IN) :: xbpos  ! Provided control rod bank position
 
 CALL base_updt()
 IF (bbcon == 1 .OR. bcbcs == 1) CALL bcon_updt(xbcon)
@@ -1277,7 +1279,7 @@ USE sdata, ONLY: nnod, ng, sigtr, siga,  &
 IMPLICIT NONE
 
 INTEGER :: i, g, h
-DOUBLE PRECISION :: dum
+REAL(DP) :: dum
 
 DO i = 1, nnod
     DO g = 1, ng
@@ -1312,11 +1314,11 @@ INTEGER :: g, i, j, k, n
 INTEGER :: xt, yt, zt
 INTEGER :: it, jt, kt
 INTEGER :: nsrc
-DOUBLE PRECISION    :: sden                                       ! Source density
-DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: spec               ! Source Spectrum
+REAL(DP)    :: sden                                       ! Source density
+REAL(DP), DIMENSION(:), ALLOCATABLE :: spec               ! Source Spectrum
 CHARACTER(LEN=1), DIMENSION(:,:), ALLOCATABLE :: spos ! Source position
 INTEGER :: xpos, ypos, zpos
-DOUBLE PRECISION :: summ
+REAL(DP) :: summ
 
 WRITE(ounit,*)
 WRITE(ounit,*)
@@ -1324,7 +1326,7 @@ WRITE(ounit,*) '           >>>>>READING EXTRA SOURCE<<<<<'
 WRITE(ounit,*) '           -------------------------------'
 
 ALLOCATE(exsrc(nnod, ng))
-exsrc = 0.d0
+exsrc = 0._DP
 
 ! Read number of source
 READ(xbunit, *, IOSTAT=ios) ind, ln, nsrc
@@ -1350,12 +1352,12 @@ DO n = 1, nsrc
     CALL er_message(ounit, ios, ln, message)
 
     ! Is total spectrum = 1.0?
-    summ = 0.d0
+    summ = 0._DP
     DO g = 1, ng
         summ = summ + spec(g)
     END DO
     ! Check total spectrum
-    IF (ABS(summ - 1.d0) > 1.d-5) THEN
+    IF (ABS(summ - 1._DP) > 1.e-5_DP) THEN
         WRITE(ounit,*) 'TOTAL SOURCE SPECTRUM AT LINE', ln, ' IS NOT EQUAL TO 1.0'
         STOP
     END IF
@@ -1700,7 +1702,7 @@ IF (ios == 0 .AND. zp >=1) THEN
         DO j = 1, ny
             DO i = 1, nx
                 !!! If ADF > 0, Convert ADF to character
-                IF ((xdc(i,j,zp,g)%dc(1) - 0.) < 1.d-5) THEN
+                IF ((xdc(i,j,zp,g)%dc(1) - 0.) < 1.e-5_DP) THEN
                     cadf(i,j) = '      '
                 ELSE
                     WRITE (cadf(i,j),'(F6.4)') xdc(i,j,zp,g)%dc(1)
@@ -1732,7 +1734,7 @@ IF (ios == 0 .AND. zp >=1) THEN
         DO j = 1, ny
             DO i = 1, nx
                 !!! If ADF > 0, Convert ADF to character
-                IF ((xdc(i,j,zp,g)%dc(2) - 0.) < 1.d-5)  THEN
+                IF ((xdc(i,j,zp,g)%dc(2) - 0.) < 1.e-5_DP)  THEN
                     cadf(i,j) = '      '
                 ELSE
                     WRITE (cadf(i,j),'(F6.4)') xdc(i,j,zp,g)%dc(2)
@@ -1764,7 +1766,7 @@ IF (ios == 0 .AND. zp >=1) THEN
         DO j = 1, ny
             DO i = 1, nx
                 !!! If ADF > 0, Convert ADF to character
-                IF ((xdc(i,j,zp,g)%dc(3) - 0.) < 1.d-5) THEN
+                IF ((xdc(i,j,zp,g)%dc(3) - 0.) < 1.e-5_DP) THEN
                     cadf(i,j) = '      '
                 ELSE
                     WRITE (cadf(i,j),'(F6.4)') xdc(i,j,zp,g)%dc(3)
@@ -1796,7 +1798,7 @@ IF (ios == 0 .AND. zp >=1) THEN
         DO j = 1, ny
             DO i = 1, nx
                 !!! If ADF > 0, Convert ADF to character
-                IF ((xdc(i,j,zp,g)%dc(4) - 0.) < 1.d-5) THEN
+                IF ((xdc(i,j,zp,g)%dc(4) - 0.) < 1.e-5_DP) THEN
                     cadf(i,j) = '      '
                 ELSE
                     WRITE (cadf(i,j),'(F6.4)') xdc(i,j,zp,g)%dc(4)
@@ -1828,7 +1830,7 @@ IF (ios == 0 .AND. zp >=1) THEN
         DO j = 1, ny
             DO i = 1, nx
                 !!! If ADF > 0, Convert ADF to character
-                IF ((xdc(i,j,zp,g)%dc(5) - 0.) < 1.d-5) THEN
+                IF ((xdc(i,j,zp,g)%dc(5) - 0.) < 1.e-5_DP) THEN
                     cadf(i,j) = '      '
                 ELSE
                     WRITE (cadf(i,j),'(F6.4)') xdc(i,j,zp,g)%dc(5)
@@ -1860,7 +1862,7 @@ IF (ios == 0 .AND. zp >=1) THEN
         DO j = 1, ny
             DO i = 1, nx
                 !!! If ADF > 0, Convert ADF to character
-                IF ((xdc(i,j,zp,g)%dc(6) - 0.) < 1.d-5) THEN
+                IF ((xdc(i,j,zp,g)%dc(6) - 0.) < 1.e-5_DP) THEN
                     cadf(i,j) = '      '
                 ELSE
                     WRITE (cadf(i,j),'(F6.4)') xdc(i,j,zp,g)%dc(6)
@@ -1921,8 +1923,8 @@ DO g = 1, ng
                     DO i= 1, nx
                         DO lx= 1, xdiv(i)
                             xtot = xtot+1
-                            xxdc(xtot,ytot,ztot,g)%dc = 0.d0
-                            IF (mnum(xtot, ytot, ztot) /= 0) xxdc(xtot,ytot,ztot,g)%dc = 1.d0
+                            xxdc(xtot,ytot,ztot,g)%dc = 0._DP
+                            IF (mnum(xtot, ytot, ztot) /= 0) xxdc(xtot,ytot,ztot,g)%dc = 1._DP
                             IF (xtot == tx(i))     xxdc(xtot,ytot,ztot,g)%dc(2) = xdc(i,j,k,g)%dc(2)
                             IF (xtot == tx(i+1)-1) xxdc(xtot,ytot,ztot,g)%dc(1) = xdc(i,j,k,g)%dc(1)
                             IF (ytot == ty(j))     xxdc(xtot,ytot,ztot,g)%dc(4) = xdc(i,j,k,g)%dc(4)
@@ -1984,8 +1986,8 @@ SUBROUTINE rotate(rot, a1, a2, a3, a4)
 !           To rotate ADF values (necessary for BWR assemblies)
 
 INTEGER, INTENT(IN) :: rot
-DOUBLE PRECISION, INTENT(INOUT) :: a1, a2, a3, a4
-DOUBLE PRECISION :: x1, x2, x3, x4
+REAL(DP), INTENT(INOUT) :: a1, a2, a3, a4
+REAL(DP) :: x1, x2, x3, x4
 
 
 x1 = a1
@@ -2064,7 +2066,7 @@ CALL er_message(ounit, ios, ln, message)
 
 !!! Check Control Rod Bank POSITION
 DO i = 1, nb
-    IF (bpos(i) > DBLE(nstep)) THEN
+    IF (bpos(i) > REAL(nstep)) THEN
         WRITE(ounit,1999) 'ERROR: POSITION OF CONTROL ROD BANK ', i, ' IS ', bpos(i), ' WHICH IS HIGHER THAN NUMBER OF STEPS.'
         STOP
     END IF
@@ -2207,25 +2209,25 @@ USE sdata, ONLY: ng, nxx, nyy, nzz, xyz, zdel, mat, nod, cusp, f0, &
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: bpos
+REAL(DP), DIMENSION(:), INTENT(IN) :: bpos
 
 INTEGER ::i, j, k, g, h
-DOUBLE PRECISION :: rodh, vfrac
-DOUBLE PRECISION :: dum
+REAL(DP) :: rodh, vfrac
+REAL(DP) :: dum
 
 INTEGER :: n, n1, n2, nmax
-DOUBLE PRECISION :: del1, del2, eta1, eta2
-DOUBLE PRECISION :: sum1, sum2, sum3, sum4, sumx
-DOUBLE PRECISION, DIMENSION(ng) :: sum5
-DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: f
-DOUBLE PRECISION :: a1, a2, a3, a4, x, tx, f1, f2
+REAL(DP) :: del1, del2, eta1, eta2
+REAL(DP) :: sum1, sum2, sum3, sum4, sumx
+REAL(DP), DIMENSION(ng) :: sum5
+REAL(DP), DIMENSION(:), ALLOCATABLE :: f
+REAL(DP) :: a1, a2, a3, a4, x, tx, f1, f2
 
 DO j = 1, nyy
   DO i = 1, nxx
      IF (fbmap(i,j) > 0) THEN
         !!!(rodh -> posistion the tip of the control rod the top of core)
          rodh = coreh - pos0  - bpos(fbmap(i,j))*ssize
-         dum = 0.d0
+         dum = 0._DP
          DO k = nzz, 1, -1
            ! For partially rodded node, get volume weighted homogenized CX (0 < vfrac < 1.0)
            IF (rodh >= dum .AND. rodh < dum+zdel(k)) THEN
@@ -2245,9 +2247,9 @@ DO j = 1, nyy
                                       vfrac * dsigs(mat(xyz(i,j,k)),:,:)
               ELSE                    ! IF ROD CUSPING ACTIVE
                  n1 = CEILING(rodh - dum)        ! Number of mesh in rodded area
-                 del1 = (rodh - dum) / DBLE(n1)  ! mesh size in rodded area
+                 del1 = (rodh - dum) / REAL(n1)  ! mesh size in rodded area
                  n2 = CEILING(zdel(k) - rodh + dum)  ! Number of mesh in non-rodded area
-                 del2 = (zdel(k) - rodh + dum) / DBLE(n2)  ! mesh size in non-rodded area
+                 del2 = (zdel(k) - rodh + dum) / REAL(n2)  ! mesh size in non-rodded area
 
                  nmax = n1 + n2                     ! Total number of mesh
 
@@ -2416,9 +2418,9 @@ DO i = 1, nb
     cnb = TRIM(ADJUSTL(cnb))
     message = ' error in reading Final CR Bank Position, time to move and speed for bank : ' // cnb
     CALL er_message(ounit, ios, ln, message)
-    IF (ABS(fbpos(i)-bpos(i)) < 1.d-5) THEN
+    IF (ABS(fbpos(i)-bpos(i)) < 1.e-5_DP) THEN
         mdir(i) = 0
-    ELSE IF (fbpos(i)-bpos(i) > 1.d-5) THEN
+    ELSE IF (fbpos(i)-bpos(i) > 1.e-5_DP) THEN
         mdir(i) = 2
     ELSE
         mdir(i) = 1
@@ -2696,7 +2698,7 @@ USE sdata, ONLY: nnod, ng, sigtr, siga, nuf, sigf, sigs, mat, &
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, INTENT(IN) :: bcon
+REAL(DP), INTENT(IN) :: bcon
 INTEGER :: i, g, h
 
 DO i = 1, nnod
@@ -2732,7 +2734,7 @@ INTEGER, INTENT(IN) :: xbunit
 INTEGER :: ln   !Line number
 INTEGER :: ios  ! IOSTAT status
 
-DOUBLE PRECISION :: cftem
+REAL(DP) :: cftem
 INTEGER :: i, g, h
 INTEGER :: popt
 INTEGER, DIMENSION(ng) :: group
@@ -2819,7 +2821,7 @@ USE sdata, ONLY: nnod, ng, sigtr, siga, nuf, sigf, sigs, mat, &
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: ftem
+REAL(DP), DIMENSION(:), INTENT(IN) :: ftem
 INTEGER :: i, g, h
 
 
@@ -2855,7 +2857,7 @@ INTEGER, INTENT(IN) :: xbunit
 INTEGER :: ln   !Line number
 INTEGER :: ios  ! IOSTAT status
 
-DOUBLE PRECISION :: cmtem
+REAL(DP) :: cmtem
 INTEGER :: i, g, h
 INTEGER :: popt
 INTEGER, DIMENSION(ng) :: group
@@ -2943,7 +2945,7 @@ USE sdata, ONLY: nnod, ng, sigtr, siga, nuf, sigf, sigs, mat, &
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: mtem
+REAL(DP), DIMENSION(:), INTENT(IN) :: mtem
 INTEGER :: i, g, h
 
 
@@ -2979,7 +2981,7 @@ INTEGER, INTENT(IN) :: xbunit
 INTEGER :: ln   !Line number
 INTEGER :: ios  ! IOSTAT status
 
-DOUBLE PRECISION :: ccden
+REAL(DP) :: ccden
 INTEGER :: i, g, h
 INTEGER :: popt
 INTEGER, DIMENSION(ng) :: group
@@ -3068,7 +3070,7 @@ USE sdata, ONLY: nnod, ng, sigtr, siga, nuf, sigf, sigs, mat, &
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: cden
+REAL(DP), DIMENSION(:), INTENT(IN) :: cden
 INTEGER :: i, g, h
 
 
@@ -3110,11 +3112,11 @@ INTEGER :: i, j, iost
 INTEGER :: nfpin, ngt                              ! Number of fuel pin and guide tubes
 
 INTEGER :: ly, lx, ytot, xtot
-DOUBLE PRECISION :: cmflow
-DOUBLE PRECISION, DIMENSION(nx,ny) :: area
-DOUBLE PRECISION :: barea, div
+REAL(DP) :: cmflow
+REAL(DP), DIMENSION(nx,ny) :: area
+REAL(DP) :: barea, div
 
-DOUBLE PRECISION :: dum
+REAL(DP) :: dum
 
 INTEGER :: popt
 
@@ -3179,7 +3181,7 @@ dh = dia * ((4./pi) * (ppitch/dia)**2 - 1.)
 farea = ppitch**2 - 0.25*pi*dia**2
 
 ! Calculate sub-channel mass flow rate
-cflow = cmflow / DBLE(nfpin)
+cflow = cmflow / REAL(nfpin)
 
 ! Calculate total coolant mass flow rate and number of fuel pins per node
 barea = 0.
@@ -3202,8 +3204,8 @@ DO j= 1, ny
             DO lx= 1, xdiv(i)
                 xtot = xtot+1
                 IF ((xtot >= ystag(ytot)%smin) .AND. (xtot <= ystag(ytot)%smax )) THEN
-                    div = DBLE (ydiv(j) * xdiv(i))            ! Number of nodes in current assembly
-                    node_nf(xtot,ytot) = area(i,j) * DBLE(nfpin) / (barea * div)   ! Number of fuel pin for this node
+                    div = REAL (ydiv(j) * xdiv(i))            ! Number of nodes in current assembly
+                    node_nf(xtot,ytot) = area(i,j) * REAL(nfpin) / (barea * div)   ! Number of fuel pin for this node
                 END IF
             END DO
         END DO
@@ -3214,7 +3216,7 @@ END DO
 ! Calculate fuel pin mesh delta and position
 nm = 10      ! Fuel meat divided into 10 mesh
 nt = nm + 2  ! two more mesh for gap and clad
-dum = rf / DBLE(nm)
+dum = rf / REAL(nm)
 
 ALLOCATE(rdel(nt), rpos(nt))
 DO i = 1, nm
@@ -3302,11 +3304,11 @@ USE sdata, ONLY: ix, iy, iz, nnod, zdel, node_nf
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: fn           ! Relative Power
+REAL(DP), DIMENSION(:), INTENT(IN) :: fn           ! Relative Power
 
 INTEGER :: n
-DOUBLE PRECISION, DIMENSION(nnod) :: locp, xf
-DOUBLE PRECISION :: totp, npmax, tleng, pave
+REAL(DP), DIMENSION(nnod) :: locp, xf
+REAL(DP) :: totp, npmax, tleng, pave
 
 
 totp = 0.; tleng = 0.
@@ -3383,28 +3385,28 @@ USE sdata, ONLY: nxx, nyy, nzz, ystag, nnod, ix, iy, iz
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: fn
+REAL(DP), DIMENSION(:), INTENT(IN) :: fn
 
-DOUBLE PRECISION, DIMENSION(nxx, nyy, nzz) :: fx
+REAL(DP), DIMENSION(nxx, nyy, nzz) :: fx
 INTEGER :: i, j, k, n
-DOUBLE PRECISION :: summ
-DOUBLE PRECISION, DIMENSION(nxx, nyy) :: fnode
+REAL(DP) :: summ
+REAL(DP), DIMENSION(nxx, nyy) :: fnode
 
 
-fx = 0.d0
+fx = 0._DP
 DO n = 1, nnod
     fx(ix(n), iy(n), iz(n)) = fn(n)
 END DO
 
 !Calculate radial node-wise distribution
-fnode = 0.d0
+fnode = 0._DP
 DO j = 1, nyy
     DO i = ystag(j)%smin, ystag(j)%smax
-        summ = 0.d0
+        summ = 0._DP
         DO k = 1, nzz
             summ = summ + fx(i,j,k)
         END DO
-        fnode(i,j)= summ/DBLE(nzz)
+        fnode(i,j)= summ/REAL(nzz)
     END DO
 END DO
 
@@ -3429,34 +3431,34 @@ USE sdata, ONLY: nx, ny, nxx, nyy, nzz, zdel, &
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: fn
+REAL(DP), DIMENSION(:), INTENT(IN) :: fn
 
-DOUBLE PRECISION, DIMENSION(nxx, nyy, nzz) :: fx
+REAL(DP), DIMENSION(nxx, nyy, nzz) :: fx
 INTEGER :: i, j, k, n
 INTEGER :: ly, lx, ys, xs, yf, xf
-DOUBLE PRECISION :: summ, vsumm
-DOUBLE PRECISION, DIMENSION(nxx, nyy) :: fnode
-DOUBLE PRECISION, DIMENSION(nx, ny) :: fasm
-DOUBLE PRECISION :: totp
+REAL(DP) :: summ, vsumm
+REAL(DP), DIMENSION(nxx, nyy) :: fnode
+REAL(DP), DIMENSION(nx, ny) :: fasm
+REAL(DP) :: totp
 INTEGER :: nfuel
-DOUBLE PRECISION :: fmax
+REAL(DP) :: fmax
 INTEGER :: xmax, ymax
 CHARACTER(LEN=6), DIMENSION(nx, ny) :: cpow
 
 INTEGER, PARAMETER :: xm = 12
 INTEGER :: ip, ipr
 
-fx = 0.d0
+fx = 0._DP
 DO n = 1, nnod
     fx(ix(n), iy(n), iz(n)) = fn(n)
 END DO
 
 !Calculate axially averaged node-wise distribution
-fnode = 0.d0
+fnode = 0._DP
 DO j = 1, nyy
     DO i = ystag(j)%smin, ystag(j)%smax
-        summ = 0.d0
-        vsumm = 0.d0
+        summ = 0._DP
+        vsumm = 0._DP
         DO k = 1, nzz
             summ = summ + fx(i,j,k)*zdel(k)
             vsumm = vsumm + zdel(k)
@@ -3467,7 +3469,7 @@ END DO
 
 !Calculate assembly power
 nfuel = 0
-totp  = 0.d0
+totp  = 0._DP
 ys = 1
 yf = 0
 DO j= 1, ny
@@ -3476,8 +3478,8 @@ DO j= 1, ny
     xs = 1
     DO i= 1, nx
         xf = xf + xdiv(i)
-        summ = 0.d0
-        vsumm = 0.d0
+        summ = 0._DP
+        vsumm = 0._DP
         DO ly= ys, yf
             DO lx= xs, xf
                 summ = summ + fnode(lx,ly)*xdel(lx)*ydel(ly)
@@ -3486,8 +3488,8 @@ DO j= 1, ny
         END DO
         fasm(i,j) = summ / vsumm
         xs = xs + xdiv(i)
-        IF (fasm(i,j) > 0.d0) nfuel = nfuel + 1
-        IF (fasm(i,j) > 0.d0) totp  = totp + fasm(i,j)
+        IF (fasm(i,j) > 0._DP) nfuel = nfuel + 1
+        IF (fasm(i,j) > 0._DP) totp  = totp + fasm(i,j)
     END DO
     ys = ys + ydiv(j)
 END DO
@@ -3495,17 +3497,17 @@ END DO
 
 ! Normalize assembly power to 1.0
 xmax = 1; ymax = 1
-fmax = 0.d0
+fmax = 0._DP
 DO j = 1, ny
     DO i = 1, nx
-        IF (totp > 0.) fasm(i,j) = DBLE(nfuel) / totp * fasm(i,j)
+        IF (totp > 0.) fasm(i,j) = REAL(nfuel) / totp * fasm(i,j)
         IF (fasm(i,j) > fmax) THEN     ! Get max position
             xmax = i
             ymax = j
             fmax = fasm(i,j)
         END IF
         ! Convert power to character (If power == 0 convert to blank spaces)
-        IF ((fasm(i,j) - 0.) < 1.d-5) THEN
+        IF ((fasm(i,j) - 0.) < 1.e-5_DP) THEN
             cpow(i,j) = '     '
         ELSE
             WRITE (cpow(i,j),'(F6.3)') fasm(i,j)
@@ -3568,30 +3570,30 @@ USE sdata, ONLY: nxx, nyy, nzz, nz, zdiv, &
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:), INTENT(IN) :: fn
+REAL(DP), DIMENSION(:), INTENT(IN) :: fn
 
-DOUBLE PRECISION, DIMENSION(nxx, nyy, nzz) :: fx
+REAL(DP), DIMENSION(nxx, nyy, nzz) :: fx
 INTEGER :: i, j, k, n, ztot
 INTEGER :: lz
-DOUBLE PRECISION :: summ, vsumm
-DOUBLE PRECISION, DIMENSION(nz) :: faxi
-DOUBLE PRECISION :: totp
+REAL(DP) :: summ, vsumm
+REAL(DP), DIMENSION(nz) :: faxi
+REAL(DP) :: totp
 INTEGER :: nfuel
-DOUBLE PRECISION :: fmax
+REAL(DP) :: fmax
 INTEGER :: amax
 
-fx = 0.d0
+fx = 0._DP
 DO n = 1, nnod
     fx(ix(n), iy(n), iz(n)) = fn(n)
 END DO
 
 ! Calculate Axial Power
 nfuel = 0
-totp  = 0.d0
+totp  = 0._DP
 ztot = 0
 DO k= 1, nz
-    summ = 0.d0
-    vsumm = 0.d0
+    summ = 0._DP
+    vsumm = 0._DP
     DO lz= 1, zdiv(k)
         ztot = ztot + 1
         DO j = 1, nyy
@@ -3602,15 +3604,15 @@ DO k= 1, nz
         END DO
     END DO
     faxi(k) = summ/vsumm
-    IF (faxi(k) > 0.d0) nfuel = nfuel + 1
-    IF (faxi(k) > 0.d0) totp  = totp + faxi(k)
+    IF (faxi(k) > 0._DP) nfuel = nfuel + 1
+    IF (faxi(k) > 0._DP) totp  = totp + faxi(k)
 END DO
 
 ! Normalize Axial power to 1.0
-fmax = 0.d0
+fmax = 0._DP
 amax = 1
 DO k = 1, nz
-    faxi(k) = DBLE(nfuel) / totp * faxi(k)
+    faxi(k) = REAL(nfuel) / totp * faxi(k)
     IF (faxi(k) > fmax) THEN
         amax = k   ! Get max position
         fmax = faxi(k)
@@ -3663,23 +3665,23 @@ USE sdata, ONLY: ng, nx, ny, nxx, nyy, nzz, zdel, &
 
 IMPLICIT NONE
 
-DOUBLE PRECISION, DIMENSION(:,:), INTENT(IN) :: fn
-DOUBLE PRECISION, OPTIONAL, INTENT(IN) :: norm
+REAL(DP), DIMENSION(:,:), INTENT(IN) :: fn
+REAL(DP), OPTIONAL, INTENT(IN) :: norm
 
-DOUBLE PRECISION, DIMENSION(nxx, nyy, nzz, ng) :: fx
+REAL(DP), DIMENSION(nxx, nyy, nzz, ng) :: fx
 INTEGER :: g, i, j, k, n
 INTEGER :: ly, lx, ys, xs, yf, xf
-DOUBLE PRECISION :: summ, vsumm
-DOUBLE PRECISION, DIMENSION(nxx, nyy, ng) :: fnode
-DOUBLE PRECISION, DIMENSION(nx, ny, ng) :: fasm
-DOUBLE PRECISION, DIMENSION(ng) :: totp
+REAL(DP) :: summ, vsumm
+REAL(DP), DIMENSION(nxx, nyy, ng) :: fnode
+REAL(DP), DIMENSION(nx, ny, ng) :: fasm
+REAL(DP), DIMENSION(ng) :: totp
 CHARACTER(LEN=10), DIMENSION(nx, ny) :: cflx
 
 INTEGER, PARAMETER :: xm = 12
 INTEGER :: ip, ipr
 INTEGER :: negf
 
-fx = 0.d0
+fx = 0._DP
 DO g = 1, ng
     DO n = 1, nnod
         fx(ix(n), iy(n), iz(n), g) = fn(n,g)
@@ -3687,12 +3689,12 @@ DO g = 1, ng
 END DO
 
 !Calculate axially averaged node-wise distribution
-fnode = 0.d0
+fnode = 0._DP
 DO g = 1, ng
     DO j = 1, nyy
         DO i = ystag(j)%smin, ystag(j)%smax
-            summ = 0.d0
-            vsumm = 0.d0
+            summ = 0._DP
+            vsumm = 0._DP
             DO k = 1, nzz
                 summ = summ + fx(i,j,k,g)*xdel(i)*ydel(j)*zdel(k)
                 vsumm = vsumm + xdel(i)*ydel(j)*zdel(k)
@@ -3705,7 +3707,7 @@ END DO
 !Calculate Radial Flux (assembly wise)
 negf = 0
 DO g = 1, ng
-    totp(g)  = 0.d0
+    totp(g)  = 0._DP
     ys = 1
     yf = 0
     DO j= 1, ny
@@ -3714,8 +3716,8 @@ DO g = 1, ng
         xs = 1
         DO i= 1, nx
             xf = xf + xdiv(i)
-            summ = 0.d0
-            vsumm = 0.d0
+            summ = 0._DP
+            vsumm = 0._DP
             DO ly= ys, yf
                 DO lx= xs, xf
                     summ = summ + fnode(lx,ly,g)*xdel(lx)*ydel(ly)
@@ -3724,11 +3726,11 @@ DO g = 1, ng
             END DO
             fasm(i,j,g) = summ / vsumm
             xs = xs + xdiv(i)
-            IF (fasm(i,j,g) > 0.d0) THEN
+            IF (fasm(i,j,g) > 0._DP) THEN
                 totp(g)  = totp(g) + fasm(i,j,g)
             END IF
             ! Check if there is negative flux
-            IF (fasm(i,j,g) < 0.d0) negf = 1
+            IF (fasm(i,j,g) < 0._DP) negf = 1
         END DO
         ys = ys + ydiv(j)
     END DO
@@ -3761,7 +3763,7 @@ DO g = 1, ng
     !!! Convert to character (zero flux convert to blank spaces)
     DO j = 1, ny
         DO i = 1, nx
-            IF ((fasm(i,j,g) - 0.) < 1.d-5) THEN
+            IF ((fasm(i,j,g) - 0.) < 1.e-5_DP) THEN
                 cflx(i,j) = '         '
             ELSE
                 WRITE (cflx(i,j),'(ES10.3)') fasm(i,j,g)
