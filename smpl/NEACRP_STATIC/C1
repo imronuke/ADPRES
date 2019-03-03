@@ -242,4 +242,4 @@ NEACRP Critical Boron Concentration Search - Case C1
 1
 
 %ITER
-500 8 1.e-7 1.e-7 1.e-7 5
+500 4 1.e-7 1.e-7 1.e-7 5
