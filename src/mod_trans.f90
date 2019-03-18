@@ -181,6 +181,11 @@ DO i = 1, imax
 
     IF (maxi) tranw = .TRUE.
 
+    IF (step>10000) THEN
+        WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
+        STOP
+    END IF
+
 END DO
 
 ! Second Time Step
@@ -253,6 +258,11 @@ DO i = 1, imax
 
     IF (maxi) tranw = .TRUE.
 
+    IF (step>10000) THEN
+        WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
+        STOP
+    END IF
+
 END DO
 
 END SUBROUTINE rod_eject
@@ -272,8 +282,9 @@ USE sdata, ONLY: ng, nnod, sigr, nf, &
                  f0, fx1, fy1, fz1, fx2, fy2, fz2, &
                  c0, cx1, cy1, cz1, cx2, cy2, cz2, tbeta, omeg, &
                  npow, pow, ppow, node_nf, ix, iy, iz, zdel, tranw, &
-                 ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2
-USE InpOutp, ONLY: XS_updt, ounit
+                 ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2, &
+                 aprad, apaxi, afrad
+USE InpOutp, ONLY: XS_updt, ounit, AsmPow, AxiPow, AsmFlux
 USE nodal, ONLY: nodal_coup4, outer4, outertf, outer4ad, PowTot, powdis
 USE th, ONLY: th_iter, th_trans, par_ave, par_max, par_ave_f
 
@@ -423,7 +434,7 @@ DO i = 1, imax
     CALL PowTot(f0, tpow2)
 
     ! Calculate node power distribution
-    CALL powdis(npow)
+    CALL PowDis(npow)
 
     ! Power change
     xppow = ppow * tpow2/tpow1 * 0.01
@@ -458,7 +469,7 @@ DO i = 1, imax
 
     IF (maxi) tranw = .TRUE.
 
-    IF (step>1000) THEN
+    IF (step>10000) THEN
         WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
         STOP
     END IF
@@ -520,7 +531,7 @@ DO i = 1, imax
     CALL PowTot(f0, tpow2)
 
     ! Calculate node power distribution
-    CALL powdis(npow)
+    CALL PowDis(npow)
 
     ! Power change
     xppow = ppow * tpow2/tpow1 * 0.01
@@ -555,12 +566,22 @@ DO i = 1, imax
 
     IF (maxi) tranw = .TRUE.
 
-    IF (step>1000) THEN
+    IF (step>10000) THEN
         WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
         STOP
     END IF
 
 END DO
+
+IF (aprad == 1 .OR. apaxi == 1) THEN
+    CALL PowDis(npow)
+END IF
+
+IF (aprad == 1) CALL AsmPow(npow)
+
+IF (apaxi == 1) CALL AxiPow(npow)
+
+IF (afrad == 1) CALL AsmFlux(f0, 1.e0_DP)
 
 
 END SUBROUTINE trod_eject
