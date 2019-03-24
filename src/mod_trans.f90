@@ -181,11 +181,6 @@ DO i = 1, imax
 
     IF (maxi) tranw = .TRUE.
 
-    IF (step>10000) THEN
-        WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
-        STOP
-    END IF
-
 END DO
 
 ! Second Time Step
@@ -257,11 +252,6 @@ DO i = 1, imax
     END IF
 
     IF (maxi) tranw = .TRUE.
-
-    IF (step>10000) THEN
-        WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
-        STOP
-    END IF
 
 END DO
 
@@ -469,11 +459,6 @@ DO i = 1, imax
 
     IF (maxi) tranw = .TRUE.
 
-    IF (step>10000) THEN
-        WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
-        STOP
-    END IF
-
 END DO
 
 ! Second Time Step
@@ -565,11 +550,6 @@ DO i = 1, imax
     END IF
 
     IF (maxi) tranw = .TRUE.
-
-    IF (step>10000) THEN
-        WRITE(ounit,*) 'TOO SMALL TIME STEPS. STOPPING'
-        STOP
-    END IF
 
 END DO
 

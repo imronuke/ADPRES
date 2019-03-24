@@ -2434,19 +2434,25 @@ CALL er_message(ounit, ios, ln, message)
 
 ! ttot must be bigger than tstep1 and tstep2
 IF ((ttot < tstep1) .OR. (ttot < tstep2)) THEN
-    WRITE(ounit,*) 'TOTAL SIMULATION TIME SHALL BE GREATER THAN TIME STEPS'
+    WRITE(ounit,*) 'ERROR: TOTAL SIMULATION TIME SHALL BE GREATER THAN TIME STEPS'
     STOP
 END IF
 
 ! tdiv must be bigger than tstep1
 IF (tdiv < tstep1) THEN
-    WRITE(ounit,*) 'THE TIME WHEN SECOND TIME STEP STARTS SHALL BE GREATER THAN FIRST TIME STEP'
+    WRITE(ounit,*) 'ERROR: THE TIME WHEN SECOND TIME STEP STARTS SHALL BE GREATER THAN FIRST TIME STEP'
     STOP
 END IF
 
 ! tdiv must be less than ttot
 IF (tdiv > ttot) THEN
-    WRITE(ounit,*) 'THE TIME WHEN SECOND TIME STEP STARTS SHALL BE LESS THAN TOTAL TIME'
+    WRITE(ounit,*) 'ERROR: THE TIME WHEN SECOND TIME STEP STARTS SHALL BE LESS THAN TOTAL TIME'
+    STOP
+END IF
+
+! number of steps shall be less than 10,000
+IF (NINT(tdiv/tstep1)+NINT((ttot-tdiv)/tstep2) > 10000) THEN
+    WRITE(ounit,*) 'ERROR: NUMBER OF TOTAL TIME STEPS ARE MORE THAN 10,000'
     STOP
 END IF
 
