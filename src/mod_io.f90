@@ -1176,7 +1176,7 @@ ALLOCATE(mat(nnod))
 
 ! Set ix, iy, iz and xyz
 n = 0
-DO k = 1, nzz
+DO k = 1, nzz      ! Don't change the order as it would affect th_upd and th_trans
     DO j = nyy, 1, -1
         DO i = ystag(j)%smin, ystag(j)%smax
              n = n + 1
