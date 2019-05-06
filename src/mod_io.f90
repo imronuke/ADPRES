@@ -483,7 +483,7 @@ DO
             CASE('CDEN')
                 bunit = ucden
                 bcden = 1
-              CASE('BCON')
+            CASE('BCON')
                   bunit = ubcon
                   bbcon = 1
             CASE('THER')
