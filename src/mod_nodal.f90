@@ -51,7 +51,7 @@ END IF
 ! Initialize fission source
 CALL FSrc (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
 
-errn = 1.0
+errn = 1._DP
 f = Integrate(fs0)
 e1 = Integrate(errn)
 
@@ -75,7 +75,8 @@ DO p=1, nout
         domiR = e2 / e1
         npos = MAXLOC(ABS(erro),1)
         IF (erro(npos) * errn(npos) < 0.0) domiR = -domiR
-        fs0 = fs0 + domiR / (1.0 - domiR) * errn
+        fs0 = fs0 + domiR / (1._DP - domiR) * errn
+        IF (opt) WRITE(ounit,*) '    ...FISSION SOURCE EXTRAPOLATED...'
     END IF
     e1 = e2                       ! Save integrated fission source error
     f = Integrate(fs0)            ! Integrate fission source
@@ -130,7 +131,7 @@ REAL(DP), DIMENSION(nnod) :: errn, erro
 ! Initialize fission source
 CALL FSrc (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
 
-errn = 1.0
+errn = 1._DP
 f = Integrate(fs0)
 e1 = Integrate(errn)
 
@@ -154,7 +155,7 @@ DO p=1, maxn
         domiR = e2 / e1
         npos = MAXLOC(ABS(erro),1)
         IF (erro(npos) * errn(npos) < 0.0) domiR = -domiR
-        fs0 = fs0 + domiR / (1.0 - domiR) * errn
+        fs0 = fs0 + domiR / (1._DP - domiR) * errn
     END IF
     e1 = e2                       ! Save integrated fission source error
     f = Integrate(fs0)            ! Integrate fission source
@@ -191,7 +192,7 @@ REAL(DP), DIMENSION(nnod) :: errn, erro
 ! Initialize fission source
 CALL FSrc (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
 
-errn = 1.0
+errn = 1._DP
 e1 = Integrate(errn)
 
 !Start outer iteration
@@ -212,7 +213,8 @@ DO p=1, nout
         domiR = e2 / e1
         npos = MAXLOC(ABS(erro),1)
         IF (erro(npos) * errn(npos) < 0.0) domiR = -domiR
-        fs0 = fs0 + domiR / (1.0 - domiR) * errn
+        fs0 = fs0 + domiR / (1._DP - domiR) * errn
+        WRITE(ounit,*) '    ...FISSION SOURCE EXTRAPOLATED...'
     END IF
     e1 = e2                       ! Save integrated fission source error
     CALL RelE(fs0, fs0c, ser)     ! Search maximum point wise fission source Relative Error
@@ -260,7 +262,7 @@ INTEGER :: p, npos
 
 REAL(DP), DIMENSION(nnod) :: errn, erro
 
-errn = 1.0
+errn = 1._DP
 e1 = Integrate(errn)
 
 !Start outer iteration
@@ -281,7 +283,7 @@ DO p=1, nout
         domiR = e2 / e1
         npos = MAXLOC(ABS(erro),1)
         IF (erro(npos) * errn(npos) < 0.0) domiR = -domiR
-        fs0 = fs0 + domiR / (1.0 - domiR) * errn
+        fs0 = fs0 + domiR / (1._DP - domiR) * errn
     END IF
     e1 = e2                       ! Save integrated fission source error
     CALL RelE(fs0, fs0c, ser)     ! Search maximum point wise fission source Relative Error
@@ -333,7 +335,7 @@ END IF
 ! Initialize fission source
 CALL FSrcAd (fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2)
 
-errn = 1.0
+errn = 1._DP
 f = Integrate(fs0)
 e1 = Integrate(errn)
 
@@ -357,7 +359,8 @@ DO p=1, nout
         domiR = e2 / e1
         npos = MAXLOC(ABS(erro),1)
         IF (erro(npos) * errn(npos) < 0.0) domiR = -domiR
-        fs0 = fs0 + domiR / (1.0 - domiR) * errn
+        fs0 = fs0 + domiR / (1._DP - domiR) * errn
+        IF (opt) WRITE(ounit,*) '    ...FISSION SOURCE EXTRAPOLATED...'
     END IF
     e1 = e2                       ! Save integrated fission source error
     f = Integrate(fs0)            ! Integrate fission source
@@ -415,7 +418,7 @@ DO l = 1, nin
             ELSE
                 nod(n,g)%ji(1) = (nod(xyz( ix(n)+1, iy(n), iz(n) ), g)%jo(2) + &
                                   al(n,g)%dc(1) * nod(n,g)%jo(1)) / &
-                                  (1.0 - al(n,g)%dc(1))
+                                  (1._DP - al(n,g)%dc(1))
             END IF
 
             IF (ix(n) == ystag(iy(n))%smin) THEN                          ! West (X-) BC
@@ -423,7 +426,7 @@ DO l = 1, nin
             ELSE
                 nod(n,g)%ji(2) = (nod(xyz( ix(n)-1, iy(n), iz(n) ), g)%jo(1) + &
                                   al(n,g)%dc(2) * nod(n,g)%jo(2)) / &
-                                  (1.0 - al(n,g)%dc(2))
+                                  (1._DP - al(n,g)%dc(2))
             END IF
 
             IF (iy(n) == xstag(ix(n))%smax) THEN                          ! North (Y+) BC
@@ -431,7 +434,7 @@ DO l = 1, nin
             ELSE
                 nod(n,g)%ji(3) = (nod(xyz( ix(n), iy(n)+1, iz(n) ), g)%jo(4) + &
                                   al(n,g)%dc(3) * nod(n,g)%jo(3)) / &
-                                  (1.0 - al(n,g)%dc(3))
+                                  (1._DP - al(n,g)%dc(3))
             END IF
 
             IF (iy(n) == xstag(ix(n))%smin) THEN                          ! South (Y-) BC
@@ -439,7 +442,7 @@ DO l = 1, nin
             ELSE
                 nod(n,g)%ji(4) = (nod(xyz( ix(n), iy(n)-1, iz(n) ), g)%jo(3) + &
                                   al(n,g)%dc(4) * nod(n,g)%jo(4)) / &
-                                  (1.0 - al(n,g)%dc(4))
+                                  (1._DP - al(n,g)%dc(4))
             END IF
 
             IF (iz(n) == nzz) THEN                                    ! Top (Z+) BC
@@ -447,7 +450,7 @@ DO l = 1, nin
             ELSE
                 nod(n,g)%ji(5) = (nod(xyz( ix(n), iy(n), iz(n)+1 ), g)%jo(6) + &
                                   al(n,g)%dc(5) * nod(n,g)%jo(5)) / &
-                                  (1.0 - al(n,g)%dc(5))
+                                  (1._DP - al(n,g)%dc(5))
             END IF
 
             IF (iz(n) == 1) THEN                                      ! Bottom (Z-)BC
@@ -455,7 +458,7 @@ DO l = 1, nin
             ELSE
                 nod(n,g)%ji(6) = (nod(xyz( ix(n), iy(n), iz(n)-1 ), g)%jo(5) + &
                                   al(n,g)%dc(6) * nod(n,g)%jo(6)) / &
-                                  (1.0 - al(n,g)%dc(6))
+                                  (1._DP - al(n,g)%dc(6))
             END IF
 
 
@@ -487,7 +490,7 @@ DO l = 1, nin
             ELSE
                 nod(n,g)%ji(1) = (nod(xyz( ix(n)+1, iy(n), iz(n) ), g)%jo(2) + &
                                   al(n,g)%dc(1) * nod(n,g)%jo(1)) / &
-                                  (1.0 - al(n,g)%dc(1))
+                                  (1._DP - al(n,g)%dc(1))
             END IF
 
             IF (ix(n) == ystag(iy(n))%smin) THEN                          ! West (X-) BC
@@ -495,7 +498,7 @@ DO l = 1, nin
             ELSE
                 nod(n,g)%ji(2) = (nod(xyz( ix(n)-1, iy(n), iz(n) ), g)%jo(1) + &
                                   al(n,g)%dc(2) * nod(n,g)%jo(2)) / &
-                                  (1.0 - al(n,g)%dc(2))
+                                  (1._DP - al(n,g)%dc(2))
             END IF
 
             IF (iy(n) == xstag(ix(n))%smax) THEN                          ! North (Y+) BC
@@ -503,7 +506,7 @@ DO l = 1, nin
             ELSE
                 nod(n,g)%ji(3) = (nod(xyz( ix(n), iy(n)+1, iz(n) ), g)%jo(4) + &
                                   al(n,g)%dc(3) * nod(n,g)%jo(3)) / &
-                                  (1.0 - al(n,g)%dc(3))
+                                  (1._DP - al(n,g)%dc(3))
             END IF
 
             IF (iy(n) == xstag(ix(n))%smin) THEN                          ! South (Y-) BC
@@ -511,7 +514,7 @@ DO l = 1, nin
             ELSE
                 nod(n,g)%ji(4) = (nod(xyz( ix(n), iy(n)-1, iz(n) ), g)%jo(3) + &
                                   al(n,g)%dc(4) * nod(n,g)%jo(4)) / &
-                                  (1.0 - al(n,g)%dc(4))
+                                  (1._DP - al(n,g)%dc(4))
             END IF
 
             IF (iz(n) == nzz) THEN                                    ! Top (Z+) BC
@@ -519,7 +522,7 @@ DO l = 1, nin
             ELSE
                 nod(n,g)%ji(5) = (nod(xyz( ix(n), iy(n), iz(n)+1 ), g)%jo(6) + &
                                   al(n,g)%dc(5) * nod(n,g)%jo(5)) / &
-                                  (1.0 - al(n,g)%dc(5))
+                                  (1._DP - al(n,g)%dc(5))
             END IF
 
             IF (iz(n) == 1) THEN                                      ! Bottom (Z-)BC
@@ -527,7 +530,7 @@ DO l = 1, nin
             ELSE
                 nod(n,g)%ji(6) = (nod(xyz( ix(n), iy(n), iz(n)-1 ), g)%jo(5) + &
                                   al(n,g)%dc(6) * nod(n,g)%jo(6)) / &
-                                  (1.0 - al(n,g)%dc(6))
+                                  (1._DP - al(n,g)%dc(6))
             END IF
 
 
@@ -713,7 +716,7 @@ REAL(DP) :: r1zx, r2zx, r1zy, r2zy
 IF (ix(n) == ystag(iy(n))%smin) THEN
     IF (xwest == 0 .OR. xwest == 1) THEN
         tp = xdel(ix(n)+1)/xdel(ix(n))
-        p1p = tp+1.0
+        p1p = tp+1._DP
         r1xy = 2. * ( nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(2)   &
              - nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)          &
              ) / p1p
@@ -723,11 +726,11 @@ IF (ix(n) == ystag(iy(n))%smin) THEN
              ) / p1p
         r2xz = 0.0
     ELSE
-        tm = 1.0
+        tm = 1._DP
         tp = xdel(ix(n)+1)/xdel(ix(n))
-        p1m = tm+1.0; p2m = 2.*tm+1.0; p1p = tp+1.0
-        p2p = 2.*tp+1.0; p2 = tm+tp+2.
-        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+        p1m = tm+1._DP; p2m = 2.*tm+1._DP; p1p = tp+1._DP
+        p2p = 2.*tp+1._DP; p2 = tm+tp+2.
+        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1._DP)
         r1xy = (   pm * nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(2)   &
                  - pp * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)   &
                  + p1 * nod(n,g)%L(2)                          &
@@ -748,7 +751,7 @@ IF (ix(n) == ystag(iy(n))%smin) THEN
 ELSE IF (ix(n) == ystag(iy(n))%smax) THEN
     IF (xeast == 0 .OR. xeast == 1) THEN
         tm = xdel(ix(n)-1)/xdel(ix(n))
-        p1m = tm+1.0
+        p1m = tm+1._DP
         r1xy = 2. * ( nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)   &
              - nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(2)          &
              ) / p1m
@@ -759,10 +762,10 @@ ELSE IF (ix(n) == ystag(iy(n))%smax) THEN
         r2xz = 0.0
     ELSE
         tm = xdel(ix(n)-1)/xdel(ix(n))
-        tp = 1.0
-        p1m = tm+1.0; p2m = 2.*tm+1.0;p1p = tp+1.0
-        p2p = 2.*tp+1.0; p2 = tm+tp+2.
-        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+        tp = 1._DP
+        p1m = tm+1._DP; p2m = 2.*tm+1._DP;p1p = tp+1._DP
+        p2p = 2.*tp+1._DP; p2 = tm+tp+2.
+        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1._DP)
         r1xy = (   pm * nod(xyz(ix(n)  ,iy(n),iz(n)),g)%L(2)   &
                  - pp * nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(2)   &
                  + p1 * nod(n,g)%L(2)                          &
@@ -783,9 +786,9 @@ ELSE IF (ix(n) == ystag(iy(n))%smax) THEN
 ELSE
     tm = xdel(ix(n)-1)/xdel(ix(n))
     tp = xdel(ix(n)+1)/xdel(ix(n))
-    p1m = tm+1.0; p2m = 2.*tm+1.0;p1p = tp+1.0
-    p2p = 2.*tp+1.0; p2 = tm+tp+2.
-    pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+    p1m = tm+1._DP; p2m = 2.*tm+1._DP;p1p = tp+1._DP
+    p2p = 2.*tp+1._DP; p2 = tm+tp+2.
+    pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1._DP)
     r1xy = (   pm * nod(xyz(ix(n)+1,iy(n),iz(n)),g)%L(2)   &
              - pp * nod(xyz(ix(n)-1,iy(n),iz(n)),g)%L(2)   &
              + p1 * nod(n,g)%L(2)                          &
@@ -809,7 +812,7 @@ END IF
 IF (iy(n) == xstag(ix(n))%smin) THEN
     IF (ysouth == 0 .OR. ysouth == 1) THEN
         tp = ydel(iy(n)+1)/ydel(iy(n))
-        p1p = tp+1.0
+        p1p = tp+1._DP
         r1yx = 2. * ( nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(1)   &
              - nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)          &
              ) / p1p
@@ -819,11 +822,11 @@ IF (iy(n) == xstag(ix(n))%smin) THEN
              ) / p1p
         r2yz = 0.0
     ELSE
-        tm = 1.0
+        tm = 1._DP
         tp = ydel(iy(n)+1)/ydel(iy(n))
-        p1m = tm+1.0; p2m = 2.*tm+1.0;p1p = tp+1.0
-        p2p = 2.*tp+1.0; p2 = tm+tp+2.
-        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+        p1m = tm+1._DP; p2m = 2.*tm+1._DP;p1p = tp+1._DP
+        p2p = 2.*tp+1._DP; p2 = tm+tp+2.
+        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1._DP)
         r1yx = (   pm * nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(1)   &
                  - pp * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)   &
                  + p1 * nod(n,g)%L(1)                          &
@@ -844,7 +847,7 @@ IF (iy(n) == xstag(ix(n))%smin) THEN
 ELSE IF (iy(n) == xstag(ix(n))%smax) THEN
     IF (ynorth == 0 .OR. ynorth == 1) THEN
         tm = ydel(iy(n)-1)/ydel(iy(n))
-        p1m = tm+1.0
+        p1m = tm+1._DP
         r1yx = 2. * ( nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)   &
              - nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(1)          &
              ) / p1m
@@ -855,10 +858,10 @@ ELSE IF (iy(n) == xstag(ix(n))%smax) THEN
         r2yz = 0.0
     ELSE
         tm = ydel(iy(n)-1)/ydel(iy(n))
-        tp = 1.0
-        p1m = tm+1.0; p2m = 2.*tm+1.0;p1p = tp+1.0
-        p2p = 2.*tp+1.0; p2 = tm+tp+2.
-        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+        tp = 1._DP
+        p1m = tm+1._DP; p2m = 2.*tm+1._DP;p1p = tp+1._DP
+        p2p = 2.*tp+1._DP; p2 = tm+tp+2.
+        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1._DP)
         r1yx = (   pm * nod(xyz(ix(n),iy(n)  ,iz(n)),g)%L(1)   &
                  - pp * nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(1)   &
                  + p1 * nod(n,g)%L(1)                          &
@@ -879,9 +882,9 @@ ELSE IF (iy(n) == xstag(ix(n))%smax) THEN
 ELSE
     tm = ydel(iy(n)-1)/ydel(iy(n))
     tp = ydel(iy(n)+1)/ydel(iy(n))
-    p1m = tm+1.0; p2m = 2.*tm+1.0;p1p = tp+1.0
-    p2p = 2.*tp+1.0; p2 = tm+tp+2.
-    pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+    p1m = tm+1._DP; p2m = 2.*tm+1._DP;p1p = tp+1._DP
+    p2p = 2.*tp+1._DP; p2 = tm+tp+2.
+    pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1._DP)
     r1yx = (   pm * nod(xyz(ix(n),iy(n)+1,iz(n)),g)%L(1)   &
              - pp * nod(xyz(ix(n),iy(n)-1,iz(n)),g)%L(1)   &
              + p1 * nod(n,g)%L(1)                          &
@@ -904,7 +907,7 @@ END IF
 IF (iz(n) == 1 ) THEN
     IF (zbott == 0 .OR. zbott == 1) THEN
         tp = zdel(iz(n)+1)/zdel(iz(n))
-        p1p = tp+1.0
+        p1p = tp+1._DP
         r1zx = 2. * ( nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(1)   &
              - nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)          &
              ) / p1p
@@ -914,11 +917,11 @@ IF (iz(n) == 1 ) THEN
              ) / p1p
         r2zy = 0.0
     ELSE
-        tm = 1.0
+        tm = 1._DP
         tp = zdel(iz(n)+1)/zdel(iz(n))
-        p1m = tm+1.0; p2m = 2.*tm+1.0; p1p = tp+1.0
-        p2p = 2.*tp+1.0; p2 = tm+tp+2.
-        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+        p1m = tm+1._DP; p2m = 2.*tm+1._DP; p1p = tp+1._DP
+        p2p = 2.*tp+1._DP; p2 = tm+tp+2.
+        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1._DP)
         r1zx = (   pm * nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(1)   &
                  - pp * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)   &
                  + p1 * nod(n,g)%L(1)                          &
@@ -939,7 +942,7 @@ IF (iz(n) == 1 ) THEN
 ELSE IF (iz(n) == nzz) THEN
     IF (ztop == 0 .OR. ztop == 1) THEN
         tm = zdel(iz(n)-1)/zdel(iz(n))
-        p1m = tm+1.0
+        p1m = tm+1._DP
         r1zx = 2. * ( nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)   &
              - nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(1)          &
              ) / p1m
@@ -950,10 +953,10 @@ ELSE IF (iz(n) == nzz) THEN
         r2zy = 0.0
     ELSE
         tm = zdel(iz(n)-1)/zdel(iz(n))
-        tp = 1.0
-        p1m = tm+1.0; p2m = 2.*tm+1.0; p1p = tp+1.0
-        p2p = 2.*tp+1.0; p2 = tm+tp+2.
-        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+        tp = 1._DP
+        p1m = tm+1._DP; p2m = 2.*tm+1._DP; p1p = tp+1._DP
+        p2p = 2.*tp+1._DP; p2 = tm+tp+2.
+        pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1._DP)
         r1zx = (   pm * nod(xyz(ix(n),iy(n),iz(n)  ),g)%L(1)   &
                  - pp * nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(1)   &
                  + p1 * nod(n,g)%L(1)                          &
@@ -974,9 +977,9 @@ ELSE IF (iz(n) == nzz) THEN
 ELSE
     tm = zdel(iz(n)-1)/zdel(iz(n))
     tp = zdel(iz(n)+1)/zdel(iz(n))
-    p1m = tm+1.0; p2m = 2.*tm+1.0; p1p = tp+1.0
-    p2p = 2.*tp+1.0; p2 = tm+tp+2.
-    pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1.0)
+    p1m = tm+1._DP; p2m = 2.*tm+1._DP; p1p = tp+1._DP
+    p2p = 2.*tp+1._DP; p2 = tm+tp+2.
+    pm = p1m*p2m; pp = p1p*p2p; p1 = pp-pm; p3 = p1m*p1p*(tm+tp+1._DP)
     r1zx = (   pm * nod(xyz(ix(n),iy(n),iz(n)+1),g)%L(1)   &
              - pp * nod(xyz(ix(n),iy(n),iz(n)-1),g)%L(1)   &
              + p1 * nod(n,g)%L(1)                          &
@@ -1329,21 +1332,21 @@ DO g= 1, ng
         dy = D(n,g) / ydel(iy(n))
         dz = D(n,g) / zdel(iz(n))
 
-        lx = 1.0 / sigr(n,g) / xdel(ix(n))
-        ly = 1.0 / sigr(n,g) / ydel(iy(n))
-        lz = 1.0 / sigr(n,g) / zdel(iz(n))
+        lx = 1._DP / sigr(n,g) / xdel(ix(n))
+        ly = 1._DP / sigr(n,g) / ydel(iy(n))
+        lz = 1._DP / sigr(n,g) / zdel(iz(n))
 
-        ax = 1.0+32.0*dx+120.0*dx*lx+960.0*dx*dx*lx+840.0*dx*dx*lx*lx
-        ay = 1.0+32.0*dy+120.0*dy*ly+960.0*dy*dy*ly+840.0*dy*dy*ly*ly
-        az = 1.0+32.0*dz+120.0*dz*lz+960.0*dz*dz*lz+840.0*dz*dz*lz*lz
+        ax = 1._DP+32.0*dx+120.0*dx*lx+960.0*dx*dx*lx+840.0*dx*dx*lx*lx
+        ay = 1._DP+32.0*dy+120.0*dy*ly+960.0*dy*dy*ly+840.0*dy*dy*ly*ly
+        az = 1._DP+32.0*dz+120.0*dz*lz+960.0*dz*dz*lz+840.0*dz*dz*lz*lz
 
         ax1 = 8.0*dx+60.0*dx*lx+720.0*dx*dx*lx+840.0*dx*dx*lx*lx
         ay1 = 8.0*dy+60.0*dy*ly+720.0*dy*dy*ly+840.0*dy*dy*ly*ly
         az1 = 8.0*dz+60.0*dz*lz+720.0*dz*dz*lz+840.0*dz*dz*lz*lz
 
-        bx = 1.0-32.0*dx+120.0*dx*lx-960.0*dx*dx*lx+840.0*dx*dx*lx*lx
-        by = 1.0-32.0*dy+120.0*dy*ly-960.0*dy*dy*ly+840.0*dy*dy*ly*ly
-        bz = 1.0-32.0*dz+120.0*dz*lz-960.0*dz*dz*lz+840.0*dz*dz*lz*lz
+        bx = 1._DP-32.0*dx+120.0*dx*lx-960.0*dx*dx*lx+840.0*dx*dx*lx*lx
+        by = 1._DP-32.0*dy+120.0*dy*ly-960.0*dy*dy*ly+840.0*dy*dy*ly*ly
+        bz = 1._DP-32.0*dz+120.0*dz*lz-960.0*dz*dz*lz+840.0*dz*dz*lz*lz
 
         bx1 = -8.0*dx+60.0*dx*lx-720.0*dx*dx*lx+840.0*dx*dx*lx*lx
         by1 = -8.0*dy+60.0*dy*ly-720.0*dy*dy*ly+840.0*dy*dy*ly*ly
@@ -1468,7 +1471,7 @@ DO i= 1, 6
       WRITE(ounit,2001) g, ix(nt), iy(nt), iz(nt)
       STOP
     END IF
-    L(i,i) = 1.0
+    L(i,i) = 1._DP
     DO j= i+1, 6
         piv = U(j,i)/U(i,i)
         L(j,i) = piv
@@ -1497,7 +1500,7 @@ END DO
 !Initialiaze Identity matrix
 imat = 0.0
 DO i= 1, 6
-    imat(i,i) = 1.0
+    imat(i,i) = 1._DP
 END DO
 
 ! Calculate matrix inverse
@@ -1766,21 +1769,21 @@ IF (brrst == 1) THEN
     END DO
 
 ELSE
-    Ke = 1.0
+    Ke = 1._DP
     DO g= 1, ng
         DO n = 1, nnod
-            nod(n,g)%jo = 1.0
-            nod(n,g)%ji = 1.0
+            nod(n,g)%jo = 1._DP
+            nod(n,g)%ji = 1._DP
 
             CALL LxyzUpd(n,g)
 
-            f0(n,g)  = 1.0
-            fx1(n,g) = 1.0
-            fy1(n,g) = 1.0
-            fz1(n,g) = 1.0
-            fx2(n,g) = 1.0
-            fy2(n,g) = 1.0
-            fz2(n,g) = 1.0
+            f0(n,g)  = 1._DP
+            fx1(n,g) = 1._DP
+            fy1(n,g) = 1._DP
+            fz1(n,g) = 1._DP
+            fx2(n,g) = 1._DP
+            fy2(n,g) = 1._DP
+            fz2(n,g) = 1._DP
         END DO
     END DO
 END IF
@@ -1819,7 +1822,7 @@ DO g= 1, ng
     END DO
 END DO
 
-! Normalize to 1.0
+! Normalize to 1._DP
 tpow = 0.
 DO n = 1, nnod
     tpow = tpow + p(n)
