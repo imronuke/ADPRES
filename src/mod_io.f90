@@ -72,7 +72,8 @@ USE sdata, ONLY: ng, nnod, mode, al
 IMPLICIT NONE
 
 INTEGER :: iost, g, i, N
-CHARACTER(LEN=20) :: iname, oname
+CHARACTER(LEN=100) :: iname
+CHARACTER(LEN=20) :: oname
 
 !Got this trick from: http://web.utah.edu/thorne/computing/Handy_Fortran_Tricks.pdf
 N = IARGC()
