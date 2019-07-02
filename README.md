@@ -23,7 +23,7 @@ Copy some sample inputs file from [smpl](https://github.com/imronuke/ADPRES/tree
 ./adpres [file_name]
 ```
 
-for example, if the input is [IAEA 3D](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D), then command would be
+for example, if the input is [IAEA 3D](https://github.com/imronuke/ADPRES/blob/master/smpl/IAEA3D), then the command would be
 
 ```
 ./adpres IAEA3D
