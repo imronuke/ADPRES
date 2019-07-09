@@ -1,13 +1,9 @@
-                       #########################################################
- ##
-                       #                     ADPRES 1.1                         
-  #
-                       #        ABU DHABI POLYTECHNIC REACTOR SIMULATOR         
-  #
-                       #########################################################
- ##  
- 
- 
+                       ###########################################################
+                       #                     ADPRES 1.1                          #
+                       #        ABU DHABI POLYTECHNIC REACTOR SIMULATOR          #
+                       ###########################################################  
+
+
   ========================================INPUT DATA STARTS HERE=====================================
      1: ! IAEA3D input data                                                                                 
      2: ! NODE SIZE = 10 cm                                                                                 
@@ -86,21 +82,20 @@
     75: ! Boundary conditions (east), (west), (north), (south), (bottom), (top)                             
     76: 1 2 2 1 1 1                                                                                         
   ========================================INPUT DATA   ENDS HERE=====================================
- 
- 
- 
+
+
+
                                              START READING INPUT
-  ******************************************************************************
- *********************
+  ***************************************************************************************************
   CALCULATION MODE :                      FORWARD CALCULATION
- 
+
   CASE ID :   IAEA3D                                                                                            
    10 CM NODE SIZE                                                                                   
- 
- 
+
+
             >>>> READING MACROSCOPIC CROSS SECTIONS <<<<
             --------------------------------------------
- 
+
      MATERIAL  1
     GROUP   TRANSPORT    DIFFUSION  ABSORPTION    REMOVAL      NU*FISS      KAP*FIS    FISS. SPCTR
        1     0.222222    1.500002    0.010000    0.030000     0.000000     0.000000     1.000000
@@ -109,7 +104,7 @@
      G/G'          1          2
       1        0.192200    0.020000
       2        0.000000    0.753300
- 
+
      MATERIAL  2
     GROUP   TRANSPORT    DIFFUSION  ABSORPTION    REMOVAL      NU*FISS      KAP*FIS    FISS. SPCTR
        1     0.222222    1.500002    0.010000    0.030000     0.000000     0.000000     1.000000
@@ -118,7 +113,7 @@
      G/G'          1          2
       1        0.192200    0.020000
       2        0.000000    0.748300
- 
+
      MATERIAL  3
     GROUP   TRANSPORT    DIFFUSION  ABSORPTION    REMOVAL      NU*FISS      KAP*FIS    FISS. SPCTR
        1     0.222222    1.500002    0.010000    0.030000     0.000000     0.000000     1.000000
@@ -127,7 +122,7 @@
      G/G'          1          2
       1        0.192200    0.020000
       2        0.000000    0.703300
- 
+
      MATERIAL  4
     GROUP   TRANSPORT    DIFFUSION  ABSORPTION    REMOVAL      NU*FISS      KAP*FIS    FISS. SPCTR
        1     0.166667    1.999996    0.000000    0.040000     0.000000     0.000000     0.000000
@@ -136,7 +131,7 @@
      G/G'          1          2
       1        0.126700    0.040000
       2        0.000000    1.101100
- 
+
      MATERIAL  5
     GROUP   TRANSPORT    DIFFUSION  ABSORPTION    REMOVAL      NU*FISS      KAP*FIS    FISS. SPCTR
        1     0.166667    1.999996    0.000000    0.040000     0.000000     0.000000     0.000000
@@ -145,24 +140,24 @@
      G/G'          1          2
       1        0.000000    0.040000
       2        0.000000    0.000000
- 
+
   ...Macroscopic CX Card is sucessfully read...
- 
- 
+
+
             >>>>>READING CORE GEOMETRY<<<<<
             -------------------------------
   Number of assembly in x, y and z directions respectively :
            9           9          19
   Number of nodes in x, y and z directions respectively :
           17          17          19
- 
+
   x-directed nodes divison (delta-x)
     10.00  10.00  10.00  10.00  10.00  10.00  10.00  10.00  10.00  10.00
     10.00  10.00  10.00  10.00  10.00  10.00  10.00
   y-directed nodes divison (delta-y)
     10.00  10.00  10.00  10.00  10.00  10.00  10.00  10.00  10.00  10.00
     10.00  10.00  10.00  10.00  10.00  10.00  10.00
- 
+
   Planar Region :  1
         1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17
     17  4  4  4  4  4  4  4  4  4  4  4  4  4  4  4  4  4 
@@ -239,7 +234,7 @@
      3  1  1  1  1  1  4  4  4  4  4  4                   
      2  4  4  4  4  4  4  4                               
      1  4  4  4  4  4  4  4                               
- 
+
   Planar Region Assignment to planes.
  --------------------------------------
    Plane Number     Planar Region    delta-z
@@ -262,7 +257,7 @@
         3                  2          20.00
         2                  2          20.00
         1 (BOTTOM)         1          20.00
- 
+
    Boundary conditions
   X-directed West   : REFLECTIVE
   X-directed East   : ZERO INCOMING CURRENT
@@ -270,20 +265,17 @@
   Y-directed South  : ZERO INCOMING CURRENT
   Z-directed Bottom : ZERO INCOMING CURRENT
   Z-directed Top    : ZERO INCOMING CURRENT
- 
+
   ...Core geometry is sucessfully read...
- 
- 
-  **********************************  STOP READING INPUT  
- *******************************************
- 
- 
-  ==============================================================================
- ==================
+
+
+  **********************************  STOP READING INPUT  *******************************************
+
+
+  ================================================================================================
                                         CALCULATION RESULTS
-  ==============================================================================
- ==================
- 
+  ================================================================================================
+
    Itr     k-eff     Fis.Src Error   Inner Error
   ----------------------------------------------------
     1     1.224235    2.23057E+00    5.12181E+00
@@ -446,10 +438,10 @@
   132     1.029084    5.44682E-06    5.30024E-05
   133     1.029084    2.27399E-06    1.26377E-05
   134     1.029084    2.05751E-06    8.46941E-06
- 
+
  MULTIPLICATION EFFECTIVE (K-EFF) =  1.029084
- 
- 
+
+
      Radial Power Distribution
    ==============================
            1       2       3       4       5       6       7       8       9
@@ -462,14 +454,14 @@
      3   0.960   0.976   1.001   0.868   0.613                                
      2   0.779   0.759   0.713                                                
      1                                                                        
- 
+
    MAX POS.       Maximum Value
   (  8,  3)          1.427
- 
- 
+
+
      Axial Power Density Distribution
    ====================================
- 
+
      Plane Number        Power      Height
     -----------------------------------------
         19  (TOP)        0.000      380.00
@@ -491,11 +483,11 @@
          3               0.597       60.00
          2               0.346       40.00
          1  (BOTTOM)     0.000       20.00
- 
+
    MAX POS.       Maximum Value
     (  9)             1.555
- 
- 
+
+
      Radial Flux Distribution
    ==============================
     Group :   1
@@ -509,7 +501,7 @@
      3   1.810E-02  1.836E-02  1.788E-02  1.388E-02  8.876E-03  2.457E-03  4.011E-04                       
      2   1.256E-02  1.226E-02  1.028E-02  3.669E-03  1.494E-03  3.572E-04                                  
      1   2.085E-03  1.991E-03  1.506E-03  4.439E-04                                                        
- 
+
     Group :   2
              1          2          3          4          5          6          7          8          9
      9   1.102E-02  1.915E-02  2.125E-02  1.786E-02  9.242E-03  1.434E-02  1.445E-02  1.164E-02  1.612E-02 
@@ -521,7 +513,7 @@
      3   1.445E-02  1.468E-02  1.500E-02  1.297E-02  9.134E-03  1.678E-02  5.171E-03                       
      2   1.164E-02  1.134E-02  1.063E-02  2.513E-02  1.215E-02  4.524E-03                                  
      1   1.612E-02  1.533E-02  1.178E-02  5.687E-03                                                        
- 
- 
- 
- Total time :   0.948367000000000       seconds
+
+
+
+ Total time :   0.84877300000000000       seconds
