@@ -12,6 +12,7 @@ SAVE
 
 CHARACTER(LEN=1) :: ind          ! used to read x indicator in input buffer to prevent error
 CHARACTER(LEN=100) :: message    ! error message
+CHARACTER(LEN=100):: iline  ! Input line
 !Ouput options
 LOGICAL, PARAMETER :: ogeom = .TRUE.  ! Geometry output option
 LOGICAL, PARAMETER :: oxsec = .TRUE.  ! Macroscopic CXs output option
@@ -28,15 +29,14 @@ INTEGER, PARAMETER :: urrst = 117, uiter = 118, uprnt = 119
 INTEGER, PARAMETER :: uadf  = 120, ucrod = 121, ubcon = 122
 INTEGER, PARAMETER :: uftem = 123, umtem = 124, ucden = 125
 INTEGER, PARAMETER :: ucbcs = 126, uejct = 127, uther = 128
+INTEGER, PARAMETER :: uxtab = 129
 INTEGER :: bunit
 
 ! Card active/inactive indicator
 INTEGER :: bmode = 0, bxsec = 0, bgeom = 0, bcase = 0, besrc = 0
 INTEGER :: bwrst = 0, brrst = 0, biter = 0, bprnt = 0, badf  = 0
 INTEGER :: bcrod = 0, bbcon = 0, bftem = 0, bmtem = 0, bcden = 0
-INTEGER :: bcbcs = 0, bejct = 0, bther = 0
-
-CHARACTER(LEN=100):: iline  ! Input line
+INTEGER :: bcbcs = 0, bejct = 0, bther = 0, bxtab = 0
 
 ! Geometry
 INTEGER :: np                                           ! Number of planars
@@ -48,12 +48,6 @@ TYPE :: MAT_ASGN                                        ! Material assignment
 END TYPE
 TYPE(MAT_ASGN), DIMENSION(:), ALLOCATABLE :: plnr       ! planar
 INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: mnum
-
-! CROD CHANGES
-REAL(DP) :: nstep                                                  ! Number of steps
-REAL(DP)    :: coreh                                                  ! Core Height
-INTEGER, DIMENSION(:,:), ALLOCATABLE :: fbmap                     ! Radial control rod bank map (node wise)
-REAL(DP) :: pos0, ssize                                               ! Zero step position and step size
 
 
 CONTAINS
@@ -68,11 +62,12 @@ SUBROUTINE inp_read()
 
 
 USE sdata, ONLY: ng, nnod, mode, al
+USE InpOutp2, ONLY: inp_xtab
 
 IMPLICIT NONE
 
-INTEGER :: iost, g, i, N
-CHARACTER(LEN=150) :: iname, oname
+INTEGER :: g, i, N
+CHARACTER(LEN=100) :: iname, oname
 
 !Got this trick from: http://web.utah.edu/thorne/computing/Handy_Fortran_Tricks.pdf
 N = IARGC()
@@ -86,15 +81,7 @@ ENDIF
 
 iname = TRIM(iname)
 
-OPEN (UNIT=iunit, FILE=iname, STATUS='OLD', ACTION='READ', &
-      IOSTAT = iost)
-
-IF (iost /= 0) THEN
-    WRITE(*,1020) iost
-    WRITE(*,*) '  NO FILE : ', iname
-    1020 FORMAT    (2X, 'File Open Failed--status', I6)
-    STOP
-END IF
+CALL openFIle (iunit, iname, 'Input File Open Failed--status')
 
 oname = TRIM(iname) // '.out'
 oname = TRIM(oname)
@@ -119,10 +106,11 @@ OPEN (UNIT=ucden, STATUS='SCRATCH', ACTION='READWRITE')
 OPEN (UNIT=ucbcs, STATUS='SCRATCH', ACTION='READWRITE')
 OPEN (UNIT=uejct, STATUS='SCRATCH', ACTION='READWRITE')
 OPEN (UNIT=uther, STATUS='SCRATCH', ACTION='READWRITE')
+OPEN (UNIT=uxtab, STATUS='SCRATCH', ACTION='READWRITE')
 
 
 CALL inp_echo()
-CALL inp_comments (iunit, buff)
+CALL inp_comments (iunit, buff, '!')
 CALL inp_rewrite(buff)
 
 REWIND(umode)
@@ -143,6 +131,7 @@ REWIND(ucden)
 REWIND(ucbcs)
 REWIND(uejct)
 REWIND(uther)
+REWIND(uxtab)
 
 ! Start reading buffer files for each card
 
@@ -166,8 +155,11 @@ IF (bcase == 1) CALL inp_case (ucase)
 ! Card XSEC
 IF (bxsec == 1) THEN
     CALL inp_xsec(uxsec)
+ELSE IF (bxtab == 1) THEN
+    CALL inp_xtab(uxtab)
 ELSE
-    WRITE(ounit,1021) '%XSEC'
+    WRITE(ounit,1021) '%XSEC OR %XTAB'
+    WRITE(*,1021) '%XSEC OR %XTAB'
     STOP
 END IF
 
@@ -177,6 +169,7 @@ IF (bgeom == 1) THEN
     CALL inp_geom2(ugeom)
 ELSE
     WRITE(ounit,1021) '%GEOM'
+    WRITE(*,1021) '%GEOM'
     STOP
 END IF
 
@@ -290,7 +283,15 @@ DO g = 1, ng
         al(i,g)%dc = 0._DP ! Default alpha = 0.0
     END DO
 END DO
-IF (badf == 1) CALL inp_adf (uadf)
+IF (badf == 1 .AND. bxtab == 0) THEN
+  CALL inp_adf (uadf)
+ELSE IF (badf == 1 .AND. bxtab == 1) THEN
+  WRITE(ounit,*) '  BOTH %ADF AND %XTAB CARDS CANNOT PRESENT TOGETHER'
+  WRITE(*,*) '  BOTH %ADF AND %XTAB CARDS CANNOT PRESENT TOGETHER'
+  STOP
+ELSE
+  CONTINUE
+END IF
 
 ! Card ESRC
 IF (mode == 'FIXEDSRC' .AND. besrc == 1) THEN
@@ -328,15 +329,39 @@ WRITE(ounit,*) &
 1021 FORMAT(2X, 'CARD ', A, ' DOES NOT PRESENT. THIS CARD IS MANDATORY')
 1041 FORMAT(2X, 'CARD ', A, ' DOES NOT PRESENT. THIS CARD IS MANDATORY FOR ', A,' CALCULATION MODE')
 
+
 CLOSE(UNIT=umode); CLOSE(UNIT=uxsec); CLOSE(UNIT=ugeom)
 CLOSE(UNIT=ucase); CLOSE(UNIT=uesrc); CLOSE(UNIT=uwrst)
 CLOSE(UNIT=urrst); CLOSE(UNIT=uiter); CLOSE(UNIT=uprnt)
 CLOSE(UNIT=uadf);  CLOSE(UNIT=ucrod); CLOSE(UNIT=ubcon)
 CLOSE(UNIT=uftem); CLOSE(UNIT=umtem); CLOSE(UNIT=ucden)
 CLOSE(UNIT=ucbcs); CLOSE(UNIT=uejct); CLOSE(UNIT=uther)
+CLOSE(UNIT=uxtab)
+CLOSE(UNIT=buff)
 
 END SUBROUTINE inp_read
 
+!******************************************************************************!
+
+SUBROUTINE openFile(iunit, iname, message)
+
+INTEGER :: iunit
+CHARACTER(LEN=*) :: iname, message
+INTEGER  :: iost
+
+OPEN (UNIT=iunit, FILE=iname, STATUS='OLD', ACTION='READ', &
+      IOSTAT = iost)
+
+IF (iost /= 0) THEN
+    WRITE(*,1020) message, iost
+    WRITE(*,*) '  CANNOT OPEN FILE : ', iname
+    1020 FORMAT    (2X, A, I6)
+    STOP
+END IF
+
+END SUBROUTINE openFile
+
+!******************************************************************************!
 
 SUBROUTINE inp_echo()
 !
@@ -377,8 +402,9 @@ REWIND (iunit)
 
 END SUBROUTINE inp_echo
 
+!******************************************************************************!
 
-SUBROUTINE inp_comments (inunit, buffer)
+SUBROUTINE inp_comments (inunit, buffer, mark)
 !
 ! Purpose:
 !    To remove the comments in input and rewrite the
@@ -388,6 +414,7 @@ SUBROUTINE inp_comments (inunit, buffer)
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: inunit, buffer
+CHARACTER(LEN=*), INTENT(IN) :: mark
 
 INTEGER :: ln                  ! line number
 INTEGER :: eof, comm
@@ -400,10 +427,10 @@ DO
     ln = ln+1
     READ (inunit, '(A100)', IOSTAT=eof) iline
     IF (eof < 0) EXIT              !Check end of file
-    iline = TRIM(ADJUSTL(iline))   ! Remove trailing blanks
-    comm = INDEX(iline, '!')       ! Find position '!' if any
-    ! If there is no '!' and no first ten blank spaces
-    IF (comm == 0 .AND. iline(1:10) /= '          ')  THEN
+    iline = TRIM(ADJUSTL(iline))   ! Remove trailing blanks and adjust to left
+    comm = INDEX(iline, mark)       ! Find position '!' if any
+    ! If there is no '!' and no first 20 blank spaces (in case line is blank)
+    IF (comm == 0 .AND. iline(1:20) /= '                    ')  THEN
         WRITE(buffer,1012)'x ',ln,iline
     END IF
     !If the first character is not '!'
@@ -419,6 +446,7 @@ REWIND(buffer)
 
 END SUBROUTINE inp_comments
 
+!******************************************************************************!
 
 SUBROUTINE inp_rewrite (buffer)
 
@@ -496,8 +524,12 @@ DO
             CASE('THER')
                 bunit = uther
                 bther = 1
+            CASE('XTAB')
+                bunit = uxtab
+                bxtab = 1
             CASE DEFAULT
                 WRITE(ounit,1014) ln, iline
+                WRITE(*,1014) ln, iline
                 STOP
         END SELECT
     END IF
@@ -512,6 +544,7 @@ END DO
 
 END SUBROUTINE inp_rewrite
 
+!******************************************************************************!
 
 SUBROUTINE inp_mode (xbunit)
 !
@@ -562,6 +595,7 @@ END SELECT
 
 END SUBROUTINE inp_mode
 
+!******************************************************************************!
 
 SUBROUTINE inp_case (xbunit)
 !
@@ -593,6 +627,7 @@ WRITE(ounit,1007) case_exp
 
 END SUBROUTINE inp_case
 
+!******************************************************************************!
 
 SUBROUTINE inp_xsec (xbunit)
 !
@@ -703,9 +738,11 @@ WRITE(ounit,*) ' ...Macroscopic CX Card is sucessfully read...'
 1020 FORMAT(2X, 'ERROR: Transport cross section (sigtr)is zero or negative in material: ', I3, ' ;group: ', I3)
 
 DEALLOCATE(group)
+DEALLOCATE(xD, xsigr)
 
 END SUBROUTINE inp_xsec
 
+!******************************************************************************!
 
 SUBROUTINE inp_geom1 (xbunit)
 !
@@ -851,8 +888,7 @@ END DO
 
 END SUBROUTINE inp_geom1
 
-
-
+!******************************************************************************!
 
 SUBROUTINE inp_geom2 (xbunit)
 !
@@ -862,7 +898,7 @@ SUBROUTINE inp_geom2 (xbunit)
 
 USE sdata, ONLY: nx, ny, nz, nxx, nyy, nzz, xdel, ydel, zdel, &
                 xwest, xeast, ynorth, ysouth, zbott, ztop, nnod, &
-                xstag, ystag, xdiv, ydiv, zdiv, nmat
+                xstag, ystag, xdiv, ydiv, zdiv, nmat, coreh
 
 IMPLICIT NONE
 
@@ -1158,6 +1194,7 @@ END DO
 
 END SUBROUTINE inp_geom2
 
+!******************************************************************************!
 
 SUBROUTINE misc ()
 !
@@ -1171,7 +1208,7 @@ USE sdata, ONLY: nxx, nyy, nzz, ix, iy, iz, xyz, &
                  nnod, sigtr, siga, nuf, sigf, &
                  sigs, D, sigr, ng, ystag, &
                  xdel, ydel, zdel, vdel, &
-                 mat, xD, xsigr
+                 mat
 
 IMPLICIT NONE
 
@@ -1204,8 +1241,6 @@ ALLOCATE(sigs (nnod,ng,ng))
 ALLOCATE(D    (nnod,ng))
 ALLOCATE(sigr (nnod,ng))
 
-DEALLOCATE(xD, xsigr)
-
 ! Calculate nodes' volume
 ALLOCATE(vdel(nnod))
 DO i = 1, nnod
@@ -1214,6 +1249,7 @@ END DO
 
 END SUBROUTINE misc
 
+!******************************************************************************!
 
 SUBROUTINE XS_updt (xbcon, xftem, xmtem, xcden, xbpos)
 !
@@ -1221,8 +1257,6 @@ SUBROUTINE XS_updt (xbcon, xftem, xmtem, xcden, xbpos)
 !    To update XS for given TH paramaters and rod position
 !
 
-
-USE sdata, ONLY:
 
 IMPLICIT NONE
 
@@ -1243,6 +1277,7 @@ CALL Dsigr_updt()
 
 END SUBROUTINE XS_updt
 
+!******************************************************************************!
 
 SUBROUTINE base_updt ()
 !
@@ -1271,7 +1306,7 @@ END DO
 
 END SUBROUTINE base_updt
 
-
+!******************************************************************************!
 
 SUBROUTINE Dsigr_updt ()
 !
@@ -1301,7 +1336,7 @@ END DO
 
 END SUBROUTINE Dsigr_updt
 
-
+!******************************************************************************!
 
 SUBROUTINE inp_esrc (xbunit)
 !
@@ -1358,14 +1393,14 @@ DO n = 1, nsrc
     message = ' error in reading source spectrum'
     CALL er_message(ounit, ios, ln, message)
 
-    ! Is total spectrum = 1.0?
+    ! Is total spectrum = 1._DP?
     summ = 0._DP
     DO g = 1, ng
         summ = summ + spec(g)
     END DO
     ! Check total spectrum
     IF (ABS(summ - 1._DP) > 1.e-5_DP) THEN
-        WRITE(ounit,*) 'TOTAL SOURCE SPECTRUM AT LINE', ln, ' IS NOT EQUAL TO 1.0'
+        WRITE(ounit,*) 'TOTAL SOURCE SPECTRUM AT LINE', ln, ' IS NOT EQUAL TO 1._DP'
         STOP
     END IF
 
@@ -1457,7 +1492,7 @@ DEALLOCATE(spec, spos)
 
 END SUBROUTINE inp_esrc
 
-
+!******************************************************************************!
 
 SUBROUTINE inp_wrst (xbunit)
 
@@ -1483,7 +1518,7 @@ OPEN (UNIT=wunit, FILE=fname, STATUS='REPLACE', ACTION='WRITE')
 
 END SUBROUTINE inp_wrst
 
-
+!******************************************************************************!
 
 SUBROUTINE inp_rrst (xbunit)
 
@@ -1516,7 +1551,7 @@ END IF
 
 END SUBROUTINE inp_rrst
 
-
+!******************************************************************************!
 
 SUBROUTINE inp_iter (xbunit)
 
@@ -1552,7 +1587,7 @@ WRITE(ounit,'(A,I5)') '  OUTER ITERATION FISSION SOURCE EXTRAPOLATION INTERVAL :
 
 END SUBROUTINE inp_iter
 
-
+!******************************************************************************!
 
 SUBROUTINE inp_prnt (xbunit)
 
@@ -1591,7 +1626,7 @@ WRITE(ounit,'(A,A)') '  RADIAL FLUX POWER DISTRIBUTION     : ', cafrad
 
 END SUBROUTINE inp_prnt
 
-
+!******************************************************************************!
 
 SUBROUTINE inp_adf (xbunit)
 
@@ -1952,17 +1987,17 @@ DO g = 1, ng
         DO j = 1, nyy
             DO i = ystag(j)%smin, ystag(j)%smax
                 IF (i /= ystag(j)%smax) xxal(i,j,k,g)%dc(1) = &
-                0.50 * (1.0 - xxdc(i,j,k,g)%dc(1) / xxdc(i+1,j,k,g)%dc(2))
+                0.5_DP * (1._DP - xxdc(i,j,k,g)%dc(1) / xxdc(i+1,j,k,g)%dc(2))
                 IF (i /= ystag(j)%smin) xxal(i,j,k,g)%dc(2) = &
-                0.50 * (1.0 - xxdc(i,j,k,g)%dc(2) / xxdc(i-1,j,k,g)%dc(1))
+                0.5_DP * (1._DP - xxdc(i,j,k,g)%dc(2) / xxdc(i-1,j,k,g)%dc(1))
                 IF (j /= xstag(i)%smax) xxal(i,j,k,g)%dc(3) = &
-                0.50 * (1.0 - xxdc(i,j,k,g)%dc(3) / xxdc(i,j+1,k,g)%dc(4))
+                0.5_DP * (1._DP - xxdc(i,j,k,g)%dc(3) / xxdc(i,j+1,k,g)%dc(4))
                 IF (j /= xstag(i)%smin) xxal(i,j,k,g)%dc(4) = &
-                0.50 * (1.0 - xxdc(i,j,k,g)%dc(4) / xxdc(i,j-1,k,g)%dc(3))
+                0.5_DP * (1._DP - xxdc(i,j,k,g)%dc(4) / xxdc(i,j-1,k,g)%dc(3))
                 IF (k /= nzz) xxal(i,j,k,g)%dc(5) = &
-                0.50 * (1.0 - xxdc(i,j,k,g)%dc(5) / xxdc(i,j,k+1,g)%dc(6))
+                0.5_DP * (1._DP - xxdc(i,j,k,g)%dc(5) / xxdc(i,j,k+1,g)%dc(6))
                 IF (k /= 1) xxal(i,j,k,g)%dc(6) = &
-                0.50 * (1.0 - xxdc(i,j,k,g)%dc(6) / xxdc(i,j,k-1,g)%dc(5))
+                0.5_DP * (1._DP - xxdc(i,j,k,g)%dc(6) / xxdc(i,j,k-1,g)%dc(5))
             END DO
         END DO
     END DO
@@ -1985,7 +2020,7 @@ END DO
 
 END SUBROUTINE inp_adf
 
-
+!******************************************************************************!
 
 SUBROUTINE rotate(rot, a1, a2, a3, a4)
 
@@ -2025,6 +2060,7 @@ END IF
 
 END SUBROUTINE rotate
 
+!******************************************************************************!
 
 SUBROUTINE inp_crod (xbunit)
 
@@ -2033,8 +2069,8 @@ SUBROUTINE inp_crod (xbunit)
 !    To read control rod position
 
 USE sdata, ONLY: nx, ny, nmat, ng, xdiv, ydiv, &
-                 nxx, nyy, bpos, nb, cusp, &
-                 dsigtr, dsiga, dnuf, dsigf, dsigs
+                 nxx, nyy, bpos, nb, cusp, nstep, pos0, ssize, &
+                 dsigtr, dsiga, dnuf, dsigf, dsigs, coreh, fbmap
 
 IMPLICIT NONE
 
@@ -2103,21 +2139,23 @@ DO j = ny, 1, -1
     END DO
 END DO
 
-ALLOCATE(dsigtr(nmat,ng))
-ALLOCATE(dsiga (nmat,ng))
-ALLOCATE(dnuf  (nmat,ng))
-ALLOCATE(dsigf (nmat,ng))
-ALLOCATE(dsigs (nmat,ng,ng))
+IF (bxtab == 0) THEN  !IF XTAB FILE PRESENT
+  ALLOCATE(dsigtr(nmat,ng))
+  ALLOCATE(dsiga (nmat,ng))
+  ALLOCATE(dnuf  (nmat,ng))
+  ALLOCATE(dsigf (nmat,ng))
+  ALLOCATE(dsigs (nmat,ng,ng))
 
-! Reac CX changes due to control rod increment or dcrement
-DO i = 1, nmat
-    DO g= 1, ng
-        READ(xbunit, *, IOSTAT=ios) ind, ln, dsigtr(i,g), &
-        dsiga(i,g), dnuf(i,g), dsigf(i,g), (dsigs(i,g,h), h = 1, ng)
-        message = ' error in reading macro xs changes due to control rod insertion'
-        CALL er_message(ounit, ios, ln, message)
-    END DO
-END DO
+  ! Reac CX changes due to control rod increment or dcrement
+  DO i = 1, nmat
+      DO g= 1, ng
+          READ(xbunit, *, IOSTAT=ios) ind, ln, dsigtr(i,g), &
+          dsiga(i,g), dnuf(i,g), dsigf(i,g), (dsigs(i,g,h), h = 1, ng)
+          message = ' error in reading macro xs changes due to control rod insertion'
+          CALL er_message(ounit, ios, ln, message)
+      END DO
+  END DO
+END IF
 
 !! CROD PRINT OPTION
 READ(xbunit, *, IOSTAT=ios) ind, ln, popt
@@ -2149,23 +2187,25 @@ IF (ios == 0 .AND. popt > 0) THEN
         WRITE(ounit,'(100I3)' ) (bmap(i,j), i = 1, nx)
     END DO
 
-    WRITE(ounit,*)
-    WRITE(ounit,*) ' MATERIAL CX INCREMENT OR DECREMENT DUE TO CR INSERTION : '
-    DO i= 1, nmat
-       WRITE(ounit,1209) i
-        WRITE(ounit,1211)'GROUP', 'TRANSPORT', 'ABSORPTION', &
-        'NU*FISS', 'FISSION'
-        DO g= 1, ng
-            WRITE(ounit,1210) g, dsigtr(i,g), dsiga(i,g), &
-            dnuf(i,g), dsigf(i,g)
-            group(g) = g
-        END DO
-        WRITE(ounit,*)'  --SCATTERING MATRIX--'
-        WRITE(ounit,'(4X, A5, 20I9)') "G/G'", (group(g), g=1,ng)
-        DO g= 1, ng
-            WRITE(ounit,1215)g, (dsigs(i,g,h), h=1,ng)
-        END DO
-    END DO
+    IF (bxtab == 0) THEN  ! If xtab file present
+      WRITE(ounit,*)
+      WRITE(ounit,*) ' MATERIAL CX INCREMENT OR DECREMENT DUE TO CR INSERTION : '
+      DO i= 1, nmat
+         WRITE(ounit,1209) i
+          WRITE(ounit,1211)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+          'NU*FISS', 'FISSION'
+          DO g= 1, ng
+              WRITE(ounit,1210) g, dsigtr(i,g), dsiga(i,g), &
+              dnuf(i,g), dsigf(i,g)
+              group(g) = g
+          END DO
+          WRITE(ounit,*)'  --SCATTERING MATRIX--'
+          WRITE(ounit,'(4X, A5, 20I9)') "G/G'", (group(g), g=1,ng)
+          DO g= 1, ng
+              WRITE(ounit,1215)g, (dsigs(i,g,h), h=1,ng)
+          END DO
+      END DO
+    END IF
     DEALLOCATE(bank)
 END IF
 
@@ -2203,16 +2243,17 @@ WRITE(ounit,*) ' ...Control Rods Insertion card is sucessfully read...'
 
 END SUBROUTINE inp_crod
 
+!******************************************************************************!
 
 SUBROUTINE crod_updt (bpos)
 !
 ! Purpose: TO UPDATE AND CALCUALTE VOLUME WEIGHTED HOMOGENIZED CX FOR RODDED NODE
 !
 
-USE sdata, ONLY: ng, nxx, nyy, nzz, xyz, zdel, mat, nod, cusp, f0, &
+USE sdata, ONLY: ng, nxx, nyy, nzz, xyz, zdel, mat, cusp, &
                  sigtr, siga, nuf, sigf, sigs, &
                  dsigtr, dsiga, dnuf, dsigf, dsigs, &
-                 nod, f0, fz1, fz2
+                 coreh, fbmap, pos0, ssize
 
 IMPLICIT NONE
 
@@ -2227,7 +2268,6 @@ REAL(DP) :: del1, del2, eta1, eta2
 REAL(DP) :: sum1, sum2, sum3, sum4, sumx
 REAL(DP), DIMENSION(ng) :: sum5
 REAL(DP), DIMENSION(:), ALLOCATABLE :: f
-REAL(DP) :: a1, a2, a3, a4, x, tx, f1, f2
 
 DO j = 1, nyy
   DO i = 1, nxx
@@ -2236,11 +2276,11 @@ DO j = 1, nyy
          rodh = coreh - pos0  - bpos(fbmap(i,j))*ssize
          dum = 0._DP
          DO k = nzz, 1, -1
-           ! For partially rodded node, get volume weighted homogenized CX (0 < vfrac < 1.0)
-           IF (rodh >= dum .AND. rodh < dum+zdel(k)) THEN
+           ! For partially rodded node, get volume weighted homogenized CX (0 < vfrac < 1._DP)
+           IF (rodh >= dum .AND. rodh <= dum+zdel(k)) THEN   ! If this node partially rodded
               eta1 = rodh - dum
               eta2 = zdel(k) - rodh + dum
-              IF (cusp == 0 .OR. eta1 < 1. .OR. eta2 < 1) THEN    ! IF ROD CUSPING NOT ACTIVE
+              IF (cusp == 0 .OR. eta1 < 1. .OR. eta2 < 1.) THEN    ! IF ROD CUSPING NOT ACTIVE OR LESS THAN 1 CM CLOSE TO Boundary
                  vfrac = (rodh - dum) / zdel(k)
                  sigtr(xyz(i,j,k),:) = sigtr(xyz(i,j,k),:) + &
                                     vfrac * dsigtr(mat(xyz(i,j,k)),:)
@@ -2260,134 +2300,143 @@ DO j = 1, nyy
 
                  nmax = n1 + n2                     ! Total number of mesh
 
-                 ! Calculate vectors a, b, c, d
+                 ! Calculate weighted flux
                  ALLOCATE(f(nmax))
 
                  DO g = 1, ng
-                    ! Determine the flux coefficients
-                    a1 = 2. * (nod(xyz(i,j,k),g)%jo(5) + nod(xyz(i,j,k),g)%ji(5) &
-                       - nod(xyz(i,j,k),g)%jo(6) - nod(xyz(i,j,k),g)%ji(6))
-                    a2 = 2. * (nod(xyz(i,j,k),g)%jo(5) + nod(xyz(i,j,k),g)%ji(5) &
-                       + nod(xyz(i,j,k),g)%jo(6) + nod(xyz(i,j,k),g)%ji(6)) &
-                       - 2. * f0(xyz(i,j,k),g)
-                    a3 = 10. * a1 - 120. * fz1(xyz(i,j,k),g)
-                    a4 = 35. * a2 - 700. * fz2(xyz(i,j,k),g)
+                    ! Calculate weighted flux for group g
+                    CALL fcusp(g, i, j, k, n1, nmax, del1, del2, f)
 
-                    ! Calculate fluxes in rodded area
-                    x = 0.5 * zdel(k)
-                    tx = x / zdel(k)
-                    f1 = f0(xyz(i,j,k),g) + a1 * tx + a2 * (3*tx**2-0.25) &
-                         + a3 * (tx*(tx+0.5)*(tx-0.5)) &
-                         + a4 * ((tx**2-0.05)*(tx+0.5)*(tx-0.5))
+                    ! Calculate homogenized CXs
+                    ! Rodded area
+                    sumx = 0.
+                    sum1 = 0.; sum2 = 0.; sum3 = 0.; sum4 = 0.; sum5 = 0.
                     DO n = 1, n1
-                       x = x - del1
-                       tx = x / zdel(k)
-                       f2 = f0(xyz(i,j,k),g) + a1 * tx + a2 * (3*tx**2-0.25) &
-                            + a3 * (tx*(tx+0.5)*(tx-0.5)) &
-                            + a4 * ((tx**2-0.05)*(tx+0.5)*(tx-0.5))
-                      f(n) = 0.5 * (f1 + f2)
-                      f1 = f2
-                   END DO
-                   ! Calculate fluxes in non-rodded area
-                   DO n = n1+1, nmax
-                      x = x - del2
-                      tx = x / zdel(k)
-                      f2 = f0(xyz(i,j,k),g) + a1 * tx + a2 * (3*tx**2-0.25) &
-                           + a3 * (tx*(tx+0.5)*(tx-0.5)) &
-                           + a4 * ((tx**2-0.05)*(tx+0.5)*(tx-0.5))
-                      f(n) = 0.5 * (f1 + f2)
-                      f1 = f2
-                   END DO
-
-                           ! Calculate homogenized CXs
-                           sumx = 0.
-                           sum1 = 0.; sum2 = 0.; sum3 = 0.; sum4 = 0.; sum5 = 0.
-                           DO n = 1, n1
-                              sumx = sumx + f(n) * del1
-                              sum1 = sum1 + f(n) * (sigtr(xyz(i,j,k),g) &
-                                   + dsigtr(mat(xyz(i,j,k)),g)) * del1
-                              sum2 = sum2 + f(n) * (siga(xyz(i,j,k),g) &
-                                   + dsiga(mat(xyz(i,j,k)),g)) * del1
-                              sum3 = sum3 + f(n) * (nuf(xyz(i,j,k),g) &
-                                   + dnuf(mat(xyz(i,j,k)),g)) * del1
-                              sum4 = sum4 + f(n) * (sigf(xyz(i,j,k),g) &
-                                   + dsigf(mat(xyz(i,j,k)),g)) * del1
-                              DO h = 1, ng
-                                 sum5(h) = sum5(h) + f(n) * (sigs(xyz(i,j,k),g,h) &
-                                      + dsigs(mat(xyz(i,j,k)),g,h)) * del1
-                              END DO
-                           END DO
-
-                           DO n = n1+1, nmax
-                              sumx = sumx + f(n) * del2
-                              sum1 = sum1 + f(n) * sigtr(xyz(i,j,k),g) * del2
-                              sum2 = sum2 + f(n) * siga(xyz(i,j,k),g) * del2
-                              sum3 = sum3 + f(n) * nuf(xyz(i,j,k),g) * del2
-                              sum4 = sum4 + f(n) * sigf(xyz(i,j,k),g) * del2
-                              DO h = 1, ng
-                                 sum5(h) = sum5(h) + f(n) &
-                                         * sigs(xyz(i,j,k),g,h) * del2
-                              END DO
-                           END DO
-
-                           sigtr(xyz(i,j,k),g) = sum1 / sumx
-                           siga(xyz(i,j,k),g)  = sum2 / sumx
-                           nuf(xyz(i,j,k),g)   = sum3 / sumx
-                           sigf(xyz(i,j,k),g)  = sum4 / sumx
-                           DO h = 1, ng
-                              sigs(xyz(i,j,k),g,h) = sum5(h) / sumx
-                           END DO
-
-                       END DO
-                       DEALLOCATE(f)
-                    END IF
-
-                    EXIT
-                END IF
-                ! For fully rodded node, vfrac = 1.
-                sigtr(xyz(i,j,k),:) = sigtr(xyz(i,j,k),:) + &
-                                       dsigtr(mat(xyz(i,j,k)),:)
-                siga(xyz(i,j,k),:)  = siga(xyz(i,j,k),:) + &
-                                       dsiga(mat(xyz(i,j,k)),:)
-                nuf(xyz(i,j,k),:)   = nuf(xyz(i,j,k),:) + &
-                                       dnuf(mat(xyz(i,j,k)),:)
-                sigf(xyz(i,j,k),:)  = sigf(xyz(i,j,k),:) + &
-                                       dsigf(mat(xyz(i,j,k)),:)
-                sigs(xyz(i,j,k),:,:)  = sigs(xyz(i,j,k),:,:) + &
-                                       dsigs(mat(xyz(i,j,k)),:,:)
-
-                dum = dum + zdel(k)
-            END DO
-            ! if negative CX found, Surpress CX to zero  and calculate D and sigr
-            DO k = nzz, 1, -1
-                DO g = 1, ng
-                    IF (sigtr(xyz(i,j,k),g) < 0.) THEN
-                        sigtr(xyz(i,j,k),g) = 0.
-                    END IF
-                    IF (siga(xyz(i,j,k),g) < 0.) THEN
-                        siga(xyz(i,j,k),g) = 0.
-                    END IF
-                    IF (nuf(xyz(i,j,k),g) < 0.) THEN
-                        nuf(xyz(i,j,k),g) = 0.
-                    END IF
-                    IF (sigf(xyz(i,j,k),g) < 0.) THEN
-                        sigf(xyz(i,j,k),g) = 0.
-                    END IF
-                    DO h = 1, ng
-                        IF (sigs(xyz(i,j,k),g,h) < 0.) THEN
-                            sigs(xyz(i,j,k),g,h) = 0.
-                        END IF
+                      sumx = sumx + f(n) * del1
+                      sum1 = sum1 + f(n) * (sigtr(xyz(i,j,k),g) &
+                      + dsigtr(mat(xyz(i,j,k)),g)) * del1
+                      sum2 = sum2 + f(n) * (siga(xyz(i,j,k),g) &
+                      + dsiga(mat(xyz(i,j,k)),g)) * del1
+                      sum3 = sum3 + f(n) * (nuf(xyz(i,j,k),g) &
+                      + dnuf(mat(xyz(i,j,k)),g)) * del1
+                      sum4 = sum4 + f(n) * (sigf(xyz(i,j,k),g) &
+                      + dsigf(mat(xyz(i,j,k)),g)) * del1
+                      DO h = 1, ng
+                          sum5(h) = sum5(h) + f(n) * (sigs(xyz(i,j,k),g,h) &
+                          + dsigs(mat(xyz(i,j,k)),g,h)) * del1
+                      END DO
                     END DO
-                END DO
+                    ! Non-rodded area
+                    DO n = n1+1, nmax
+                      sumx = sumx + f(n) * del2
+                      sum1 = sum1 + f(n) * sigtr(xyz(i,j,k),g) * del2
+                      sum2 = sum2 + f(n) * siga(xyz(i,j,k),g) * del2
+                      sum3 = sum3 + f(n) * nuf(xyz(i,j,k),g) * del2
+                      sum4 = sum4 + f(n) * sigf(xyz(i,j,k),g) * del2
+                      DO h = 1, ng
+                          sum5(h) = sum5(h) + f(n) * sigs(xyz(i,j,k),g,h) * del2
+                      END DO
+                    END DO
 
-            END DO
-        END IF
-    END DO
+                    sigtr(xyz(i,j,k),g) = sum1 / sumx
+                    siga(xyz(i,j,k),g)  = sum2 / sumx
+                    nuf(xyz(i,j,k),g)   = sum3 / sumx
+                    sigf(xyz(i,j,k),g)  = sum4 / sumx
+                    DO h = 1, ng
+                      sigs(xyz(i,j,k),g,h) = sum5(h) / sumx
+                    END DO
+
+                 END DO
+                 DEALLOCATE(f)
+              END IF
+
+              EXIT
+           END IF
+           ! For fully rodded node, vfrac = 1.
+           sigtr(xyz(i,j,k),:) = sigtr(xyz(i,j,k),:) + dsigtr(mat(xyz(i,j,k)),:)
+           siga(xyz(i,j,k),:)  = siga(xyz(i,j,k),:) + dsiga(mat(xyz(i,j,k)),:)
+           nuf(xyz(i,j,k),:)   = nuf(xyz(i,j,k),:) + dnuf(mat(xyz(i,j,k)),:)
+           sigf(xyz(i,j,k),:)  = sigf(xyz(i,j,k),:) + dsigf(mat(xyz(i,j,k)),:)
+           sigs(xyz(i,j,k),:,:)  = sigs(xyz(i,j,k),:,:) + dsigs(mat(xyz(i,j,k)),:,:)
+
+           dum = dum + zdel(k)
+         END DO
+         ! if negative CX found, Surpress CX to zero  and calculate D and sigr
+         DO k = nzz, 1, -1
+           DO g = 1, ng
+              IF (sigtr(xyz(i,j,k),g) < 0.) sigtr(xyz(i,j,k),g) = 0.
+              IF (siga(xyz(i,j,k),g) < 0.) siga(xyz(i,j,k),g) = 0.
+              IF (nuf(xyz(i,j,k),g) < 0.) nuf(xyz(i,j,k),g) = 0.
+              IF (sigf(xyz(i,j,k),g) < 0.) sigf(xyz(i,j,k),g) = 0.
+              DO h = 1, ng
+                IF (sigs(xyz(i,j,k),g,h) < 0.) sigs(xyz(i,j,k),g,h) = 0.
+              END DO
+           END DO
+         END DO
+     END IF
+  END DO
 END DO
 
 
 END SUBROUTINE crod_updt
 
+!******************************************************************************!
+
+SUBROUTINE fcusp(g, i, j, k, n1, nmax, del1, del2, f)
+
+! Purpose:
+!           To calculate group g weighted flux for CR cusping correction
+
+USE sdata, ONLY: nod, f0, fz1, fz2, xyz, zdel
+
+INTEGER, INTENT(IN) :: g, i, j, k, n1, nmax
+REAL(DP), INTENT(IN) :: del1, del2
+REAL(DP), DIMENSION(:), INTENT(OUT) :: f
+
+REAL(DP) :: a1, a2, a3, a4
+REAL(DP) :: f1, f2, x, tx
+INTEGER :: n
+
+
+! Determine the flux coefficients
+a1 = 2. * (nod(xyz(i,j,k),g)%jo(5) + nod(xyz(i,j,k),g)%ji(5) &
+   - nod(xyz(i,j,k),g)%jo(6) - nod(xyz(i,j,k),g)%ji(6))
+a2 = 2. * (nod(xyz(i,j,k),g)%jo(5) + nod(xyz(i,j,k),g)%ji(5) &
+   + nod(xyz(i,j,k),g)%jo(6) + nod(xyz(i,j,k),g)%ji(6)) &
+   - 2. * f0(xyz(i,j,k),g)
+a3 = 10. * a1 - 120. * fz1(xyz(i,j,k),g)
+a4 = 35. * a2 - 700. * fz2(xyz(i,j,k),g)
+
+! Calculate fluxes in rodded area
+x = 0.5 * zdel(k)
+tx = x / zdel(k)
+f1 = f0(xyz(i,j,k),g) + a1 * tx + a2 * (3*tx**2-0.25) &
+     + a3 * (tx*(tx+0.5)*(tx-0.5)) &
+     + a4 * ((tx**2-0.05)*(tx+0.5)*(tx-0.5))
+DO n = 1, n1
+   x = x - del1
+   tx = x / zdel(k)
+   f2 = f0(xyz(i,j,k),g) + a1 * tx + a2 * (3*tx**2-0.25) &
+        + a3 * (tx*(tx+0.5)*(tx-0.5)) &
+        + a4 * ((tx**2-0.05)*(tx+0.5)*(tx-0.5))
+  f(n) = 0.5 * (f1 + f2)
+  f1 = f2
+END DO
+! Calculate fluxes in non-rodded area
+DO n = n1+1, nmax
+  x = x - del2
+  tx = x / zdel(k)
+  f2 = f0(xyz(i,j,k),g) + a1 * tx + a2 * (3*tx**2-0.25) &
+       + a3 * (tx*(tx+0.5)*(tx-0.5)) &
+       + a4 * ((tx**2-0.05)*(tx+0.5)*(tx-0.5))
+  f(n) = 0.5 * (f1 + f2)
+  f1 = f2
+END DO
+
+
+END SUBROUTINE fcusp
+
+!******************************************************************************!
 
 SUBROUTINE inp_ejct (xbunit)
 
@@ -2526,6 +2575,7 @@ WRITE(ounit,*) ' ...Rod Ejection Card is sucessfully read...'
 
 END SUBROUTINE inp_ejct
 
+!******************************************************************************!
 
 SUBROUTINE inp_cbcs (xbunit)
 
@@ -2558,45 +2608,48 @@ READ(xbunit, *, IOSTAT=ios) ind, ln, rbcon
 message = ' error in reading bc guess and bc reference'
 CALL er_message(ounit, ios, ln, message)
 
-ALLOCATE(csigtr(nmat,ng))
-ALLOCATE(csiga (nmat,ng))
-ALLOCATE(cnuf  (nmat,ng))
-ALLOCATE(csigf (nmat,ng))
-ALLOCATE(csigs (nmat,ng,ng))
+IF (bxtab == 0) THEN  ! IF XTAB File does not present
+  ALLOCATE(csigtr(nmat,ng))
+  ALLOCATE(csiga (nmat,ng))
+  ALLOCATE(cnuf  (nmat,ng))
+  ALLOCATE(csigf (nmat,ng))
+  ALLOCATE(csigs (nmat,ng,ng))
 
-! Read CX changes per ppm born change
-DO i = 1, nmat
-    DO g= 1, ng
-        READ(xbunit, *, IOSTAT=ios) ind, ln, csigtr(i,g), &
-        csiga(i,g), cnuf(i,g), csigf(i,g), (csigs(i,g,h), h = 1, ng)
-        message = ' error in reading macro xs changes per ppm boron changes'
-        CALL er_message(ounit, ios, ln, message)
-    END DO
-END DO
+  ! Read CX changes per ppm born change
+  DO i = 1, nmat
+      DO g= 1, ng
+          READ(xbunit, *, IOSTAT=ios) ind, ln, csigtr(i,g), &
+          csiga(i,g), cnuf(i,g), csigf(i,g), (csigs(i,g,h), h = 1, ng)
+          message = ' error in reading macro xs changes per ppm boron changes'
+          CALL er_message(ounit, ios, ln, message)
+      END DO
+  END DO
+END IF
 
 !! BCON PRINT OPTION
 READ(xbunit, *, IOSTAT=ios) ind, ln, popt
 IF (ios == 0 .AND. popt > 0) THEN
 
     WRITE(ounit,1422) rbcon
-
-    WRITE(ounit,*)
-    WRITE(ounit,*) ' MATERIAL CX CHANGES PER PPM BORON CHANGES : '
-    DO i= 1, nmat
-       WRITE(ounit,1429) i
-        WRITE(ounit,1431)'GROUP', 'TRANSPORT', 'ABSORPTION', &
-        'NU*FISS', 'FISSION'
-        DO g= 1, ng
-            WRITE(ounit,1430) g, csigtr(i,g), csiga(i,g), &
-            cnuf(i,g), csigf(i,g)
-            group(g) = g
-        END DO
-        WRITE(ounit,*)'  --SCATTERING MATRIX--'
-        WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
-        DO g= 1, ng
-            WRITE(ounit,1435)g, (csigs(i,g,h), h=1,ng)
-        END DO
-    END DO
+    IF (bxtab == 0) THEN  ! IF XTAB File does not present
+      WRITE(ounit,*)
+      WRITE(ounit,*) ' MATERIAL CX CHANGES PER PPM BORON CHANGES : '
+      DO i= 1, nmat
+         WRITE(ounit,1429) i
+          WRITE(ounit,1431)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+          'NU*FISS', 'FISSION'
+          DO g= 1, ng
+              WRITE(ounit,1430) g, csigtr(i,g), csiga(i,g), &
+              cnuf(i,g), csigf(i,g)
+              group(g) = g
+          END DO
+          WRITE(ounit,*)'  --SCATTERING MATRIX--'
+          WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
+          DO g= 1, ng
+              WRITE(ounit,1435)g, (csigs(i,g,h), h=1,ng)
+          END DO
+      END DO
+    END IF
 END IF
 
 1422 FORMAT(2X, 'BORON CONCENTRATION REFERENCE :', F8.2)
@@ -2611,7 +2664,7 @@ WRITE(ounit,*) ' ...Critical Boron Search card is sucessfully read...'
 
 END SUBROUTINE inp_cbcs
 
-
+!******************************************************************************!
 
 SUBROUTINE inp_bcon (xbunit)
 
@@ -2643,21 +2696,22 @@ READ(xbunit, *, IOSTAT=ios) ind, ln, bcon, rbcon
 message = ' error in reading boron concentration and boron concentration reference'
 CALL er_message(ounit, ios, ln, message)
 
-
-! Read CX changes per ppm born change
-ALLOCATE(csigtr(nmat,ng))
-ALLOCATE(csiga (nmat,ng))
-ALLOCATE(cnuf  (nmat,ng))
-ALLOCATE(csigf (nmat,ng))
-ALLOCATE(csigs (nmat,ng,ng))
-DO i = 1, nmat
-    DO g= 1, ng
-        READ(xbunit, *, IOSTAT=ios) ind, ln, csigtr(i,g), &
-        csiga(i,g), cnuf(i,g), csigf(i,g), (csigs(i,g,h), h = 1, ng)
-        message = ' error in reading macro xs changes per ppm boron changes'
-        CALL er_message(ounit, ios, ln, message)
-    END DO
-END DO
+IF (bxtab == 0) THEN  ! If xtab file present
+  ! Read CX changes per ppm born change
+  ALLOCATE(csigtr(nmat,ng))
+  ALLOCATE(csiga (nmat,ng))
+  ALLOCATE(cnuf  (nmat,ng))
+  ALLOCATE(csigf (nmat,ng))
+  ALLOCATE(csigs (nmat,ng,ng))
+  DO i = 1, nmat
+      DO g= 1, ng
+          READ(xbunit, *, IOSTAT=ios) ind, ln, csigtr(i,g), &
+          csiga(i,g), cnuf(i,g), csigf(i,g), (csigs(i,g,h), h = 1, ng)
+          message = ' error in reading macro xs changes per ppm boron changes'
+          CALL er_message(ounit, ios, ln, message)
+      END DO
+  END DO
+END IF
 
 !! BCON PRINT OPTION
 READ(xbunit, *, IOSTAT=ios) ind, ln, popt
@@ -2666,23 +2720,25 @@ IF (ios == 0 .AND. popt > 0) THEN
     WRITE(ounit,1221) bcon
     WRITE(ounit,1222) rbcon
 
-    WRITE(ounit,*)
-    WRITE(ounit,*) ' MATERIAL CX CHANGES PER PPM BORON CHANGES : '
-    DO i= 1, nmat
-       WRITE(ounit,1229) i
-        WRITE(ounit,1231)'GROUP', 'TRANSPORT', 'ABSORPTION', &
-        'NU*FISS', 'FISSION'
-        DO g= 1, ng
-            WRITE(ounit,1230) g, csigtr(i,g), csiga(i,g), &
-            cnuf(i,g), csigf(i,g)
-            group(g) = g
-        END DO
-        WRITE(ounit,*)'  --SCATTERING MATRIX--'
-        WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
-        DO g= 1, ng
-            WRITE(ounit,1235)g, (csigs(i,g,h), h=1,ng)
-        END DO
-    END DO
+    IF (bxtab == 0) THEN  ! If xtab file present
+      WRITE(ounit,*)
+      WRITE(ounit,*) ' MATERIAL CX CHANGES PER PPM BORON CHANGES : '
+      DO i= 1, nmat
+         WRITE(ounit,1229) i
+          WRITE(ounit,1231)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+          'NU*FISS', 'FISSION'
+          DO g= 1, ng
+              WRITE(ounit,1230) g, csigtr(i,g), csiga(i,g), &
+              cnuf(i,g), csigf(i,g)
+              group(g) = g
+          END DO
+          WRITE(ounit,*)'  --SCATTERING MATRIX--'
+          WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
+          DO g= 1, ng
+              WRITE(ounit,1235)g, (csigs(i,g,h), h=1,ng)
+          END DO
+      END DO
+    END IF
 END IF
 
 1221 FORMAT(2X, 'BORON CONCENTRATION SET       :', F8.2)
@@ -2699,6 +2755,7 @@ WRITE(ounit,*) ' ...Boron Concentration card is sucessfully read...'
 
 END SUBROUTINE inp_bcon
 
+!******************************************************************************!
 
 SUBROUTINE bcon_updt (bcon)
 
@@ -2729,7 +2786,7 @@ END DO
 
 END SUBROUTINE bcon_updt
 
-
+!******************************************************************************!
 
 SUBROUTINE inp_ftem (xbunit)
 
@@ -2766,16 +2823,18 @@ CALL er_message(ounit, ios, ln, message)
 IF (bther == 0) ALLOCATE (ftem(nnod))
 ftem = cftem
 
-! Read CX changes fuel temperature change
-ALLOCATE(fsigtr(nmat,ng), fsiga(nmat,ng), fnuf(nmat,ng), fsigf(nmat,ng), fsigs(nmat,ng,ng))
-DO i = 1, nmat
-    DO g= 1, ng
-        READ(xbunit, *, IOSTAT=ios) ind, ln, fsigtr(i,g), &
-        fsiga(i,g), fnuf(i,g), fsigf(i,g), (fsigs(i,g,h), h = 1, ng)
-        message = ' error in reading macro xs changes per fuel temperature changes'
-        CALL er_message(ounit, ios, ln, message)
-    END DO
-END DO
+IF (bxtab == 0) THEN  ! IF XTAB File does not present
+  ! Read CX changes fuel temperature change
+  ALLOCATE(fsigtr(nmat,ng), fsiga(nmat,ng), fnuf(nmat,ng), fsigf(nmat,ng), fsigs(nmat,ng,ng))
+  DO i = 1, nmat
+      DO g= 1, ng
+          READ(xbunit, *, IOSTAT=ios) ind, ln, fsigtr(i,g), &
+          fsiga(i,g), fnuf(i,g), fsigf(i,g), (fsigs(i,g,h), h = 1, ng)
+          message = ' error in reading macro xs changes per fuel temperature changes'
+          CALL er_message(ounit, ios, ln, message)
+      END DO
+  END DO
+END IF
 
 !! FTEM PRINT OPTION
 READ(xbunit, *, IOSTAT=ios) ind, ln, popt
@@ -2788,23 +2847,25 @@ IF (ios == 0 .AND. popt > 0) THEN
     END IF
     WRITE(ounit,1242) rftem
 
-    WRITE(ounit,*)
-    WRITE(ounit,*) ' MATERIAL CX CHANGES PER FUEL TEMPERATURE CHANGES : '
-    DO i= 1, nmat
-       WRITE(ounit,1249) i
-        WRITE(ounit,1251)'GROUP', 'TRANSPORT', 'ABSORPTION', &
-        'NU*FISS', 'FISSION'
-        DO g= 1, ng
-            WRITE(ounit,1250) g, fsigtr(i,g), fsiga(i,g), &
-            fnuf(i,g), fsigf(i,g)
-            group(g) = g
-        END DO
-        WRITE(ounit,*)'  --SCATTERING MATRIX--'
-        WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
-        DO g= 1, ng
-            WRITE(ounit,1255)g, (fsigs(i,g,h), h=1,ng)
-        END DO
-    END DO
+    IF (bxtab == 0) THEN  ! IF XTAB File does not present
+      WRITE(ounit,*)
+      WRITE(ounit,*) ' MATERIAL CX CHANGES PER FUEL TEMPERATURE CHANGES : '
+      DO i= 1, nmat
+         WRITE(ounit,1249) i
+          WRITE(ounit,1251)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+          'NU*FISS', 'FISSION'
+          DO g= 1, ng
+              WRITE(ounit,1250) g, fsigtr(i,g), fsiga(i,g), &
+              fnuf(i,g), fsigf(i,g)
+              group(g) = g
+          END DO
+          WRITE(ounit,*)'  --SCATTERING MATRIX--'
+          WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
+          DO g= 1, ng
+              WRITE(ounit,1255)g, (fsigs(i,g,h), h=1,ng)
+          END DO
+      END DO
+    END IF
 END IF
 
 1241 FORMAT(2X, 'AVERAGE FUEL TEMPERATURE   :', F6.2)
@@ -2822,6 +2883,7 @@ WRITE(ounit,*) ' ...Fuel Temperature is card sucessfully read...'
 
 END SUBROUTINE inp_ftem
 
+!******************************************************************************!
 
 SUBROUTINE ftem_updt (ftem)
 
@@ -2853,6 +2915,7 @@ END DO
 
 END SUBROUTINE ftem_updt
 
+!******************************************************************************!
 
 SUBROUTINE inp_mtem (xbunit)
 
@@ -2889,16 +2952,18 @@ CALL er_message(ounit, ios, ln, message)
 IF (bther == 0) ALLOCATE (mtem(nnod))
 mtem = cmtem
 
-! Read CX changes per moderator temperature change
-ALLOCATE(msigtr(nmat,ng), msiga(nmat,ng), mnuf(nmat,ng), msigf(nmat,ng), msigs(nmat,ng,ng))
-DO i = 1, nmat
-    DO g= 1, ng
-        READ(xbunit, *, IOSTAT=ios) ind, ln, msigtr(i,g), &
-        msiga(i,g), mnuf(i,g), msigf(i,g), (msigs(i,g,h), h = 1, ng)
-        message = ' error in reading macro xs changes per Moderator temperature changes'
-        CALL er_message(ounit, ios, ln, message)
-    END DO
-END DO
+IF (bxtab == 0) THEN  ! IF XTAB File does not present
+  ! Read CX changes per moderator temperature change
+  ALLOCATE(msigtr(nmat,ng), msiga(nmat,ng), mnuf(nmat,ng), msigf(nmat,ng), msigs(nmat,ng,ng))
+  DO i = 1, nmat
+      DO g= 1, ng
+          READ(xbunit, *, IOSTAT=ios) ind, ln, msigtr(i,g), &
+          msiga(i,g), mnuf(i,g), msigf(i,g), (msigs(i,g,h), h = 1, ng)
+          message = ' error in reading macro xs changes per Moderator temperature changes'
+          CALL er_message(ounit, ios, ln, message)
+      END DO
+  END DO
+END IF
 
 !! MTEM PRINT OPTION
 READ(xbunit, *, IOSTAT=ios) ind, ln, popt
@@ -2910,24 +2975,25 @@ IF (ios == 0 .AND. popt > 0) THEN
         WRITE(ounit,1276) cmtem
     END IF
     WRITE(ounit,1262) rmtem
-
-    WRITE(ounit,*)
-    WRITE(ounit,*) ' MATERIAL CX CHANGES PER MODERATOR TEMPERATURE CHANGES : '
-    DO i= 1, nmat
-       WRITE(ounit,1269) i
-        WRITE(ounit,1271)'GROUP', 'TRANSPORT', 'ABSORPTION', &
-        'NU*FISS', 'FISSION'
-        DO g= 1, ng
-            WRITE(ounit,1270) g, msigtr(i,g), msiga(i,g), &
-            mnuf(i,g), msigf(i,g)
-            group(g) = g
-        END DO
-        WRITE(ounit,*)'  --SCATTERING MATRIX--'
-        WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
-        DO g= 1, ng
-            WRITE(ounit,1275)g, (msigs(i,g,h), h=1,ng)
-        END DO
-    END DO
+    IF (bxtab == 0) THEN  ! IF XTAB File does not present
+      WRITE(ounit,*)
+      WRITE(ounit,*) ' MATERIAL CX CHANGES PER MODERATOR TEMPERATURE CHANGES : '
+      DO i= 1, nmat
+         WRITE(ounit,1269) i
+          WRITE(ounit,1271)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+          'NU*FISS', 'FISSION'
+          DO g= 1, ng
+              WRITE(ounit,1270) g, msigtr(i,g), msiga(i,g), &
+              mnuf(i,g), msigf(i,g)
+              group(g) = g
+          END DO
+          WRITE(ounit,*)'  --SCATTERING MATRIX--'
+          WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
+          DO g= 1, ng
+              WRITE(ounit,1275)g, (msigs(i,g,h), h=1,ng)
+          END DO
+      END DO
+    END IF
 END IF
 
 1261 FORMAT(2X, 'AVERAGE MODERATOR TEMPERATURE   :', F6.2)
@@ -2946,6 +3012,7 @@ WRITE(ounit,*) ' ...Moderator Temperature Card is sucessfully read...'
 
 END SUBROUTINE inp_mtem
 
+!******************************************************************************!
 
 SUBROUTINE mtem_updt (mtem)
 
@@ -2977,6 +3044,7 @@ END DO
 
 END SUBROUTINE mtem_updt
 
+!******************************************************************************!
 
 SUBROUTINE inp_cden (xbunit)
 
@@ -3013,16 +3081,18 @@ CALL er_message(ounit, ios, ln, message)
 IF (bther == 0) ALLOCATE (cden(nnod))
 cden = ccden
 
-! Read CX changes per Coolant Density change
-ALLOCATE(lsigtr(nmat,ng), lsiga(nmat,ng), lnuf(nmat,ng), lsigf(nmat,ng), lsigs(nmat,ng,ng))
-DO i = 1, nmat
-    DO g= 1, ng
-        READ(xbunit, *, IOSTAT=ios) ind, ln, lsigtr(i,g), &
-        lsiga(i,g), lnuf(i,g), lsigf(i,g), (lsigs(i,g,h), h = 1, ng)
-        message = ' error in reading macro xs changes per Coolant Density changes'
-        CALL er_message(ounit, ios, ln, message)
-    END DO
-END DO
+IF (bxtab == 0) THEN  ! IF XTAB File does not present
+  ! Read CX changes per Coolant Density change
+  ALLOCATE(lsigtr(nmat,ng), lsiga(nmat,ng), lnuf(nmat,ng), lsigf(nmat,ng), lsigs(nmat,ng,ng))
+  DO i = 1, nmat
+      DO g= 1, ng
+          READ(xbunit, *, IOSTAT=ios) ind, ln, lsigtr(i,g), &
+          lsiga(i,g), lnuf(i,g), lsigf(i,g), (lsigs(i,g,h), h = 1, ng)
+          message = ' error in reading macro xs changes per Coolant Density changes'
+          CALL er_message(ounit, ios, ln, message)
+      END DO
+  END DO
+END IF
 
 !! CDEN PRINT OPTION
 READ(xbunit, *, IOSTAT=ios) ind, ln, popt
@@ -3034,24 +3104,25 @@ IF (ios == 0 .AND. popt > 0) THEN
         WRITE(ounit,1376) ccden
     END IF
     WRITE(ounit,1362) rcden
-
-    WRITE(ounit,*)
-    WRITE(ounit,*) ' MATERIAL CX CHANGES PER COOLANT DENSITY CHANGES : '
-    DO i= 1, nmat
-       WRITE(ounit,1369) i
-        WRITE(ounit,1371)'GROUP', 'TRANSPORT', 'ABSORPTION', &
-        'NU*FISS', 'FISSION'
-        DO g= 1, ng
-            WRITE(ounit,1370) g, lsigtr(i,g), lsiga(i,g), &
-            lnuf(i,g), lsigf(i,g)
-            group(g) = g
-        END DO
-        WRITE(ounit,*)'  --SCATTERING MATRIX--'
-        WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
-        DO g= 1, ng
-            WRITE(ounit,1375)g, (lsigs(i,g,h), h=1,ng)
-        END DO
-    END DO
+    IF (bxtab == 0) THEN  ! IF XTAB File does not present
+      WRITE(ounit,*)
+      WRITE(ounit,*) ' MATERIAL CX CHANGES PER COOLANT DENSITY CHANGES : '
+      DO i= 1, nmat
+         WRITE(ounit,1369) i
+          WRITE(ounit,1371)'GROUP', 'TRANSPORT', 'ABSORPTION', &
+          'NU*FISS', 'FISSION'
+          DO g= 1, ng
+              WRITE(ounit,1370) g, lsigtr(i,g), lsiga(i,g), &
+              lnuf(i,g), lsigf(i,g)
+              group(g) = g
+          END DO
+          WRITE(ounit,*)'  --SCATTERING MATRIX--'
+          WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
+          DO g= 1, ng
+              WRITE(ounit,1375)g, (lsigs(i,g,h), h=1,ng)
+          END DO
+      END DO
+    END IF
 END IF
 
 
@@ -3071,6 +3142,7 @@ WRITE(ounit,*) ' ...Coolant Density Card is sucessfully read...'
 
 END SUBROUTINE inp_cden
 
+!******************************************************************************!
 
 SUBROUTINE cden_updt (cden)
 
@@ -3102,6 +3174,7 @@ END DO
 
 END SUBROUTINE cden_updt
 
+!******************************************************************************!
 
 SUBROUTINE inp_ther (xbunit)
 
@@ -3121,7 +3194,7 @@ INTEGER, INTENT(IN) :: xbunit
 INTEGER :: ln   !Line number
 INTEGER :: ios  ! IOSTAT status
 
-INTEGER :: i, j, iost
+INTEGER :: i, j
 INTEGER :: nfpin, ngt                              ! Number of fuel pin and guide tubes
 
 INTEGER :: ly, lx, ytot, xtot
@@ -3257,13 +3330,7 @@ ALLOCATE(heatf(nnod))
 heatf = 0.
 
 ! Open steam table file
-OPEN (UNIT=thunit, FILE='st155bar', STATUS='OLD', ACTION='READ', &
-      IOSTAT = iost)
-IF (iost /= 0) THEN
-    WRITE(*,1091) iost
-    1091 FORMAT    (2X, 'Steam Table Open Failed--status', I6)
-    STOP
-END IF
+CALL openFile (thunit, 'st155bar', 'Steam Table Open Failed--status')
 
 ! Save steam table data to stab
 DO i = 1, ntem
@@ -3304,6 +3371,7 @@ DEALLOCATE(xsize, ysize, zsize)
 
 END SUBROUTINE inp_ther
 
+!******************************************************************************!
 
 SUBROUTINE  GetFq(fn)
 
@@ -3353,9 +3421,9 @@ WRITE(ounit, 4001) npmax
 
 END SUBROUTINE GetFq
 
+!******************************************************************************!
 
-
-SUBROUTINE er_message (funit, ios, ln, mess)
+SUBROUTINE er_message (funit, iost, ln, mess, xtab)
 !
 ! Purpose:
 !    To provide error message
@@ -3363,29 +3431,50 @@ SUBROUTINE er_message (funit, ios, ln, mess)
 
 IMPLICIT NONE
 
-INTEGER, INTENT(IN) :: funit, ios, ln
+INTEGER, INTENT(IN) :: funit, iost, ln
+INTEGER, OPTIONAL, INTENT(IN) :: xtab
 CHARACTER(LEN=*), INTENT(IN) :: mess
 
-IF (ios < 0) THEN
-    WRITE(funit, 1013) ln
+IF (iost < 0) THEN
+    IF (PRESENT(xtab)) THEN
+      WRITE(funit, 1014) ln, xtab
+    ELSE
+      WRITE(funit, 1013) ln
+    END IF
     WRITE(funit,*) mess
-    WRITE(*, 1013) ln
+    IF (PRESENT(xtab)) THEN
+      WRITE(*, 1014) ln, xtab
+    ELSE
+      WRITE(*, 1013) ln
+    END IF
     WRITE(*,*) mess
     1013 FORMAT(2x, 'ERROR: Line', I4, ' needs more data')
+    1014 FORMAT(2x, 'ERROR: Line', I4, &
+    'in XTAB file for material number' , I4, '. It needs more data')
     STOP
 END IF
-IF (ios > 0) THEN
-    WRITE(funit,1004) ln
+IF (iost > 0) THEN
+    IF (PRESENT(xtab)) THEN
+       WRITE(funit, 1005) ln, xtab
+    ELSE
+       WRITE(funit, 1004) ln
+    END IF
     WRITE(funit,*) mess
-    WRITE(*,1004) ln
+    IF (PRESENT(xtab)) THEN
+      WRITE(*, 1005) ln, xtab
+    ELSE
+      WRITE(*, 1004) ln
+    END IF
     WRITE(*,*) mess
-    1004 FORMAT(2X, 'ERROR: Please check line number', I5)
+    1004 FORMAT(2X, 'ERROR: Please check line number', I4)
+    1005 FORMAT(2X, 'ERROR: Please check line number', I4, &
+    ' in XTAB file for material number ', I4)
     STOP
 END IF
 
 END SUBROUTINE er_message
 
-
+!******************************************************************************!
 
 SUBROUTINE NodPow (fn)
 
@@ -3430,6 +3519,7 @@ END DO
 
 END SUBROUTINE NodPow
 
+!******************************************************************************!
 
 SUBROUTINE AsmPow(fn)
 
@@ -3508,7 +3598,7 @@ DO j= 1, ny
 END DO
 
 
-! Normalize assembly power to 1.0
+! Normalize assembly power to 1._DP
 xmax = 1; ymax = 1
 fmax = 0._DP
 DO j = 1, ny
@@ -3569,7 +3659,7 @@ WRITE(ounit,1101) ymax, xmax, fasm(xmax, ymax)
 
 END SUBROUTINE AsmPow
 
-
+!******************************************************************************!
 
 SUBROUTINE  AxiPow(fn)
 
@@ -3579,7 +3669,7 @@ SUBROUTINE  AxiPow(fn)
 !
 
 USE sdata, ONLY: nxx, nyy, nzz, nz, zdiv, &
-                vdel, ystag, nnod, ix, iy, iz, xyz, zdel, ystag
+                vdel, ystag, nnod, ix, iy, iz, xyz, zdel, ystag, coreh
 
 IMPLICIT NONE
 
@@ -3621,7 +3711,7 @@ DO k= 1, nz
     IF (faxi(k) > 0._DP) totp  = totp + faxi(k)
 END DO
 
-! Normalize Axial power to 1.0
+! Normalize Axial power to 1._DP
 fmax = 0._DP
 amax = 1
 DO k = 1, nz
@@ -3664,6 +3754,7 @@ WRITE(ounit,1102)  amax, faxi(amax)
 
 END SUBROUTINE AxiPow
 
+!******************************************************************************!
 
 SUBROUTINE  AsmFlux(fn, norm)
 
@@ -3809,7 +3900,7 @@ END DO
 
 END SUBROUTINE AsmFlux
 
-
+!******************************************************************************!
 
 SUBROUTINE  w_rst()
 

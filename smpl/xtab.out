@@ -1,0 +1,92 @@
+                       ###########################################################
+                       #                     ADPRES 1.1                          #
+                       #        ABU DHABI POLYTECHNIC REACTOR SIMULATOR          #
+                       ###########################################################  
+
+
+  ========================================INPUT DATA STARTS HERE=====================================
+     1: ! IAEA3D input data                                                                                 
+     2: ! NODE SIZE = 10 cm                                                                                 
+     3: ! PARCS K-EFF  : 1.029096                                                                           
+     4: ! ADPRES K-EFF : 1.029084 (ERROR = 1.2 PCM)                                                         
+     5: ! MAXIMUM ASSEMBLY ERROR = 0.33 %                                                                   
+     6:                                                                                                     
+     7: %MODE                                                                                               
+     8: FORWARD                                                                                             
+     9: %CASE                                                                                               
+    10: IAEA3D                                                                                              
+    11: 10 CM NODE SIZE                                                                                     
+    12: %XTAB                                                                                               
+    13: 2  5    ! Number of groups and number of materials                                                  
+    14: ! sigtr   siga   nu*sigf sigf   chi   sigs_g1  sigs_g2                                              
+    15: /media/windows/GitHub/ADPRES/smpl/2G_XSEC_u42   1                                                   
+    16: /media/windows/GitHub/ADPRES/smpl/2G_XSEC_u45   2                                                   
+    17: /media/windows/GitHub/ADPRES/smpl/2G_XSEC_u42   7                                                   
+    18: /media/windows/GitHub/ADPRES/smpl/2G_XSEC_u45   1                                                   
+    19: /media/windows/GitHub/ADPRES/smpl/2G_XSEC_u42   5                                                   
+    20: %GEOM                                                                                               
+    21: 9 9 19         !nx, ny, nz                                                                          
+    22: 10.0 8*20.0    !x-direction assembly size in cm                                                     
+    23: 1  8*2         !x-direction assembly divided into 2 (10 cm each)                                    
+    24: 8*20.0 10.0    !y-direction assembly size in cm                                                     
+    25: 8*2  1         !y-direction assembly divided into 2 (10 cm each)                                    
+    26: 19*20.0        !z-direction assembly  in cm                                                         
+    27: 19*1           !z-direction nodal is not divided                                                    
+    28: 4              !np number of planar type                                                            
+    29: 1  13*2  4*3  4     !planar assignment (from bottom to top)                                         
+    30: ! Planar_type_1 (Bottom Reflector)                                                                  
+    31:   4  4  4  4  4  4  4  4  4                                                                         
+    32:   4  4  4  4  4  4  4  4  4                                                                         
+    33:   4  4  4  4  4  4  4  4  4                                                                         
+    34:   4  4  4  4  4  4  4  4  4                                                                         
+    35:   4  4  4  4  4  4  4  4  0                                                                         
+    36:   4  4  4  4  4  4  4  4  0                                                                         
+    37:   4  4  4  4  4  4  4  0  0                                                                         
+    38:   4  4  4  4  4  4  0  0  0                                                                         
+    39:   4  4  4  4  0  0  0  0  0                                                                         
+    40: ! Planar_type_2 (Fuel)                                                                              
+    41:   3  2  2  2  3  2  2  1  4                                                                         
+    42:   2  2  2  2  2  2  2  1  4                                                                         
+    43:   2  2  2  2  2  2  1  1  4                                                                         
+    44:   2  2  2  2  2  2  1  4  4                                                                         
+    45:   3  2  2  2  3  1  1  4  0                                                                         
+    46:   2  2  2  2  1  1  4  4  0                                                                         
+    47:   2  2  1  1  1  4  4  0  0                                                                         
+    48:   1  1  1  4  4  4  0  0  0                                                                         
+    49:   4  4  4  4  0  0  0  0  0                                                                         
+    50: ! Planar_type_3 (Fuel+Partial Control Rods)                                                         
+    51:   3  2  2  2  3  2  2  1  4                                                                         
+    52:   2  2  2  2  2  2  2  1  4                                                                         
+    53:   2  2  3  2  2  2  1  1  4                                                                         
+    54:   2  2  2  2  2  2  1  4  4                                                                         
+    55:   3  2  2  2  3  1  1  4  0                                                                         
+    56:   2  2  2  2  1  1  4  4  0                                                                         
+    57:   2  2  1  1  1  4  4  0  0                                                                         
+    58:   1  1  1  4  4  4  0  0  0                                                                         
+    59:   4  4  4  4  0  0  0  0  0                                                                         
+    60: ! Planar_type_4 (Top reflectors)                                                                    
+    61:   5  4  4  4  5  4  4  4  4                                                                         
+    62:   4  4  4  4  4  4  4  4  4                                                                         
+    63:   4  4  5  4  4  4  4  4  4                                                                         
+    64:   4  4  4  4  4  4  4  4  4                                                                         
+    65:   5  4  4  4  5  4  4  4  0                                                                         
+    66:   4  4  4  4  4  4  4  4  0                                                                         
+    67:   4  4  4  4  4  4  4  0  0                                                                         
+    68:   4  4  4  4  4  4  0  0  0                                                                         
+    69:   4  4  4  4  0  0  0  0  0                                                                         
+    70: ! Boundary conditions (east), (west), (north), (south), (bottom), (top)                             
+    71: 1 2 2 1 1 1                                                                                         
+  ========================================INPUT DATA   ENDS HERE=====================================
+
+
+
+                                             START READING INPUT
+  ***************************************************************************************************
+  CALCULATION MODE :                      FORWARD CALCULATION
+
+  CASE ID :   IAEA3D                                                                                            
+   10 CM NODE SIZE                                                                                   
+
+
+            >>>> READING TABULAR XSEC FILE <<<<
+            --------------------------------------------

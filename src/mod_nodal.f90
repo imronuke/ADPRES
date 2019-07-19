@@ -102,6 +102,7 @@ IF (opt) WRITE(ounit, '(A36,F9.6)') 'MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
 
 END SUBROUTINE outer4
 
+!******************************************************************************!
 
 SUBROUTINE outer4th(maxn)
 
@@ -168,6 +169,7 @@ END DO
 
 END SUBROUTINE outer4th
 
+!******************************************************************************!
 
 SUBROUTINE outer4Fx
 
@@ -239,6 +241,7 @@ WRITE(ounit, '(A36,F9.6)') 'MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
 
 END SUBROUTINE outer4Fx
 
+!******************************************************************************!
 
 SUBROUTINE outertf (ht, maxi)
 
@@ -299,6 +302,7 @@ END IF
 
 END SUBROUTINE outertf
 
+!******************************************************************************!
 
 SUBROUTINE outer4ad(popt)
 
@@ -385,7 +389,7 @@ IF (opt) WRITE(ounit, '(A36,F9.6)') 'MULTIPLICATION EFFECTIVE (K-EFF) = ', Ke
 
 END SUBROUTINE outer4ad
 
-
+!******************************************************************************!
 
 SUBROUTINE inner4(g)
 !
@@ -559,7 +563,7 @@ END DO
 
 END SUBROUTINE inner4
 
-
+!******************************************************************************!
 
 SUBROUTINE bcond (bc, nt, g, side)
 
@@ -584,7 +588,7 @@ END IF
 
 END SUBROUTINE bcond
 
-
+!******************************************************************************!
 
 SUBROUTINE FluxUpd4 (n, g, L)
 
@@ -669,28 +673,7 @@ fz2(n,g) = ( nod(n,g)%Q(7) - L(7)                &
 
 END SUBROUTINE FluxUpd4
 
-
-SUBROUTINE FluxUpd2 (nt, g)
-
-USE sdata, ONLY: nod, sigr, xdel, ydel, zdel, &
-                 f0, ix, iy, iz
-
-! Purpose:
-   ! To update nod averaged flux and flux moments
-
-IMPLICIT NONE
-
-INTEGER, INTENT(IN) :: g, nt
-
-! Calculate Zeroth Flux
-f0(nt,g)  = ( nod(nt,g)%Q(1)          &
-                 - nod(nt,g)%L(1)/xdel(ix(nt))   &
-                 - nod(nt,g)%L(2)/ydel(iy(nt))   &
-                 - nod(nt,g)%L(3)/zdel(iz(nt)))  &
-                 / sigr(nt,g)
-
-END SUBROUTINE FluxUpd2
-
+!******************************************************************************!
 
 SUBROUTINE TLUpd (n, g, L)
 
@@ -1009,6 +992,7 @@ L(7) = ( r2zx/xdel(ix(n))+r2zy/ydel(iy(n)) ) / 20.
 
 END SUBROUTINE TLUpd
 
+!******************************************************************************!
 
 SUBROUTINE FSrc(s, sx1, sy1, sz1, sx2, sy2, sz2)
 !
@@ -1040,6 +1024,7 @@ END DO
 
 END SUBROUTINE FSrc
 
+!******************************************************************************!
 
 SUBROUTINE FSrcAd(s, sx1, sy1, sz1, sx2, sy2, sz2)
 !
@@ -1071,7 +1056,7 @@ END DO
 
 END SUBROUTINE FSrcAd
 
-
+!******************************************************************************!
 
 SUBROUTINE TSrc(g, Keff)
 !
@@ -1119,6 +1104,7 @@ END DO
 
 END SUBROUTINE TSrc
 
+!******************************************************************************!
 
 SUBROUTINE TSrcFx(g)
 !
@@ -1165,6 +1151,7 @@ END DO
 
 END SUBROUTINE TSrcFx
 
+!******************************************************************************!
 
 SUBROUTINE TSrcT(g, ht)
 !
@@ -1236,6 +1223,7 @@ END DO
 
 END SUBROUTINE TSrcT
 
+!******************************************************************************!
 
 SUBROUTINE TSrcAd(g, Keff)
 !
@@ -1283,6 +1271,7 @@ END DO
 
 END SUBROUTINE TSrcAd
 
+!******************************************************************************!
 
 SUBROUTINE LxyzUpd (nt,g)
 
@@ -1304,6 +1293,7 @@ nod(nt,g)%L(3) = nod(nt,g)%jo(5) - nod(nt,g)%ji(5) &
 
 END SUBROUTINE LxyzUpd
 
+!******************************************************************************!
 
 SUBROUTINE nodal_coup4()
 !
@@ -1439,6 +1429,7 @@ END DO
 
 END SUBROUTINE nodal_coup4
 
+!******************************************************************************!
 
 SUBROUTINE inverse (g, nt, mat)
 
@@ -1547,8 +1538,9 @@ END DO
 
 END SUBROUTINE inverse
 
+!******************************************************************************!
 
-REAL(DP) FUNCTION Integrate(s)
+FUNCTION Integrate(s) RESULT(intg)
 
   !
   ! Purpose:
@@ -1559,16 +1551,17 @@ USE sdata, ONLY: nnod, vdel
 IMPLICIT NONE
 
 REAL(DP), DIMENSION (:), INTENT(IN) :: s
+REAL(DP) :: intg
 INTEGER :: n
 
-Integrate = 0.
+intg = 0.
 DO n = 1, nnod
-    Integrate = Integrate + vdel(n) * s(n)
+    intg = intg + vdel(n) * s(n)
 END DO
 
 END FUNCTION Integrate
 
-
+!******************************************************************************!
 
 SUBROUTINE matvec (mat, vec, rvec)
 !
@@ -1598,7 +1591,7 @@ END DO
 
 END SUBROUTINE matvec
 
-
+!******************************************************************************!
 
 SUBROUTINE RelE(newF, oldF, rel)
 
@@ -1627,6 +1620,7 @@ END DO
 
 END SUBROUTINE RelE
 
+!******************************************************************************!
 
 SUBROUTINE RelEg(newF, oldF, rel)
 
@@ -1657,6 +1651,7 @@ END DO
 
 END SUBROUTINE RelEg
 
+!******************************************************************************!
 
 SUBROUTINE MultF(k)
 
@@ -1706,7 +1701,7 @@ k = fiss / (leak + absp)
 
 END SUBROUTINE MultF
 
-
+!******************************************************************************!
 
 SUBROUTINE Init()
 
@@ -1794,7 +1789,7 @@ ALLOCATE (fsx2(nnod), fsy2(nnod), fsz2(nnod))
 
 END SUBROUTINE Init
 
-
+!******************************************************************************!
 
 SUBROUTINE PowDis (p)
 
@@ -1841,6 +1836,7 @@ END DO
 
 END SUBROUTINE PowDis
 
+!******************************************************************************!
 
 SUBROUTINE PowTot (fx,tpow)
 
@@ -1875,8 +1871,9 @@ END DO
 
 END SUBROUTINE PowTot
 
+!******************************************************************************!
 
-FUNCTION AbsAr (ar)
+FUNCTION AbsAr (ar) RESULT(arx)
 
 !
 ! Purpose:
@@ -1889,16 +1886,17 @@ USE sdata, ONLY: nnod
 IMPLICIT NONE
 
 REAL(DP), DIMENSION(:), INTENT(IN) :: ar
-REAL(DP), DIMENSION(nnod) :: AbsAr
+REAL(DP), DIMENSION(nnod) :: arx
 
 INTEGER :: n
 
 DO n= 1, nnod
-   AbsAr(n) = ABS(ar(n))
+   arx(n) = ABS(ar(n))
 END DO
 
 END FUNCTION AbsAr
 
+!******************************************************************************!
 
 SUBROUTINE forward()
 
@@ -1951,7 +1949,7 @@ IF (afrad == 1) CALL AsmFlux(f0, 1.e0_DP)
 
 END SUBROUTINE forward
 
-
+!******************************************************************************!
 
 SUBROUTINE adjoint()
 
@@ -2003,7 +2001,7 @@ IF (afrad == 1) CALL AsmFlux(f0, 1.e0_DP)
 
 END SUBROUTINE adjoint
 
-
+!******************************************************************************!
 
 SUBROUTINE fixedsrc()
 

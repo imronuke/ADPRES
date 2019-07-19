@@ -112,6 +112,10 @@ REAL(DP), DIMENSION(:), ALLOCATABLE :: tmove    ! Time when CR bank starts movin
 REAL(DP), DIMENSION(:), ALLOCATABLE :: bspeed   ! CR bank movement speed
 INTEGER, DIMENSION(:), ALLOCATABLE :: mdir  ! To indicate CR movement direction (0=do not move, 1=down, 2 = up)
 INTEGER :: cusp = 0                         ! Rod cusping option
+REAL(DP) :: nstep                                         ! Number of steps
+REAL(DP)    :: coreh                                      ! Core Height
+INTEGER, DIMENSION(:,:), ALLOCATABLE :: fbmap             ! Radial control rod bank map (node wise)
+REAL(DP) :: pos0, ssize                                   ! Zero step position and step size
 
 ! Boron Concentration
 REAL(DP) :: bcon       ! Boron concentration in ppm
@@ -155,8 +159,28 @@ INTEGER, PARAMETER :: thunit = 300                 ! Unit number to open steam t
 REAL(DP), PARAMETER :: pi = 3.14159265
 
 ! Steam Table data
-INTEGER, PARAMETER:: ntem = 16   ! Number of temperature in steam table
-REAL(DP), DIMENSION(ntem,6) :: stab  ! Steam table matrix
+INTEGER, PARAMETER:: ntem = 9   ! Number of temperature in steam table
+REAL(DP), DIMENSION(ntem,6) :: stab  ! Steam table matrixs
+
+! Data type for branch xsec data used if XTAB file present
+TYPE :: XBRANCH
+  REAL(DP), DIMENSION(:), ALLOCATABLE :: sigtr, siga, nuf, sigf   !XSEC
+  REAL(DP), DIMENSION(:,:), ALLOCATABLE :: sigs
+  REAL(DP), DIMENSION(:,:), ALLOCATABLE :: dc        !ASSEMBLY DISCONTINUITY FACTOR
+END TYPE
+! Data Type to store data in XTAB file
+TYPE :: MBRANCH
+  REAL(DP), DIMENSION(:), ALLOCATABLE :: pcden, pbcon, pftem, pmtem  !Branch paramaters
+  TYPE(XBRANCH), DIMENSION(:,:,:,:), ALLOCATABLE :: xsec        !Unrodded XSEC
+  TYPE(XBRANCH), DIMENSION(:,:,:,:), ALLOCATABLE :: rxsec       !Rodded XSEC
+  REAL(DP), DIMENSION(:), ALLOCATABLE :: chi    ! FISSION SPECTcontrol rod
+  REAL(DP), DIMENSION(:), ALLOCATABLE :: velo   ! Neutron velocity
+  REAL(DP), DIMENSION(nf) :: ibeta, lamb          ! beta and decay constant
+  INTEGER :: tadf            !Control input: adf
+  INTEGER :: trod            !Control input: control rod
+END TYPE
+TYPE(MBRANCH), DIMENSION(:), ALLOCATABLE :: xmat
+INTEGER :: ncden, nbcon, nftem, nmtem  ! BRANCH PARAMETER DIMENSION
 
 
 END MODULE sdata

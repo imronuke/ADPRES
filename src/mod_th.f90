@@ -192,7 +192,7 @@ REAL(DP) :: t1, ent1
 REAL(DP) :: t2, ent2
 INTEGER :: i
 
-IF ((t < 473.15) .OR. (t > 617.91)) THEN
+IF ((t < stab(1,1)) .OR. (t > stab(ntem,1))) THEN
     WRITE(ounit,*) '  Coolant temp. : ', t
     WRITE(ounit,*) '  ERROR : MODERATOR TEMP. IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
     WRITE(ounit,*) '  CHECK INPUT COOLANT MASS FLOW RATE OR CORE POWER'
@@ -236,7 +236,7 @@ REAL(DP) :: ratx
 
 INTEGER :: i
 
-IF ((ent < 858341.5) .OR. (ent > 1624307.1)) THEN
+IF ((ent < stab(1,3)) .OR. (ent > stab(ntem,3))) THEN
     WRITE(ounit,*) '  Enthalpy. : ', ent
     WRITE(ounit,*) '  ERROR : ENTHALPY IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
     WRITE(ounit,*) '  CHECK INPUT COOLANT MASS FLOW RATE OR CORE POWER'
