@@ -15,6 +15,7 @@ REAL(DP), DIMENSION(:,:), ALLOCATABLE :: nuf            ! nu* fission macroscopi
 REAL(DP), DIMENSION(:,:), ALLOCATABLE :: sigf           ! fission macroscopic cx
 REAL(DP), DIMENSION(:,:), ALLOCATABLE :: chi            ! neutron fission spectrum
 REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: sigs         ! Scattering macroscopic cx
+REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: dc           ! ADF
 REAL(DP), DIMENSION(:,:), ALLOCATABLE :: D              ! Diffusion coefficient
 REAL(DP), DIMENSION(:,:), ALLOCATABLE :: sigr           ! Removal macroscopic cx
 
@@ -73,7 +74,7 @@ REAL(DP) :: fer, ser        ! Flux and Fission source error in BCSEARCH calcs.
 INTEGER :: nin = 2      ! Maximum inner iteration
 INTEGER :: nout = 500   ! Maximum outer iteration
 INTEGER :: nac = 5      ! number of outer iteration before next source EXTRAPOLATION
-INTEGER :: th_niter = 20                           ! Maximum number of thermal-hydraulics iteration
+INTEGER :: th_niter = 2                           ! Maximum number of thermal-hydraulics iteration
 
 ! OUTPUT PRINT OPTION
 INTEGER :: aprad=1, apaxi=1, afrad=1
@@ -108,6 +109,7 @@ REAL(DP), DIMENSION(:), ALLOCATABLE :: bpos  ! CR bank position
 REAL(DP), DIMENSION(:), ALLOCATABLE :: fbpos    ! Final CR bank position
 REAL(DP), DIMENSION(:,:), ALLOCATABLE :: dsigtr, dsiga, dnuf, dsigf   ! CX incerement or decrement due to CR insertion
 REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: dsigs
+REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: ddc   ! increment or decreent for ADF
 REAL(DP), DIMENSION(:), ALLOCATABLE :: tmove    ! Time when CR bank starts moving
 REAL(DP), DIMENSION(:), ALLOCATABLE :: bspeed   ! CR bank movement speed
 INTEGER, DIMENSION(:), ALLOCATABLE :: mdir  ! To indicate CR movement direction (0=do not move, 1=down, 2 = up)
@@ -170,17 +172,16 @@ TYPE :: XBRANCH
 END TYPE
 ! Data Type to store data in XTAB file
 TYPE :: MBRANCH
-  REAL(DP), DIMENSION(:), ALLOCATABLE :: pcden, pbcon, pftem, pmtem  !Branch paramaters
+  INTEGER :: nd, nb, nf, nm  ! BRANCH PARAMETER DIMENSION (Coolant dens., boron conc., fuel and moderator temp.)
+  REAL(DP), DIMENSION(:), ALLOCATABLE :: pd, pb, pf, pm         !Branch paramaters (Coolant dens., boron conc., fuel and moderator temp.)
   TYPE(XBRANCH), DIMENSION(:,:,:,:), ALLOCATABLE :: xsec        !Unrodded XSEC
   TYPE(XBRANCH), DIMENSION(:,:,:,:), ALLOCATABLE :: rxsec       !Rodded XSEC
-  REAL(DP), DIMENSION(:), ALLOCATABLE :: chi    ! FISSION SPECTcontrol rod
   REAL(DP), DIMENSION(:), ALLOCATABLE :: velo   ! Neutron velocity
   REAL(DP), DIMENSION(nf) :: ibeta, lamb          ! beta and decay constant
   INTEGER :: tadf            !Control input: adf
   INTEGER :: trod            !Control input: control rod
 END TYPE
-TYPE(MBRANCH), DIMENSION(:), ALLOCATABLE :: xmat
-INTEGER :: ncden, nbcon, nftem, nmtem  ! BRANCH PARAMETER DIMENSION
+TYPE(MBRANCH), DIMENSION(:), ALLOCATABLE :: m
 
 
 END MODULE sdata

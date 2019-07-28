@@ -16,9 +16,10 @@ SUBROUTINE th_iter(ind)
   !
 
   USE sdata, ONLY: nnod, ftem, mtem, cden, bcon, bpos, npow, pow, ppow,  &
-                   zdel, node_nf, ix, iy, iz, th_err, node_nf, ix, iy, iz, th_niter
+                   zdel, node_nf, ix, iy, iz, th_err, node_nf, ix, iy, iz, &
+                   th_niter
   USE nodal, ONLY: nodal_coup4, outer4th, PowDis
-  USE InpOutp, ONLY: XS_updt, ounit
+  USE InpOutp, ONLY: XS_updt, XStab_updt, bxtab, ounit
 
   IMPLICIT NONE
 
@@ -33,7 +34,11 @@ SUBROUTINE th_iter(ind)
       otem = ftem
 
       ! Update XS
-      CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+      IF (bxtab == 1) THEN
+        CALL XStab_updt(bcon, ftem, mtem, cden, bpos)
+      ELSE
+        CALL XS_updt(bcon, ftem, mtem, cden, bpos)
+      END IF
 
       ! Update nodal couplings
       CALL nodal_coup4()
@@ -99,7 +104,7 @@ END DO
 END SUBROUTINE AbsE
 
 
-SUBROUTINE par_ave_f(par, ave)
+SUBROUTINE par_ave(par, ave)
 !
 ! Purpose:
 !    To calculate average fuel temp (only for active core)
@@ -120,32 +125,6 @@ DO n = 1, nnod
       dum = dum + par(n) * vdel(n)
       dum2 = dum2 + vdel(n)
    END IF
-END DO
-
-ave = dum / dum2
-
-END SUBROUTINE par_ave_f
-
-
-SUBROUTINE par_ave(par, ave)
-!
-! Purpose:
-!    To calculate average moderator temp (only for radially active core)
-!
-
-USE sdata, ONLY: vdel, nnod
-
-IMPLICIT NONE
-
-REAL(DP), DIMENSION(:), INTENT(IN) :: par
-REAL(DP), INTENT(OUT) :: ave
-REAL(DP) :: dum, dum2
-INTEGER :: n
-
-dum = 0.; dum2 = 0.
-DO n = 1, nnod
-   dum = dum + par(n) * vdel(n)
-   dum2 = dum2 + vdel(n)
 END DO
 
 ave = dum / dum2
@@ -193,10 +172,10 @@ REAL(DP) :: t2, ent2
 INTEGER :: i
 
 IF ((t < stab(1,1)) .OR. (t > stab(ntem,1))) THEN
-    WRITE(ounit,*) '  Coolant temp. : ', t
+    WRITE(ounit,*) '  Coolant temp. : ', t, 'K'
     WRITE(ounit,*) '  ERROR : MODERATOR TEMP. IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
     WRITE(ounit,*) '  CHECK INPUT COOLANT MASS FLOW RATE OR CORE POWER'
-    WRITE(*,*) '  Coolant temp. : ', t
+    WRITE(*,*) '  Coolant temp. : ', t, 'K'
     WRITE(*,*) '  ERROR : MODERATOR TEMP. IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
     WRITE(*,*) '  CHECK INPUT COOLANT MASS FLOW RATE OR CORE POWER'
     STOP
@@ -237,17 +216,14 @@ REAL(DP) :: ratx
 INTEGER :: i
 
 IF ((ent < stab(1,3)) .OR. (ent > stab(ntem,3))) THEN
-    WRITE(ounit,*) '  Enthalpy. : ', ent
+    WRITE(ounit,*) '  Enthalpy. : ', ent/1000., 'KJ/Kg'
     WRITE(ounit,*) '  ERROR : ENTHALPY IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
     WRITE(ounit,*) '  CHECK INPUT COOLANT MASS FLOW RATE OR CORE POWER'
-    WRITE(*,*) '  Enthalpy. : ', ent
+    WRITE(*,*) '  Enthalpy. : ', ent/1000., 'KJ/Kg'
     WRITE(*,*) '  ERROR : ENTHALPY IS OUT OF THE RANGE OF DATA IN THE STEAM TABLE'
     WRITE(*,*) '  CHECK INPUT COOLANT MASS FLOW RATE OR CORE POWER'
     STOP
 END IF
-
-
-
 
 t2 = stab(1,1); rho2 = stab(1,2); ent2 = stab(1,3)
 pr2 = stab(1,4); kv2 = stab(1,5); tc2 = stab(1,6)
@@ -273,6 +249,61 @@ END DO
 
 
 END SUBROUTINE gettd
+
+
+SUBROUTINE gettd2(ent,t,rho,prx,kvx,tcx)
+!
+! Purpose:
+!    To get enthalpy for given coolant temp. from steam table
+!
+
+USE sdata, ONLY: stab, ntem
+USE InpOutp, ONLY : ounit
+
+IMPLICIT NONE
+
+REAL(DP), INTENT(IN) :: ent
+REAL(DP), INTENT(OUT) :: t, rho, prx, kvx, tcx
+REAL(DP) :: ratx
+
+INTEGER :: i, i1, i2
+
+! Get two closest interpolation points
+IF (ent >= stab(1,3) .AND. ent <= stab(ntem,3)) THEN  !If enthalpy inside data range
+  DO i = 2, ntem
+    IF (ent >= stab(i-1,3) .AND. ent <= stab(i,3)) THEN
+      i1 = i-1
+      i2 = i
+      EXIT
+    END IF
+  END DO
+ELSE IF (ent < stab(1,3)  .AND. (stab(1,3) - ent) / stab(1,3) < 0.1) THEN !If 10% lower
+  i1 = 1
+  i2 = 2
+ELSE IF (ent > stab(ntem,3) .AND. (ent - stab(ntem,3)) / stab(ntem,3) < 0.1) THEN !if 10% higher
+  i1 = ntem-1
+  i2 = ntem
+ELSE
+  WRITE(ounit,1557) ent/1000.
+  WRITE(*,1557) ent/1000.
+  WRITE(ounit,*) '   CHECK INPUT COOLANT MASS FLOW RATE OR CORE POWER'
+  WRITE(*,*) '   CHECK INPUT COOLANT MASS FLOW RATE OR CORE POWER'
+  STOP
+  1557 FORMAT(2X, '  ERROR: ENTHALPY', F8.1 ,' KJ/Kg &
+  & IS OUT OF THE RANGE IN THE STEAM TABLE')
+END IF
+
+! Interpolate
+ratx = (ent - stab(i1,3)) / (stab(i2,3) - stab(i1,3))
+t   = stab(i1,1) + ratx * (stab(i2,1) - stab(i1,1))
+rho = stab(i1,2) + ratx * (stab(i2,2) - stab(i1,2))
+prx = stab(i1,4) + ratx * (stab(i2,4) - stab(i1,4))
+kvx = stab(i1,5) + ratx * (stab(i2,5) - stab(i1,5))
+tcx = stab(i1,6) + ratx * (stab(i2,6) - stab(i1,6))
+
+
+
+END SUBROUTINE gettd2
 
 
 REAL(DP) FUNCTION getkc(t)
@@ -555,11 +586,11 @@ DO n = 1, nnod
    cpline = heatf(n) * pi * dia  + cf * xpline(n) * 100._DP          ! Coolant Linear power densisty (W/m)
    IF (iz(n) == 1) THEN                                              ! For most bootom channel
       ent(n) = enti + 0.5_DP * cpline * zdel(iz(n)) * 0.01_DP / cflow    ! Calculate coolant enthalpy
-      CALL gettd(ent(n), mtem(n), cden(n), Pr, kv, tcon)             ! Get corresponding temp and density
+      CALL gettd2(ent(n), mtem(n), cden(n), Pr, kv, tcon)             ! Get corresponding temp and density
       entm(ix(n),iy(n)) = 2._DP * ent(n) - enti                      ! Extrapolate enthalpy at node boundary
    ELSE
       ent(n) = entm(ix(n),iy(n)) + 0.5_DP * cpline * zdel(iz(n)) * 0.01_DP / cflow
-      CALL gettd(ent(n), mtem(n), cden(n), Pr, kv, tcon)
+      CALL gettd2(ent(n), mtem(n), cden(n), Pr, kv, tcon)
       entm(ix(n),iy(n)) = 2._DP * ent(n) - entm(ix(n),iy(n))
    END IF
 
@@ -753,7 +784,7 @@ SUBROUTINE cbsearcht()
 USE sdata, ONLY: Ke, ftem, mtem, bcon, rbcon, npow, nnod, &
                  f0, ser, fer, tfm, aprad, apaxi, afrad, npow, th_err, &
                  serc, ferc
-USE InpOutp, ONLY: ounit, XS_updt, AsmFlux, AsmPow, AxiPow, getfq
+USE InpOutp, ONLY: ounit, XS_updt, AsmFlux, AsmPow, AxiPow, getfq, bxtab
 USE nodal, ONLY: powdis, nodal_coup4, outer4
 
 IMPLICIT NONE
@@ -794,7 +825,11 @@ WRITE(*,*) ' --------------------------------------------------------'
 
 ALLOCATE(npow(nnod))
 
-bcon = rbcon
+IF (bxtab == 1) THEN
+  bcon = 1000.
+ELSE
+  bcon = rbcon
+END IF
 CALL th_iter()  ! Start thermal hydarulic iteration with current paramters
 bc1 = bcon
 ke1 = Ke
@@ -802,7 +837,11 @@ ke1 = Ke
 WRITE(ounit,'(I5, F15.2, F23.5, ES16.5, ES21.5, ES22.5)') 1, bc1, Ke1, ser, fer, th_err
 WRITE(*,'(I5, F15.2, F23.5)') 1, bc1, Ke1
 
-bcon = bcon + (Ke - 1.) * bcon   ! Guess next critical boron concentration
+IF (bcon < 1.e-5) THEN
+  bcon = 500.
+ELSE
+  bcon = bcon + (Ke - 1.) * bcon   ! Guess next critical boron concentration
+END IF
 CALL th_iter()                 ! Perform second thermal hydarulic iteration with updated parameters
 bc2 = bcon
 ke2 = Ke
@@ -852,7 +891,7 @@ IF (apaxi == 1) CALL AxiPow(npow)
 
 IF (afrad == 1) CALL AsmFlux(f0, 1._DP)
 
-CALL par_ave_f(ftem, tf)
+CALL par_ave(ftem, tf)
 CALL par_ave(mtem, tm)
 
 CALL par_max(tfm(:,1), mtf)

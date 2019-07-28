@@ -11,7 +11,7 @@ IMPLICIT NONE
 SAVE
 
 CHARACTER(LEN=1) :: ind          ! used to read x indicator in input buffer to prevent error
-CHARACTER(LEN=100) :: message    ! error message
+CHARACTER(LEN=200) :: message    ! error message
 CHARACTER(LEN=100):: iline  ! Input line
 !Ouput options
 LOGICAL, PARAMETER :: ogeom = .TRUE.  ! Geometry output option
@@ -52,6 +52,8 @@ INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: mnum
 
 CONTAINS
 
+!******************************************************************************!
+
 SUBROUTINE inp_read()
 !
 ! Purpose:
@@ -62,7 +64,6 @@ SUBROUTINE inp_read()
 
 
 USE sdata, ONLY: ng, nnod, mode, al
-USE InpOutp2, ONLY: inp_xtab
 
 IMPLICIT NONE
 
@@ -81,7 +82,7 @@ ENDIF
 
 iname = TRIM(iname)
 
-CALL openFIle (iunit, iname, 'Input File Open Failed--status')
+CALL openFIle (iunit, iname, 'input', 'Input File Open Failed--status')
 
 oname = TRIM(iname) // '.out'
 oname = TRIM(oname)
@@ -188,7 +189,7 @@ IF (bprnt == 1) CALL inp_prnt (uprnt)
 ! Card CBCS
 IF (mode == 'BCSEARCH' .AND. bcbcs == 1) THEN
     CALL inp_cbcs(ucbcs)
-ELSE IF (mode == 'BCSEARCH' .AND. bcbcs /= 1) THEN
+ELSE IF (mode == 'BCSEARCH' .AND. bcbcs == 0 .AND. bxtab == 0) THEN
     WRITE(ounit,*) '   ERROR: CALCULATION MODE IS CRITICAL BORON CONCENTRATION SEARCH'
     WRITE(ounit,1041) 'CBCS', 'CRITICAL BORON CONCENTRATION SEARCH'
     WRITE(*,*) '   ERROR: CALCULATION MODE IS CRITICAL BORON CONCENTRATION SEARCH'
@@ -250,30 +251,34 @@ ELSE IF (bther == 1 .AND. mode == 'ADJOINT') THEN
     STOP
 ELSE IF (bther == 1 .AND. bftem == 1 .AND. (bmtem ==1 .OR. bcden == 1)) THEN
     CALL inp_ther (uther)
+ELSE IF (bther == 1 .AND. bxtab == 1) THEN
+      CALL inp_ther (uther)
 ELSE IF (bther == 0) THEN
     CONTINUE
 ELSE
-    WRITE(ounit,*)'   ERROR: WHEN %THER CARD PRESENT %FTEM AND,' // &
-                  'AT LEAST ONE OF THE FOLLOWING CARDS MUST PRESENT'
-    WRITE(ounit,*)'   1. %MTEM   2. %CDEN'
-    WRITE(*,*)'   ERROR: WHEN %THER CARD PRESENT %FTEM AND,' // &
-                  'AT LEAST ONE OF THE FOLLOWING CARDS MUST PRESENT'
-    WRITE(*,*)'   1. %MTEM   2. %CDEN'
-    STOP
+    IF (bxtab /= 1) THEN
+      WRITE(ounit,*)'   ERROR: WHEN %THER CARD PRESENT %FTEM AND,' // &
+                    'AT LEAST ONE OF THE FOLLOWING CARDS MUST PRESENT'
+      WRITE(ounit,*)'   1. %MTEM   2. %CDEN'
+      WRITE(*,*)'   ERROR: WHEN %THER CARD PRESENT %FTEM AND,' // &
+                    'AT LEAST ONE OF THE FOLLOWING CARDS MUST PRESENT'
+      WRITE(*,*)'   1. %MTEM   2. %CDEN'
+      STOP
+    END IF
 END IF
 
 
 !!CARD BCON
-IF (bbcon == 1) CALL inp_bcon (ubcon)
+IF (bbcon == 1 .AND. bxtab == 0) CALL inp_bcon (ubcon)
 
 !!CARD FTEM
-IF (bftem == 1) CALL inp_ftem (uftem)
+IF (bftem == 1 .AND. bxtab == 0) CALL inp_ftem (uftem)
 
 !!CARD MTEM
-IF (bmtem == 1) CALL inp_mtem (umtem)
+IF (bmtem == 1 .AND. bxtab == 0) CALL inp_mtem (umtem)
 
 !!CARD CDEN
-IF (bcden == 1) CALL inp_cden (ucden)
+IF (bcden == 1 .AND. bxtab == 0) CALL inp_cden (ucden)
 
 
 !CARD ADF
@@ -343,20 +348,23 @@ END SUBROUTINE inp_read
 
 !******************************************************************************!
 
-SUBROUTINE openFile(iunit, iname, message)
+SUBROUTINE openFile(iunit, iname, file, message)
 
 INTEGER :: iunit
-CHARACTER(LEN=*) :: iname, message
+CHARACTER(LEN=*) :: iname, file, message
 INTEGER  :: iost
 
 OPEN (UNIT=iunit, FILE=iname, STATUS='OLD', ACTION='READ', &
       IOSTAT = iost)
 
 IF (iost /= 0) THEN
-    WRITE(*,1020) message, iost
-    WRITE(*,*) '  CANNOT OPEN FILE : ', iname
-    1020 FORMAT    (2X, A, I6)
-    STOP
+  WRITE(ounit,*)
+  WRITE(ounit,1020) message, iost
+  WRITE(ounit,*) '  CANNOT OPEN '// file //' FILE : ', iname
+  WRITE(*,1020) message, iost
+  WRITE(*,*) '  CANNOT OPEN '// file //' FILE : ', iname
+  1020 FORMAT    (2X, A, I6)
+  STOP
 END IF
 
 END SUBROUTINE openFile
@@ -647,6 +655,7 @@ INTEGER :: ln   !Line number
 INTEGER :: ios  ! IOSTAT status
 REAL(DP) :: dum
 INTEGER, DIMENSION(:), ALLOCATABLE :: group
+INTEGER :: comm1, comm2
 
 WRITE(ounit,*)
 WRITE(ounit,*)
@@ -675,6 +684,17 @@ ALLOCATE(chi  (nmat,ng))
 ! Reading MACROSCOPIC CXs
 DO i= 1, nmat
     DO g= 1, ng
+        ! To ancticipate users make mistake when they use %XTAB instead of %XSEC
+        READ(xbunit, '(A100)') iline
+        comm1 = INDEX(iline, '/')
+        comm2 = INDEX(iline, '\')
+        IF (comm1 > 0 .OR. comm2 > 0) THEN
+          WRITE(ounit, *) '  ERROR: SLASH (/) OR BACKSLASH (\) NOT ACCEPTED IN %XSEC CARD '
+          WRITE(*, *) '  ERROR: SLASH (/) OR BACKSLASH (\) NOT ACCEPTED IN %XSEC CARD '
+          STOP
+        END IF
+        BACKSPACE(xbunit)
+
         READ(xbunit, *, IOSTAT=ios) ind, ln, xsigtr(i,g), &
         xsiga(i,g), xnuf(i,g), xsigf(i,g), &
         chi(i,g), (xsigs(i,g,h), h = 1, ng)
@@ -688,7 +708,6 @@ DO i= 1, nmat
         END IF
         IF (xnuf(i,g) > 0.) ccnuf = .FALSE.
         IF (xsigf(i,g) > 0.) ccsigf = .FALSE.
-
 
         xD(i,g) = 1./(3.*xsigtr(i,g))
         dum = 0.0
@@ -729,7 +748,7 @@ IF (ccsigf .AND. mode /= 'FIXEDSRC') THEN
 END IF
 
 WRITE(ounit,*)
-WRITE(ounit,*) ' ...Macroscopic CX Card is sucessfully read...'
+WRITE(ounit,*) ' ...Macroscopic CX Card is successfully read...'
 
 1009 FORMAT(5X, 'MATERIAL', I3)
 1011 FORMAT(2X, A7, A12, A13, A12, A11, 2A13, A15)
@@ -1174,7 +1193,7 @@ END IF
 1018 FORMAT(2X, 'Planar Region Assignment to planes.')
 
 WRITE(ounit,*)
-WRITE(ounit,*) ' ...Core geometry is sucessfully read...'
+WRITE(ounit,*) ' ...Core geometry is successfully read...'
 
 ! Calculate core height
 coreh = 0._DP
@@ -1206,7 +1225,7 @@ SUBROUTINE misc ()
 
 USE sdata, ONLY: nxx, nyy, nzz, ix, iy, iz, xyz, &
                  nnod, sigtr, siga, nuf, sigf, &
-                 sigs, D, sigr, ng, ystag, &
+                 sigs, D, sigr, dc, ng, ystag, &
                  xdel, ydel, zdel, vdel, &
                  mat
 
@@ -1240,6 +1259,7 @@ ALLOCATE(sigf (nnod,ng))
 ALLOCATE(sigs (nnod,ng,ng))
 ALLOCATE(D    (nnod,ng))
 ALLOCATE(sigr (nnod,ng))
+IF (bxtab == 1) ALLOCATE(dc (nnod,6,ng))
 
 ! Calculate nodes' volume
 ALLOCATE(vdel(nnod))
@@ -1276,6 +1296,45 @@ CALL Dsigr_updt()
 
 
 END SUBROUTINE XS_updt
+
+!******************************************************************************!
+
+SUBROUTINE XStab_updt (xbcon, xftem, xmtem, xcden, xbpos)
+!
+! Purpose:
+!    To update XS for given TH paramaters and rod position (when xtab file exist)
+!
+
+USE sdata, ONLY : nnod, mat, sigtr, siga, nuf, sigf, sigs, dc
+
+IMPLICIT NONE
+
+REAL(DP), INTENT(IN) :: xbcon  ! Provided Boron Concentration
+REAL(DP), DIMENSION(:), INTENT(IN) :: xftem  ! Provided fuel temperature
+REAL(DP), DIMENSION(:), INTENT(IN) :: xmtem  ! Provided moderator temperature
+REAL(DP), DIMENSION(:), INTENT(IN) :: xcden  ! Provided coolant density
+REAL(DP), DIMENSION(:), INTENT(IN) :: xbpos  ! Provided control rod bank position
+
+INTEGER :: n
+
+DO n = 1, nnod
+  CALL brInterp(0, mat(n), xcden(n),  xbcon, xftem(n), xmtem(n), sigtr(n,:), &
+  siga(n,:), nuf(n,:), sigf(n,:), sigs(n,:,:), dc(n,:,:))
+  ! CALL brInterp(0, 5,  0.75206_DP, 2000._DP, 900._DP, 500._DP, sigtr(n,:), &
+  ! siga(n,:), nuf(n,:), sigf(n,:), sigs(n,:,:), dc(n,:,:))
+  ! WRITE(*,'(16ES16.5)') sigtr(n,:)
+  ! WRITE(*,'(16ES16.5)') siga(n,:)
+  ! WRITE(*,'(16ES16.5)') nuf(n,:)
+  ! WRITE(*,'(16ES16.5)') sigf(n,:)
+  ! WRITE(*,'(16ES16.5)') sigs(n,:,:)
+  ! WRITE(*,*) 'HERE'
+  ! STOP
+END DO
+! IF (bcrod == 1) CALL crod_updt(xbpos)
+CALL DsigrDc_updt()
+
+
+END SUBROUTINE XStab_updt
 
 !******************************************************************************!
 
@@ -1335,6 +1394,58 @@ DO i = 1, nnod
 END DO
 
 END SUBROUTINE Dsigr_updt
+
+!******************************************************************************!
+
+SUBROUTINE DsigrDc_updt ()
+!
+! Purpose:
+!    To update diffusion constant and removal XS
+!
+
+
+USE sdata, ONLY: nnod, ng, sigtr, siga, dc, al, &
+                 sigs, D, sigr, nzz, nyy, ystag, xstag, xyz
+
+IMPLICIT NONE
+
+INTEGER :: i, j, k, g, h
+REAL(DP) :: dum
+
+DO i = 1, nnod
+    DO g = 1, ng
+        D(i,g) = 1./(3.*sigtr(i,g))
+        dum = 0.
+        DO h= 1, ng
+            IF (g /= h) dum = dum + sigs(i,g,h)
+        END DO
+        sigr(i,g) =  siga(i,g) + dum
+    END DO
+END DO
+
+! Calculate alpha
+DO g = 1, ng
+    DO k = 1, nzz
+        DO j = 1, nyy
+            DO i = ystag(j)%smin, ystag(j)%smax
+                IF (i /= ystag(j)%smax) al(xyz(i,j,k), g)%dc(1) = &
+                0.5_DP * (1._DP - dc(xyz(i,j,k), 1, g) / dc(xyz(i+1,j,k),2,g))
+                IF (i /= ystag(j)%smin) al(xyz(i,j,k), g)%dc(2) = &
+                0.5_DP * (1._DP - dc(xyz(i,j,k), 2, g) / dc(xyz(i-1,j,k),1,g))
+                IF (j /= xstag(i)%smax) al(xyz(i,j,k), g)%dc(3) = &
+                0.5_DP * (1._DP - dc(xyz(i,j,k), 3, g) / dc(xyz(i,j+1,k),4,g))
+                IF (j /= xstag(i)%smin) al(xyz(i,j,k), g)%dc(4) = &
+                0.5_DP * (1._DP - dc(xyz(i,j,k), 4, g) / dc(xyz(i,j-1,k),3,g))
+                IF (k /= nzz)           al(xyz(i,j,k), g)%dc(5) = &
+                0.5_DP * (1._DP - dc(xyz(i,j,k), 5, g) / dc(xyz(i,j,k+1),6,g))
+                IF (k /= 1)             al(xyz(i,j,k), g)%dc(6) = &
+                0.5_DP * (1._DP - dc(xyz(i,j,k), 6, g) / dc(xyz(i,j,k-1),5,g))
+            END DO
+        END DO
+    END DO
+END DO
+
+END SUBROUTINE DsigrDc_updt
 
 !******************************************************************************!
 
@@ -1936,7 +2047,7 @@ END IF
 
 1999 FORMAT (4X, 'GROUP : ', I3)
 
-WRITE(ounit,*) '  ...Assembly Discontinuity Factors are sucessfully read...'
+WRITE(ounit,*) '  ...Assembly Discontinuity Factors are successfully read...'
 
 
 tx(1) = 1
@@ -2070,7 +2181,7 @@ SUBROUTINE inp_crod (xbunit)
 
 USE sdata, ONLY: nx, ny, nmat, ng, xdiv, ydiv, &
                  nxx, nyy, bpos, nb, cusp, nstep, pos0, ssize, &
-                 dsigtr, dsiga, dnuf, dsigf, dsigs, coreh, fbmap
+                 dsigtr, dsiga, dnuf, dsigf, dsigs, ddc, nnod, coreh, fbmap
 
 IMPLICIT NONE
 
@@ -2139,7 +2250,14 @@ DO j = ny, 1, -1
     END DO
 END DO
 
-IF (bxtab == 0) THEN  !IF XTAB FILE PRESENT
+IF (bxtab == 1) THEN  !IF XTAB FILE PRESENT
+  ALLOCATE(dsigtr(nnod,ng))
+  ALLOCATE(dsiga (nnod,ng))
+  ALLOCATE(dnuf  (nnod,ng))
+  ALLOCATE(dsigf (nnod,ng))
+  ALLOCATE(dsigs (nnod,ng,ng))
+  ALLOCATE(ddc (nnod,6,ng))
+ELSE
   ALLOCATE(dsigtr(nmat,ng))
   ALLOCATE(dsiga (nmat,ng))
   ALLOCATE(dnuf  (nmat,ng))
@@ -2239,7 +2357,7 @@ END DO
 
 
 WRITE(ounit,*)
-WRITE(ounit,*) ' ...Control Rods Insertion card is sucessfully read...'
+WRITE(ounit,*) ' ...Control Rods Insertion card is successfully read...'
 
 END SUBROUTINE inp_crod
 
@@ -2562,7 +2680,7 @@ IF (ios == 0 .AND. popt > 0) THEN
 END IF
 
 WRITE(ounit,*)
-WRITE(ounit,*) ' ...Rod Ejection Card is sucessfully read...'
+WRITE(ounit,*) ' ...Rod Ejection Card is successfully read...'
 
 1294 FORMAT(25X, 99(:, 2X, 'Bank ', I2))
 1295 FORMAT(2X, 'FINAL BANK POS. (STEP)', 99(:, 2X, F7.1), /)
@@ -2660,7 +2778,7 @@ END IF
 
 
 WRITE(ounit,*)
-WRITE(ounit,*) ' ...Critical Boron Search card is sucessfully read...'
+WRITE(ounit,*) ' ...Critical Boron Search card is successfully read...'
 
 END SUBROUTINE inp_cbcs
 
@@ -2751,7 +2869,7 @@ END IF
 
 
 WRITE(ounit,*)
-WRITE(ounit,*) ' ...Boron Concentration card is sucessfully read...'
+WRITE(ounit,*) ' ...Boron Concentration card is successfully read...'
 
 END SUBROUTINE inp_bcon
 
@@ -2879,7 +2997,7 @@ END IF
 
 
 WRITE(ounit,*)
-WRITE(ounit,*) ' ...Fuel Temperature is card sucessfully read...'
+WRITE(ounit,*) ' ...Fuel Temperature is card successfully read...'
 
 END SUBROUTINE inp_ftem
 
@@ -3007,7 +3125,7 @@ END IF
 
 
 WRITE(ounit,*)
-WRITE(ounit,*) ' ...Moderator Temperature Card is sucessfully read...'
+WRITE(ounit,*) ' ...Moderator Temperature Card is successfully read...'
 
 
 END SUBROUTINE inp_mtem
@@ -3137,7 +3255,7 @@ END IF
 
 
 WRITE(ounit,*)
-WRITE(ounit,*) ' ...Coolant Density Card is sucessfully read...'
+WRITE(ounit,*) ' ...Coolant Density Card is successfully read...'
 
 
 END SUBROUTINE inp_cden
@@ -3185,7 +3303,8 @@ SUBROUTINE inp_ther (xbunit)
 USE sdata, ONLY: pow, tin, nx, ny, nxx, nyy, ystag, &
                  rf, tg, tc, rg, rc, ppitch, cf, dia, cflow, dh, pi, &
                  farea, xdiv, ydiv, ystag, node_nf, nm, nt, rdel, rpos, &
-                 nnod, tfm, ppow, ent, heatf, ntem, stab, ftem, mtem, cden, thunit
+                 nnod, tfm, ppow, ent, heatf, ntem, stab, ftem, mtem, cden, &
+                 thunit
 
 IMPLICIT NONE
 
@@ -3321,7 +3440,10 @@ END DO
 
 ! Guess fuel and moderator temperature
 ALLOCATE(tfm(nnod, nt+1)) ! Allocate fuel pin mesh temperature
-tfm = 1200.  !Used for radial fuel temperature distribution
+tfm = 900.  !Used for radial fuel temperature distribution
+IF (bxtab == 1) THEN
+  ftem = 900.; cden = 0.711; mtem = 500.
+END IF
 
 ALLOCATE(ent(nnod))
 ALLOCATE(heatf(nnod))
@@ -3330,7 +3452,7 @@ ALLOCATE(heatf(nnod))
 heatf = 0.
 
 ! Open steam table file
-CALL openFile (thunit, 'st155bar', 'Steam Table Open Failed--status')
+CALL openFile (thunit, 'st155bar', 'steam table', 'Steam Table Open Failed--status')
 
 ! Save steam table data to stab
 DO i = 1, ntem
@@ -3355,7 +3477,7 @@ IF (ios == 0 .AND. popt > 0) THEN
 END IF
 
 WRITE(ounit,*)
-WRITE(ounit,*) ' ...Thermal-hydraulic Card is sucessfully read...'
+WRITE(ounit,*) ' ...Thermal-hydraulic Card is successfully read...'
 
 1309 FORMAT(2X, 'REACTOR PERCENT POWER (%)                : ', F12.5)
 1301 FORMAT(2X, 'REACTOR POWER (Watt)                     : ', ES12.4)
@@ -3935,7 +4057,805 @@ END DO
 
 END SUBROUTINE w_rst
 
+!******************************************************************************!
+
+SUBROUTINE inp_xtab(xbunit)
+
+!
+! Purpose:
+!    To read tabular xsec file
+!
+
+USE sdata, ONLY: ng, nmat, nf, m, chi
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: xbunit
+
+INTEGER :: ln !Line number
+INTEGER :: iost  ! IOSTAT status
+
+INTEGER :: i, j, g, h, s,t,u,v
+
+! XTAB TYPE
+TYPE :: XFILE
+    CHARACTER(LEN=100) :: fname             ! XTAB File name
+    INTEGER :: cnum                        ! Composition number in the XTAB Files
+END TYPE
+TYPE(XFILE), DIMENSION(:), ALLOCATABLE :: xtab
+
+LOGICAL, DIMENSION(:), ALLOCATABLE :: noty   !to check if this buffer was read or not?
+INTEGER, PARAMETER :: xunit = 998  !XTAB file unit number
+INTEGER, PARAMETER :: tunit = 999  !XTAB Buffer unit number
+INTEGER :: comm  ! Position of comment mark
+INTEGER :: popt
+INTEGER, DIMENSION(:), ALLOCATABLE :: group
+INTEGER :: nskip  !Number of lines to skip
+
+WRITE(ounit,*)
+WRITE(ounit,*)
+WRITE(ounit,*) '           >>>> READING TABULAR XSEC FILE <<<<'
+WRITE(ounit,*) '           --------------------------------------------'
+
+READ(xbunit, *, IOSTAT=iost) ind, ln, ng, nmat  !Read numbef of group and material
+message = ' error in material number'
+CALL er_message(ounit, iost, ln, message)
+
+ALLOCATE(chi(nmat,ng))
+ALLOCATE(xtab(nmat), noty(nmat), m(nmat))
+noty = .TRUE.
+
+! Reading XTAB file names and composition number in xtab file
+DO i= 1, nmat
+    READ(xbunit, '(A2,I5,A100)', IOSTAT=iost) ind, ln, iline
+    iline = ADJUSTL(iline)         !Adjust to left
+    comm = INDEX(iline, ' ')       ! Get space position
+    xtab(i)%fname = iline(1:comm-1)  !Get xtab file name
+    READ(iline(comm:100),*) xtab(i)%cnum  ! Get composition number (convert to integer)
+    message = ' error in reading XTAB files'
+    CALL er_message(ounit, iost, ln, message)
+END DO
+
+! Starting to read XTAB File, remove comments and write to buffer file
+DO i = 1, nmat
+  IF (noty(i)) THEN  !If this composition was not written in buffer
+    ! Open XTAB File
+    CALL openFile(xunit, xtab(i)%fname, 'XTAB', 'XTAB File Open Failed--status')
+
+    ! Start removing comments and rewrite into one input XTAB buffer
+    CALL inp_comments(xunit, tunit, '*')
+
+    !This loop to read another composition in the same XTAB file
+    DO j = i, nmat
+      ! If next material has the same file name
+      IF (TRIM(ADJUSTL(xtab(i)%fname)) == TRIM(ADJUSTL(xtab(j)%fname))) THEN
+
+        !Read buffer file and saved the xsec and transient data
+        REWIND(tunit)
+        READ(tunit, *,IOSTAT=iost) ind, ln, m(j)%tadf, m(j)%trod     ! Read input control
+        message = ' ERROR IN XTAB FILE ' // TRIM(ADJUSTL(xtab(j)%fname)) &
+        // ': CANNOT READ CONTROL PARAMETERS'
+        CALL er_message(ounit, iost, ln, message, j)
+
+        READ(tunit, *, IOSTAT=iost) ind, ln, m(j)%nd, m(j)%nb, m(j)%nf, m(j)%nm    ! Read number of branch
+        message = ' ERROR IN XTAB FILE '// TRIM(ADJUSTL(xtab(j)%fname))&
+         // ': CANNOT READ BRANCH DIMENSION'
+        CALL er_message(ounit, iost, ln, message)
+
+        ! Check branch dimension
+        IF (m(j)%nd < 1 .OR. m(j)%nb < 1 .OR. m(j)%nf < 1 .OR. m(j)%nm < 1) THEN
+          WRITE(ounit, *) ' ERROR: MINIMUM NUMBER OF BRANCH IS 1'
+          WRITE(*, *) ' ERROR: MINIMUM NUMBER OF BRANCH IS 1'
+          STOP
+        END IF
+
+        ! Allocate and read branch paramaters
+        CALL branchPar(tunit, m(j)%nd, j, m(j)%pd, xtab(j)%fname, 'COOLANT DENSITY')  ! Allocate and read coolant dens. branc paramaters
+        CALL branchPar(tunit, m(j)%nb, j, m(j)%pb, xtab(j)%fname, 'BORON CONCENTRATION')  ! Allocate and read Boron conc. branc paramaters
+        CALL branchPar(tunit, m(j)%nf, j, m(j)%pf, xtab(j)%fname, 'FUEL TEMPERATURE')  ! Allocate and read fule temp. branc paramaters
+        CALL branchPar(tunit, m(j)%nm, j, m(j)%pm, xtab(j)%fname, 'MODERATOR TEMPERATURE')  ! Allocate and read moderator temp. branc paramaters
+
+        ! ALLOCATE XSEC DATA
+        ALLOCATE(m(j)%velo(ng))
+        ALLOCATE(m(j)%xsec(m(j)%nd, m(j)%nb, m(j)%nf, m(j)%nm))
+        IF (m(j)%trod == 1) ALLOCATE(m(j)%rxsec(m(j)%nd, m(j)%nb, m(j)%nf, m(j)%nm))
+        DO s = 1, m(j)%nd
+          DO t = 1, m(j)%nb
+            DO u = 1, m(j)%nf
+              DO v = 1, m(j)%nm
+                ALLOCATE(m(j)%xsec(s,t,u,v)%sigtr(ng))
+                ALLOCATE(m(j)%xsec(s,t,u,v)%siga(ng))
+                ALLOCATE(m(j)%xsec(s,t,u,v)%sigf(ng))
+                ALLOCATE(m(j)%xsec(s,t,u,v)%nuf(ng))
+                ALLOCATE(m(j)%xsec(s,t,u,v)%dc(6,ng))
+                ALLOCATE(m(j)%xsec(s,t,u,v)%sigs(ng,ng))
+                IF (m(j)%trod == 1) THEN
+                  ALLOCATE(m(j)%rxsec(s,t,u,v)%sigtr(ng))
+                  ALLOCATE(m(j)%rxsec(s,t,u,v)%siga(ng))
+                  ALLOCATE(m(j)%rxsec(s,t,u,v)%sigf(ng))
+                  ALLOCATE(m(j)%rxsec(s,t,u,v)%nuf(ng))
+                  ALLOCATE(m(j)%rxsec(s,t,u,v)%dc(6,ng))
+                  ALLOCATE(m(j)%rxsec(s,t,u,v)%sigs(ng,ng))
+                END IF
+              END DO
+            END DO
+          END DO
+        END DO
+
+        ! Skip lines to read desired composition in the xtab file
+        nskip = ng*m(j)%nb*m(j)%nf*m(j)%nm
+        IF (m(j)%tadf  == 1) THEN  ! IF dc present
+          IF (m(j)%trod  == 1) THEN
+            CALL skipRead(tunit, j, (xtab(j)%cnum-1)*(10*nskip+2*ng*nskip+4))
+          ELSE
+            CALL skipRead(tunit, j, (xtab(j)%cnum-1)*(5*nskip+ng*nskip+4))
+          END IF
+        ELSE IF (m(j)%tadf  == 2) THEN
+          IF (m(j)%trod  == 1) THEN
+            CALL skipRead(tunit, j, (xtab(j)%cnum-1)*(20*nskip+2*ng*nskip+4))
+          ELSE
+            CALL skipRead(tunit, j, (xtab(j)%cnum-1)*(10*nskip+ng*nskip+4))
+          END IF
+        ELSE
+          IF (m(j)%trod  == 1) THEN
+            CALL skipRead(tunit, j, (xtab(j)%cnum-1)*(8*nskip+2*ng*nskip+4))
+          ELSE
+            CALL skipRead(tunit, j, (xtab(j)%cnum-1)*(4*nskip+ng*nskip+4))
+          END IF
+        END IF
+
+        ! Read unrodded XSEC
+        CALL readXS (tunit, j, 0, m(j)%xsec)
+        ! Read rodded XSEC
+        IF (m(j)%trod == 1) CALL readXS (tunit, j, 1, m(j)%rxsec)
+        !Read fission spectrum
+        READ(tunit, *, IOSTAT=iost) ind, ln, (chi(j,g), g = 1, ng)
+        message = ' ERROR IN XTAB FILE: CANNOT READ FISSION SPECTRUM'
+        CALL er_message(ounit, iost, ln, message, j)
+        !Read neutron Inverse velocity
+        READ(tunit, *, IOSTAT=iost) ind, ln, (m(j)%velo(g), g = 1, ng)
+        message = ' ERROR IN XTAB FILE: CANNOT READ Inverse Velocity'
+        CALL er_message(ounit, iost, ln, message, j)
+        DO g = 1, ng
+          m(j)%velo(g) = 1._DP/m(j)%velo(g)  !COnvert to velocity
+        END DO
+        ! Read decay constant
+        READ(tunit, *, IOSTAT=iost) ind, ln, (m(j)%lamb(t), t = 1, nf)
+        message = ' ERROR IN XTAB FILE: CANNOT READ DECAY CONSTANT'
+        CALL er_message(ounit, iost, ln, message, j)
+        ! Read beta
+        READ(tunit, *, IOSTAT=iost) ind, ln, (m(j)%iBeta(t), t = 1, nf)
+        message = ' ERROR IN XTAB FILE: CANNOT READ DELAYED NEUTRON FRACTION'
+        CALL er_message(ounit, iost, ln, message, j)
+
+        ! If read, indicate that it has been read
+        noty(j) = .FALSE.
+      END IF
+    END DO
+
+    ! Close XTAB File and buffer file
+    CLOSE(UNIT=xunit); CLOSE(UNIT=tunit)
+  END IF
+END DO
+
+! XTAB PRINT OPTION
+READ(xbunit, *, IOSTAT=iost) ind, ln, popt
+IF (iost == 0 .AND. popt > 0) THEN
+  s = 1; t = 1; u = 1; v = 1
+  ALLOCATE(group(ng))
+  DO g = 1, ng
+    group(g) = g
+  END DO
+  DO i= 1, nmat
+      WRITE(ounit,*)
+      WRITE(ounit,1709) i
+      WRITE(ounit,'(A,I3)') '     XTAB FILE '// TRIM(ADJUSTL(xtab(i)%fname)) &
+      // '. COMPOSITION NUMBER', xtab(i)%cnum
+      WRITE(ounit,1707)'GROUP', 'TRANSPORT', 'DIFFUSION', 'ABSORPTION', &
+      'NU*FISS', 'KAP*FIS','FISS. SPCTR'
+      DO g= 1, ng
+          WRITE(ounit,1706) g, m(i)%xsec(s,t,u,v)%sigtr(g), &
+          1./(3.*m(i)%xsec(s,t,u,v)%sigtr(g)), m(i)%xsec(s,t,u,v)%siga(g), &
+           m(i)%xsec(s,t,u,v)%nuf(g), m(i)%xsec(s,t,u,v)%sigf(g), chi(i,g)
+      END DO
+      WRITE(ounit,*)'  --SCATTERING MATRIX--'
+      WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
+      DO g= 1, ng
+          WRITE(ounit,1015)g, (m(i)%xsec(s,t,u,v)%sigs(g,h), h=1,ng)
+      END DO
+  END DO
+END IF
+
+WRITE(ounit,*)
+WRITE(ounit,*) ' ...XTAB FILE Card is successfully read...'
+
+1709 FORMAT(5X, 'MATERIAL', I3)
+1707 FORMAT(2X, A7, A12, A13, A12, A11, A13, A15)
+1706 FORMAT(2X, I6, F13.6, 2F12.6, 3F13.6)
+1015 FORMAT(4X, I3, F16.6, 20F12.6)
 
 
+DEALLOCATE(xtab, noty)
+
+END SUBROUTINE inp_xtab
+
+!******************************************************************************!
+
+SUBROUTINE readXS (tunit, mnum, rod, xsec)
+!Purpose: To read xsec in XTAB file
+
+USE sdata, ONLY: m, ng, XBRANCH
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: tunit, mnum, rod  ! file unit number, material number, and rod indicator
+TYPE(XBRANCH), DIMENSION(:,:,:,:), INTENT(INOUT) :: xsec  !Set INOUT, see: http://www.cs.rpi.edu/~szymansk/OOF90/bugs.html#2
+INTEGER :: iost, ln
+INTEGER :: g, h, s, t, u, v, k
+
+!Read sigtr
+DO g = 1, ng
+  DO v = 1, m(mnum)%nm
+    DO u = 1, m(mnum)%nf
+      DO t = 1, m(mnum)%nb
+        READ(tunit, *, IOSTAT=iost) ind, ln, &
+        (xsec(s,t,u,v)%sigtr(g), s = 1, m(mnum)%nd)
+        IF (rod == 0) THEN
+          message = ' ERROR IN XTAB FILE: CANNOT READ TRANSPORT XSEC'
+        ELSE
+          message = ' ERROR IN XTAB FILE: CANNOT READ RODDED TRANSPORT XSEC'
+        END IF
+        CALL er_message(ounit, iost, ln, message, mnum)
+      END DO
+    END DO
+  END DO
+END DO
+!Read siga
+DO g = 1, ng
+  DO v = 1, m(mnum)%nm
+    DO u = 1, m(mnum)%nf
+      DO t = 1, m(mnum)%nb
+        READ(tunit, *, IOSTAT=iost) ind, ln, &
+        (xsec(s,t,u,v)%siga(g), s = 1, m(mnum)%nd)
+        IF (rod == 0) THEN
+          message = ' ERROR IN XTAB FILE: CANNOT READ ABSORPTION XSEC'
+        ELSE
+          message = ' ERROR IN XTAB FILE: CANNOT READ RODDED ABSORPTION XSEC'
+        END IF
+        CALL er_message(ounit, iost, ln, message, mnum)
+      END DO
+    END DO
+  END DO
+END DO
+!Read nu*sigf
+DO g = 1, ng
+  DO v = 1, m(mnum)%nm
+    DO u = 1, m(mnum)%nf
+      DO t = 1, m(mnum)%nb
+        READ(tunit, *, IOSTAT=iost) ind, ln, &
+        (xsec(s,t,u,v)%nuf(g), s = 1, m(mnum)%nd)
+        IF (rod == 0) THEN
+          message = ' ERROR IN XTAB FILE: CANNOT READ NU*SIGF XSEC'
+        ELSE
+          message = ' ERROR IN XTAB FILE: CANNOT READ RODDED NU*SIGF XSEC'
+        END IF
+        CALL er_message(ounit, iost, ln, message, mnum)
+      END DO
+    END DO
+  END DO
+END DO
+!Read kappa*sigf
+DO g = 1, ng
+  DO v = 1, m(mnum)%nm
+    DO u = 1, m(mnum)%nf
+      DO t = 1, m(mnum)%nb
+        READ(tunit, *, IOSTAT=iost) ind, ln, &
+        (xsec(s,t,u,v)%sigf(g), s = 1, m(mnum)%nd)
+        IF (rod == 0) THEN
+          message = ' ERROR IN XTAB FILE: CANNOT READ KAPPA*SIGF XSEC'
+        ELSE
+          message = ' ERROR IN XTAB FILE: CANNOT READ RODDED KAPPA*SIGF XSEC'
+        END IF
+        CALL er_message(ounit, iost, ln, message, mnum)
+      END DO
+    END DO
+  END DO
+END DO
+!Read sigs
+DO g = 1, ng
+  DO h = 1, ng
+    DO v = 1, m(mnum)%nm
+      DO u = 1, m(mnum)%nf
+        DO t = 1, m(mnum)%nb
+          READ(tunit, *, IOSTAT=iost) ind, ln, &
+          (xsec(s,t,u,v)%sigs(g,h), s = 1, m(mnum)%nd)
+          IF (rod == 0) THEN
+            message = ' ERROR IN XTAB FILE: CANNOT READ SCATTERING XSEC'
+          ELSE
+            message = ' ERROR IN XTAB FILE: CANNOT READ RODDED SCATTERING XSEC'
+          END IF
+          CALL er_message(ounit, iost, ln, message, mnum)
+        END DO
+      END DO
+    END DO
+  END DO
+END DO
+!Read dc
+IF (m(mnum)%tadf  == 1) THEN  ! IF dc present
+  DO g = 1, ng
+    DO v = 1, m(mnum)%nm
+      DO u = 1, m(mnum)%nf
+        DO t = 1, m(mnum)%nb
+          READ(tunit, *, IOSTAT=iost) ind, ln, &
+          (xsec(s,t,u,v)%dc(1,g), s = 1, m(mnum)%nd)
+          DO k = 1, 6
+            DO s = 1, m(mnum)%nd
+              xsec(s,t,u,v)%dc(k,g) = xsec(s,t,u,v)%dc(1,g)
+            END DO
+          END DO
+          IF (rod == 0) THEN
+            message = ' ERROR IN XTAB FILE: CANNOT READ ADFs'
+          ELSE
+            message = ' ERROR IN XTAB FILE: CANNOT READ RODDED ADFs'
+          END IF
+          CALL er_message(ounit, iost, ln, message, mnum)
+        END DO
+      END DO
+    END DO
+  END DO
+ELSE IF (m(mnum)%tadf  == 2) THEN
+  DO g = 1, ng
+    DO k = 1, 6
+      DO v = 1, m(mnum)%nm
+        DO u = 1, m(mnum)%nf
+          DO t = 1, m(mnum)%nb
+            READ(tunit, *, IOSTAT=iost) ind, ln, &
+            (xsec(s,t,u,v)%dc(k,g), s = 1, m(mnum)%nd)
+            IF (rod == 0) THEN
+              message = ' ERROR IN XTAB FILE: CANNOT READ ADFs'
+            ELSE
+              message = ' ERROR IN XTAB FILE: CANNOT READ RODDED TRANSPORT ADFs'
+            END IF
+            CALL er_message(ounit, iost, ln, message, mnum)
+          END DO
+        END DO
+      END DO
+    END DO
+  END DO
+ELSE
+  CONTINUE
+END IF
+
+
+END SUBROUTINE readXS
+
+!******************************************************************************!
+
+SUBROUTINE skipRead (iunit,matnum, nskip)
+!Purpose: To allocate and read branch paramaters
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: iunit, matnum, nskip
+INTEGER :: i, eof
+
+DO i = 1, nskip
+  READ (iunit, *, IOSTAT=eof)
+  IF (eof < 0) THEN              !Check end of file
+    WRITE(ounit,1131) matnum
+    WRITE(ounit,1132)
+    WRITE(*,1131) matnum
+    WRITE(*,1132)
+    STOP
+  END IF
+END DO
+
+1131 FORMAT(2X, 'ERROR: END OF FILE REACHED FOR XTAB FILE IN MATERIAL NUMBER ', I3)
+1132 FORMAT(2X, 'ADPRES IS STOPPING')
+
+END SUBROUTINE skipRead
+
+!******************************************************************************!
+
+SUBROUTINE branchPar (tunit, dim, matnum, par, fname, messPar)
+!Purpose: To allocate and read branch paramaters
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: tunit, dim, matnum
+CHARACTER(LEN=*), INTENT(IN) :: messPar, fname
+REAL(DP), DIMENSION(:), ALLOCATABLE, INTENT(INOUT) :: par
+
+INTEGER :: k
+INTEGER :: ln, iost
+
+IF (dim > 1) THEN                         ! If branch DIMENSION > 1
+  ALLOCATE(par(dim))
+  READ(tunit, *, IOSTAT=iost) ind, ln, par(1:dim)
+  message = ' ERROR IN XTAB FILE '// TRIM(ADJUSTL(fname))&
+   // ': CANNOT READ BRANCH PARAMETERS ' // messPar
+  CALL er_message(ounit, iost, ln, message, matnum)
+  DO k = 2, dim
+    IF (par(k-1) > par(k)) THEN
+      WRITE(ounit,*) "  ERROR IN XTAB FILE  ", fname
+      WRITE(ounit,*) "  ", messPar, " PARAMETER SHALL BE IN ORDER, SMALL to BIG"
+      STOP
+    END IF
+  END DO
+ELSE
+  ALLOCATE(par(1))
+  par(1) = 0.0    !Arbitrary
+END IF
+
+END SUBROUTINE branchPar
+
+!******************************************************************************!
+
+SUBROUTINE brInterp (rod, mn, xcden, xbcon, xftem, xmtem, sigtr, siga, nuf, &
+  sigf, sigs, dc)
+!Purpose: To interpolate the xsec data from xtab file for given bcon,
+! ftem, mtem and cden
+
+USE sdata, ONLY: m, XBRANCH, ng
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: rod, mn  ! CR indicator and material number
+REAL(DP), INTENT(IN) :: xbcon, xftem, xmtem, xcden  ! TH Parameters
+REAL(DP), DIMENSION(:), INTENT(OUT) :: sigtr, siga, nuf, sigf
+REAL(DP), DIMENSION(:,:), INTENT(OUT) :: dc, sigs
+
+INTEGER, PARAMETER :: nx = 8
+TYPE(XBRANCH), DIMENSION(nx) :: xs   !Temporary xsec for interpolation
+INTEGER :: s, t, u, v, mx
+INTEGER :: s1, s2, t1, t2, u1, u2, v1, v2  ! Dimnesion Position of the given parameters
+INTEGER :: i
+
+!Define + and - operators for XBRANCH type addition and substitution respectively
+INTERFACE OPERATOR (+)
+  MODULE PROCEDURE brAdd
+END INTERFACE
+INTERFACE OPERATOR (-)
+  MODULE PROCEDURE brSubst
+END INTERFACE
+INTERFACE OPERATOR (*)
+  MODULE PROCEDURE brRealMult
+END INTERFACE
+
+! Set to default
+s1=1; s2=1; t1=1; t2=1; u1=1; u2=1; v1=1; v2=1
+
+! Get 2 closest points for interpolation
+! FOR COOLANT DENSITY
+IF (m(mn)%nd > 1) THEN
+  mx = m(mn)%nd
+  IF (xcden >= m(mn)%pd(1) .AND. xcden <= m(mn)%pd(mx)) THEN
+    DO s = 2, mx
+      IF (xcden >= m(mn)%pd(s-1) .AND. xcden <= m(mn)%pd(s)) THEN
+        s1 = s-1
+        s2 = s
+        EXIT
+      END IF
+    END DO
+  ELSE IF (xcden < m(mn)%pd(1) .AND. (m(mn)%pd(1) - xcden) / m(mn)%pd(1) < 0.1) THEN
+    s1 = 1
+    s2 = 2
+  ELSE IF (xcden < m(mn)%pd(mx) .AND. (xcden - m(mn)%pd(mx)) / m(mn)%pd(mx) < 0.1) THEN
+    s1 = mx - 1
+    s2 = mx
+  ELSE
+    WRITE(ounit,1567) xcden
+    WRITE(*,1567) xcden
+    STOP
+    1567 FORMAT(2X, '  ERROR: COOLANT DENSITY', F7.3 ,' g/cm3 &
+    & IS OUT OF THE RANGE OF THE BRANCH PARAMETER')
+  END IF
+END IF
+
+! FOR BORON CONCENTRATION
+IF (m(mn)%nb > 1) THEN
+  mx = m(mn)%nb
+  IF (xbcon >= m(mn)%pb(1) .AND. xbcon <= m(mn)%pb(mx)) THEN
+    DO t = 2, mx
+      IF (xbcon >= m(mn)%pb(t-1) .AND. xbcon <= m(mn)%pb(t)) THEN
+        t1 = t-1
+        t2 = t
+        EXIT
+      END IF
+    END DO
+  ELSE IF (xbcon < m(mn)%pb(1) .AND. (m(mn)%pb(1) - xbcon) < 100.) THEN
+    t1 = 1
+    t2 = 2
+  ELSE IF (xbcon < m(mn)%pb(mx) .AND. (xbcon - m(mn)%pb(mx)) < 100.) THEN
+    t1 = mx - 1
+    t2 = mx
+  ELSE
+    WRITE(ounit,1568) xbcon
+    WRITE(*,1568) xbcon
+    STOP
+    1568 FORMAT(2X, '  ERROR: BORON CONCENTRATION', F8.1 ,' PPM &
+    & IS OUT OF THE RANGE OF THE BRANCH PARAMETER')
+  END IF
+END IF
+
+! FOR FUEL TEMPERATURE
+IF (m(mn)%nf > 1) THEN
+  mx = m(mn)%nf
+  IF (xftem >= m(mn)%pf(1) .AND. xftem <= m(mn)%pf(mx)) THEN
+    DO u = 2, mx
+      IF (xftem >= m(mn)%pf(u-1) .AND. xftem <= m(mn)%pf(u)) THEN
+        u1 = u-1
+        u2 = u
+        EXIT
+      END IF
+    END DO
+  ELSE IF (xftem < m(mn)%pf(1) .AND. (m(mn)%pf(1) - xftem) / m(mn)%pf(1) < 0.1) THEN
+    u1 = 1
+    u2 = 2
+  ELSE IF (xftem < m(mn)%pf(mx) .AND. (xftem - m(mn)%pf(mx)) / m(mn)%pf(mx) < 0.1) THEN
+    u1 = mx - 1
+    u2 = mx
+  ELSE
+    WRITE(ounit,1570) xftem
+    WRITE(*,1570) xftem
+    STOP
+    1570 FORMAT(2X, '  ERROR: FUEL TEMPERATURE', F7.1 ,' K &
+    & IS OUT OF THE RANGE OF THE BRANCH PARAMETER')
+  END IF
+END IF
+
+! FOR MODERATOR TEMPERATURE
+IF (m(mn)%nm > 1) THEN
+  mx = m(mn)%nm
+  IF (xmtem >= m(mn)%pm(1) .AND. xmtem <= m(mn)%pm(mx)) THEN
+    DO v = 2, mx
+      IF (xmtem >= m(mn)%pm(v-1) .AND. xmtem <= m(mn)%pm(v)) THEN
+        v1 = v-1
+        v2 = v
+        EXIT
+      END IF
+    END DO
+  ELSE IF (xmtem < m(mn)%pm(1) .AND. (m(mn)%pm(1) - xmtem) / m(mn)%pm(1) < 0.1) THEN
+    v1 = 1
+    v2 = 2
+  ELSE IF (xmtem < m(mn)%pm(mx) .AND. (xmtem - m(mn)%pm(mx)) / m(mn)%pm(mx) < 0.1) THEN
+    v1 = mx - 1
+    v2 = mx
+  ELSE
+    WRITE(ounit,1569) xmtem
+    WRITE(*,1569) xmtem
+    STOP
+    1569 FORMAT(2X, '  ERROR: MODERATOR TEMPERATURE', F7.1 ,' K &
+    & IS OUT OF THE RANGE OF THE BRANCH PARAMETER')
+  END IF
+END IF
+
+!Start doing interpolation
+DO i = 1, nx   !Allocate memory to xs
+  ALLOCATE(xs(i)%sigtr(ng))
+  ALLOCATE(xs(i)%siga(ng))
+  ALLOCATE(xs(i)%nuf(ng))
+  ALLOCATE(xs(i)%sigf(ng))
+  ALLOCATE(xs(i)%dc(6,ng))
+  ALLOCATE(xs(i)%sigs(ng,ng))
+END DO
+
+IF (rod == 0) THEN   ! For Unrodded XSEC
+  !interpolation on Moderator Temperature
+  IF (m(mn)%nm > 1) THEN
+    xs(1) = m(mn)%xsec(s1,t1,u1,v1) + &
+    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
+    (m(mn)%xsec(s1,t1,u1,v2) - m(mn)%xsec(s1,t1,u1,v1))
+    xs(2) = m(mn)%xsec(s1,t1,u2,v1) + &
+    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
+    (m(mn)%xsec(s1,t1,u2,v2) - m(mn)%xsec(s1,t1,u2,v1))
+    xs(3) = m(mn)%xsec(s1,t2,u1,v1) + &
+    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
+    (m(mn)%xsec(s1,t2,u1,v2) - m(mn)%xsec(s1,t2,u1,v1))
+    xs(4) = m(mn)%xsec(s1,t2,u2,v1) + &
+    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
+    (m(mn)%xsec(s1,t2,u2,v2) - m(mn)%xsec(s1,t2,u2,v1))
+    xs(5) = m(mn)%xsec(s2,t1,u1,v1) + &
+    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
+    (m(mn)%xsec(s2,t1,u1,v2) - m(mn)%xsec(s2,t1,u1,v1))
+    xs(6) = m(mn)%xsec(s2,t1,u2,v1) + &
+    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
+    (m(mn)%xsec(s2,t1,u2,v2) - m(mn)%xsec(s2,t1,u2,v1))
+    xs(7) = m(mn)%xsec(s2,t2,u1,v1) + &
+    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
+    (m(mn)%xsec(s2,t2,u1,v2) - m(mn)%xsec(s2,t2,u1,v1))
+    xs(8) = m(mn)%xsec(s2,t2,u2,v1) + &
+    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
+    (m(mn)%xsec(s2,t2,u2,v2) - m(mn)%xsec(s2,t2,u2,v1))
+  ELSE
+    xs(1) = m(mn)%xsec(s1,t1,u1,v1)
+    xs(2) = m(mn)%xsec(s1,t1,u2,v1)
+    xs(3) = m(mn)%xsec(s1,t2,u1,v1)
+    xs(4) = m(mn)%xsec(s1,t2,u2,v1)
+    xs(5) = m(mn)%xsec(s2,t1,u1,v1)
+    xs(6) = m(mn)%xsec(s2,t1,u2,v1)
+    xs(7) = m(mn)%xsec(s2,t2,u1,v1)
+    xs(8) = m(mn)%xsec(s2,t2,u2,v1)
+  END IF
+!   WRITE(*,'(10I4)') s1, s2, t1, t2, u1, u2, v1, v2
+! WRITE(*,'(16ES16.5)') xs(1)%sigtr(:), xs(5)%sigtr(:)
+  !interpolation on Fuel Temperature
+  IF (m(mn)%nf > 1) THEN
+    xs(1) = xs(1) + (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1)) * &
+    (xs(2) - xs(1))
+    xs(3) = xs(3) + (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1)) * &
+    (xs(4) - xs(3))
+    xs(5) = xs(5) + (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1)) * &
+    (xs(6) - xs(5))
+    xs(7) = xs(7) + (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1)) * &
+    (xs(8) - xs(7))
+  END IF
+! WRITE(*,'(16ES16.5)') xs(1)%sigtr(:), xs(5)%sigtr(:)
+  !interpolation on Boron concentration
+  IF (m(mn)%nb > 1) THEN
+    xs(1) = xs(1) + (xbcon - m(mn)%pb(t1)) / (m(mn)%pb(t2) - m(mn)%pb(t1)) * &
+    (xs(3) - xs(1))
+    xs(5) = xs(5) + (xbcon - m(mn)%pb(t1)) / (m(mn)%pb(t2) - m(mn)%pb(t1)) * &
+    (xs(7) - xs(5))
+  END IF
+! WRITE(*,'(16ES16.5)') xs(1)%sigtr(:), xs(5)%sigtr(:)
+  !interpolation on coolant density
+  IF (m(mn)%nd > 1) THEN
+    xs(1) = xs(1) + (xcden - m(mn)%pd(s1)) / (m(mn)%pd(s2) - m(mn)%pd(s1)) * &
+    (xs(5) - xs(1))
+  END IF
+!   WRITE(*,'(16ES16.5)') xs(1)%sigtr(:)
+! WRITE(*,*) '-------'
+ELSE   ! For Rodded XSEC
+  !interpolation on Moderator Temperature
+  IF (m(mn)%nm > 1) THEN
+    xs(1) = m(mn)%rxsec(s1,t1,u1,v1) + &
+    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
+    (m(mn)%rxsec(s1,t1,u1,v2) - m(mn)%rxsec(s1,t1,u1,v1))
+    xs(2) = m(mn)%rxsec(s1,t1,u2,v1) + &
+    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
+    (m(mn)%rxsec(s1,t1,u2,v2) - m(mn)%rxsec(s1,t1,u2,v1))
+    xs(3) = m(mn)%rxsec(s1,t2,u1,v1) + &
+    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
+    (m(mn)%rxsec(s1,t2,u1,v2) - m(mn)%rxsec(s1,t2,u1,v1))
+    xs(4) = m(mn)%rxsec(s1,t2,u2,v1) + &
+    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
+    (m(mn)%rxsec(s1,t2,u2,v2) - m(mn)%rxsec(s1,t2,u2,v1))
+    xs(5) = m(mn)%rxsec(s2,t1,u1,v1) + &
+    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
+    (m(mn)%rxsec(s2,t1,u1,v2) - m(mn)%rxsec(s2,t1,u1,v1))
+    xs(6) = m(mn)%rxsec(s2,t1,u2,v1) + &
+    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
+    (m(mn)%rxsec(s2,t1,u2,v2) - m(mn)%rxsec(s2,t1,u2,v1))
+    xs(7) = m(mn)%rxsec(s2,t2,u1,v1) + &
+    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
+    (m(mn)%rxsec(s2,t2,u1,v2) - m(mn)%rxsec(s2,t2,u1,v1))
+    xs(8) = m(mn)%rxsec(s2,t2,u2,v1) + &
+    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
+    (m(mn)%rxsec(s2,t2,u2,v2) - m(mn)%rxsec(s2,t2,u2,v1))
+  ELSE
+    xs(1) = m(mn)%rxsec(s1,t1,u1,v1)
+    xs(2) = m(mn)%rxsec(s1,t1,u2,v1)
+    xs(3) = m(mn)%rxsec(s1,t2,u1,v1)
+    xs(4) = m(mn)%rxsec(s1,t2,u2,v1)
+    xs(5) = m(mn)%rxsec(s2,t1,u1,v1)
+    xs(6) = m(mn)%rxsec(s2,t1,u2,v1)
+    xs(7) = m(mn)%rxsec(s2,t2,u1,v1)
+    xs(8) = m(mn)%rxsec(s2,t2,u2,v1)
+  END IF
+
+  !interpolation on Fuel Temperature
+  IF (m(mn)%nf > 1) THEN
+    xs(1) = xs(1) + (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1)) * &
+    (xs(2) - xs(1))
+    xs(3) = xs(3) + (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1)) * &
+    (xs(4) - xs(3))
+    xs(5) = xs(5) + (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1)) * &
+    (xs(6) - xs(5))
+    xs(7) = xs(7) + (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1)) * &
+    (xs(8) - xs(7))
+  END IF
+
+  !interpolation on Boron concentration
+  IF (m(mn)%nb > 1) THEN
+    xs(1) = xs(1) + (xbcon - m(mn)%pb(t1)) / (m(mn)%pb(t2) - m(mn)%pb(t1)) * &
+    (xs(3) - xs(1))
+    xs(5) = xs(5) + (xbcon - m(mn)%pb(t1)) / (m(mn)%pb(t2) - m(mn)%pb(t1)) * &
+    (xs(7) - xs(5))
+  END IF
+
+  !interpolation on coolant density
+  IF (m(mn)%nd > 1) THEN
+    xs(1) = xs(1) + (xcden - m(mn)%pd(s1)) / (m(mn)%pd(s2) - m(mn)%pd(s1)) * &
+    (xs(5) - xs(1))
+  END IF
+END IF
+
+sigtr = xs(1)%sigtr
+siga = xs(1)%siga
+nuf = xs(1)%nuf
+sigf = xs(1)%sigf
+sigs = xs(1)%sigs
+dc = xs(1)%dc
+
+DO i = 1, nx   !DeAllocate memory to xs
+  DEALLOCATE(xs(i)%sigtr)
+  DEALLOCATE(xs(i)%siga)
+  DEALLOCATE(xs(i)%nuf)
+  DEALLOCATE(xs(i)%sigf)
+  DEALLOCATE(xs(i)%dc)
+  DEALLOCATE(xs(i)%sigs)
+END DO
+
+
+END SUBROUTINE brInterp
+
+!******************************************************************************!
+
+FUNCTION brAdd(A, B) RESULT (C)
+
+  ! To perform XBRANCH data type addition
+
+USE sdata, ONLY: XBRANCH
+
+IMPLICIT NONE
+
+TYPE(XBRANCH), INTENT(IN) :: A, B
+TYPE(XBRANCH) :: C
+
+C%sigtr = A%sigtr + B%sigtr
+C%siga = A%siga + B%siga
+C%nuf = A%nuf + B%nuf
+C%sigf = A%sigf + B%sigf
+C%sigs = A%sigs + B%sigs
+C%dc = A%dc + B%dc
+
+END FUNCTION brAdd
+
+!******************************************************************************!
+
+FUNCTION brSubst(A, B) RESULT (C)
+
+    ! To perform XBRANCH data type substraction
+
+USE sdata, ONLY: XBRANCH
+
+IMPLICIT NONE
+
+TYPE(XBRANCH), INTENT(IN) :: A, B
+TYPE(XBRANCH) :: C
+
+C%sigtr = A%sigtr - B%sigtr
+C%siga = A%siga - B%siga
+C%nuf = A%nuf - B%nuf
+C%sigf = A%sigf - B%sigf
+C%sigs = A%sigs - B%sigs
+C%dc = A%dc - B%dc
+
+END FUNCTION brSubst
+
+!******************************************************************************!
+
+FUNCTION brRealMult(Re, A) RESULT (B)
+
+    ! To perform XBRANCH data type substraction
+
+USE sdata, ONLY: XBRANCH, DP
+
+IMPLICIT NONE
+
+REAL(DP), INTENT(IN) :: Re
+TYPE(XBRANCH), INTENT(IN) :: A
+TYPE(XBRANCH) :: B
+
+B%sigtr = Re * A%sigtr
+B%siga = Re * A%siga
+B%nuf = Re * A%nuf
+B%sigf = Re * A%sigf
+B%sigs = Re * A%sigs
+B%dc = Re * A%dc
+
+END FUNCTION brRealMult
+
+!******************************************************************************!
 
 END MODULE InpOutp

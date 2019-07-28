@@ -276,7 +276,7 @@ USE sdata, ONLY: ng, nnod, sigr, nf, &
                  aprad, apaxi, afrad
 USE InpOutp, ONLY: XS_updt, ounit, AsmPow, AxiPow, AsmFlux
 USE nodal, ONLY: nodal_coup4, outer4, outertf, outer4ad, PowTot, powdis
-USE th, ONLY: th_iter, th_trans, par_ave, par_max, par_ave_f
+USE th, ONLY: th_iter, th_trans, par_ave, par_max
 
 IMPLICIT NONE
 
@@ -339,7 +339,7 @@ END DO
 ! Calculate reactivity
 CALL react(af, sigr, rho)
 
-CALL par_ave_f(ftem, tf)
+CALL par_ave(ftem, tf)
 CALL par_max(tfm(:,1), mtf)
 CALL par_ave(mtem, tm)
 CALL par_max(mtem, mtm)
@@ -441,7 +441,7 @@ DO i = 1, imax
     ! Calculate reactivity
     CALL react(af, sigrp, rho)
 
-    CALL par_ave_f(ftem, tf)
+    CALL par_ave(ftem, tf)
     CALL par_max(tfm(:,1), mtf)
     CALL par_ave(mtem, tm)
     CALL par_max(mtem, mtm)
@@ -533,7 +533,7 @@ DO i = 1, imax
     ! Calculate reactivity
     CALL react(af, sigrp, rho)
 
-    CALL par_ave_f(ftem, tf)
+    CALL par_ave(ftem, tf)
     CALL par_max(tfm(:,1), mtf)
     CALL par_ave(mtem, tm)
     CALL par_max(mtem, mtm)

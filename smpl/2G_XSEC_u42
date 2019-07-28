@@ -1,7 +1,7 @@
 * Input Control
 1  1    * ADF, CROD
-*      Mod Dens      Boron ppm      Fuel Temp       Mod Temp
-              3              3              3              1
+*     Mod Dens      Boron ppm      Fuel Temp       Mod Temp
+           3              3              3              1
          0.66114        0.71187         0.75206
            0.00        1000.00        2000.00
          560.00         900.00        1320.00

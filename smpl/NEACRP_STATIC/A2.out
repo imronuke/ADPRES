@@ -361,7 +361,7 @@
       1        0.000000    0.016618
       2        0.000000    0.000000
 
-  ...Macroscopic CX Card is sucessfully read...
+  ...Macroscopic CX Card is successfully read...
 
 
             >>>>>READING CORE GEOMETRY<<<<<
@@ -466,21 +466,22 @@
   Z-directed Bottom : ZERO FLUX
   Z-directed Top    : ZERO FLUX
 
-  ...Core geometry is sucessfully read...
+  ...Core geometry is successfully read...
 
 
             >>>> READING BORON CONCENTRATION FOR BC SEARCH <<<<
             --------------------------------------------------
 
-  ...Critical Boron Search card is sucessfully read...
+  ...Critical Boron Search card is successfully read...
 
 
             >>>> READING CONTROL RODS INSERTION <<<<
             --------------------------------------------
   NUMBER OF CONTROL ROD BANK  :  7
-  MAX. NUMBER OF STEPS  : 228
+  MAX. NUMBER OF STEPS        : 228
   FULLY INSERTED POSITION (cm): 37.7 (FROM BOTTOM OF THE CORE)
   STEP SIZE (cm)              :   1.5942
+  CR CUSPING CORRECTION       : NOT ACTIVE
   INITIAL CONTROL ROD BANK POSITION (STEPS) : 
   (0 means fully inserted) 
     Bank  1  Bank  2  Bank  3  Bank  4  Bank  5  Bank  6  Bank  7
@@ -587,7 +588,7 @@
       1      0.000000 -0.003193
       2      0.000000  0.000000
 
-  ...Control Rods Insertion card is sucessfully read...
+  ...Control Rods Insertion card is successfully read...
 
 
             >>>>   READING THERMAL-HYDRAULIC DATA   <<<<
@@ -602,25 +603,25 @@
   PIN PITCH(m)                             :   1.2655E-02
   FRACTION OF HEAT DEPOSITED IN COOL.      :   1.9000E-02
 
-  ...Thermal-hydraulic Card is sucessfully read...
+  ...Thermal-hydraulic Card is successfully read...
 
 
             >>>>      READING FUEL TEMPERATURE      <<<<
             --------------------------------------------
 
-  ...Fuel Temperature is card sucessfully read...
+  ...Fuel Temperature is card successfully read...
 
 
             >>>>   READING MODERATOR TEMPERATURE    <<<<
             --------------------------------------------
 
-  ...Moderator Temperature Card is sucessfully read...
+  ...Moderator Temperature Card is successfully read...
 
 
             >>>>       READING COOLANT DENSITY      <<<<
             --------------------------------------------
 
-  ...Coolant Density Card is sucessfully read...
+  ...Coolant Density Card is successfully read...
 
 
   **********************************  STOP READING INPUT  *******************************************
@@ -632,10 +633,13 @@
 
    Itr  Boron Concentration          K-EFF    FLUX REL. ERROR   FISS. SOURCE REL. ERROR    DOPPLER ERROR
   ------------------------------------------------------------------------------------------------------
-    1        1200.20                0.99602     3.97405E-06          9.31119E-06           2.11168E-03
-    2        1195.43                0.99649     8.89589E-06          9.76558E-06           9.92693E-03
-    3        1159.47                1.00001     2.90402E-06          8.32720E-06           2.21581E-03
-    4        1159.59                1.00000     3.43068E-06          7.00845E-06           2.86974E-03
+    1        1200.20                1.00760     4.10136E-01          1.50406E-02           1.48772E+02
+    2        1209.33                0.99716     6.80854E-01          6.05374E-03           5.83869E+01
+    3        1206.84                0.99536     7.14661E-03          1.75868E-04           5.76110E+00
+    4        1213.26                0.99472     2.30634E-03          1.28517E-04           1.09465E+00
+    5        1160.13                0.99994     6.80185E-04          6.01401E-05           8.30634E-01
+    6        1159.53                1.00001     1.89789E-04          1.62926E-05           9.25327E-02
+    7        1159.58                1.00000     4.62346E-06          7.68987E-06           2.32818E-02
 
 
      Radial Power Distribution
@@ -646,7 +650,7 @@
      7   1.148   1.162   1.196   1.167   1.130   1.010   0.922                
      6   1.113   1.185   1.167   1.138   1.033   0.984   0.654                
      5   1.172   1.149   1.130   1.033   0.918   0.722                        
-     4   1.121   1.088   1.010   0.984   0.722                                
+     4   1.121   1.087   1.010   0.984   0.722                                
      3   0.835   0.944   0.922   0.654                                        
      2   0.731   0.585                                                        
      1                                                                        
@@ -688,7 +692,7 @@
     Group :   1
              1          2          3          4          5          6          7          8          9
      9   2.042E-02  2.212E-02  2.424E-02  2.431E-02  2.471E-02  2.312E-02  1.880E-02  1.295E-02  1.840E-03 
-     8   2.212E-02  2.352E-02  2.464E-02  2.500E-02  2.436E-02  2.291E-02  1.888E-02  1.050E-02  1.372E-03 
+     8   2.212E-02  2.352E-02  2.464E-02  2.500E-02  2.436E-02  2.291E-02  1.888E-02  1.051E-02  1.372E-03 
      7   2.424E-02  2.464E-02  2.524E-02  2.475E-02  2.375E-02  2.168E-02  1.671E-02  3.852E-03  3.330E-04 
      6   2.431E-02  2.500E-02  2.475E-02  2.391E-02  2.197E-02  1.935E-02  1.170E-02  1.654E-03            
      5   2.471E-02  2.436E-02  2.375E-02  2.197E-02  1.895E-02  1.282E-02  3.223E-03  3.456E-04            
@@ -703,19 +707,19 @@
      8   2.042E-02  2.686E-02  2.344E-02  2.857E-02  2.321E-02  2.621E-02  1.644E-02  1.013E-02  6.123E-04 
      7   2.763E-02  2.344E-02  2.877E-02  2.353E-02  2.716E-02  2.025E-02  1.594E-02  1.543E-03  1.347E-04 
      6   2.245E-02  2.857E-02  2.353E-02  2.734E-02  2.071E-02  1.696E-02  1.125E-02  7.334E-04            
-     5   2.832E-02  2.321E-02  2.716E-02  2.071E-02  2.195E-02  1.243E-02  1.297E-03  1.398E-04            
+     5   2.832E-02  2.320E-02  2.716E-02  2.071E-02  2.194E-02  1.243E-02  1.297E-03  1.398E-04            
      4   2.271E-02  2.621E-02  2.025E-02  1.696E-02  1.243E-02  1.351E-03  1.724E-04                       
      3   2.014E-02  1.644E-02  1.594E-02  1.125E-02  1.297E-03  1.724E-04                                  
-     2   1.277E-02  1.013E-02  1.543E-03  7.334E-04  1.398E-04                                             
-     1   8.212E-04  6.123E-04  1.347E-04                                                                   
+     2   1.277E-02  1.013E-02  1.542E-03  7.333E-04  1.397E-04                                             
+     1   8.211E-04  6.123E-04  1.347E-04                                                                   
 
 
    HEAT FLUX HOT CHANNEL FACTOR :  2.250
 
   AVERAGE DOPPLER TEMPERATURE     :   812.9 K (  539.8 C)
   MAX FUEL CENTERLINE TEMPERATURE :  1946.1 K ( 1673.0 C)
-  AVERAGE MODERATOR TEMPERATURE   :   576.1 K (  302.9 C)
+  AVERAGE MODERATOR TEMPERATURE   :   583.8 K (  310.6 C)
   MAXIMUM MODERATOR TEMPERATURE   :   603.7 K (  330.5 C)
 
 
- Total time :    5.8500369999999995       seconds
+ Total time :    7.0878519999999998       seconds
