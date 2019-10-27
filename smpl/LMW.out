@@ -16,11 +16,11 @@
      9: 2  3    ! Number of groups and number of materials                                                  
     10: !  sigtr      siga      nu*sigf    sigf    chi sigs_g1  sigs_g2                                     
     11: 0.2340967  0.01040206  0.006478  0.006478  1.0  0.0  0.017556                                       
-    12: 0.9355255  0.08766217  0.112733  0.112733  0.0  0.0  0.000000  / MAT 1 (INNER CORE)                 
+    12: 0.9355255  0.08766217  0.112733  0.112733  0.0  0.0  0.000000  ! MAT 1 (INNER CORE)                 
     13: 0.2338179  0.01099263  0.007503  0.007503  1.0  0.0  0.017178                                       
-    14: 0.9508216  0.09925634  0.137800  0.137800  0.0  0.0  0.000000  / MAT 2 (OUTER CORE)                 
+    14: 0.9508216  0.09925634  0.137800  0.137800  0.0  0.0  0.000000  ! MAT 2 (OUTER CORE)                 
     15: 0.2039700  0.00266057  0.000000  0.000000  1.0  0.0  0.027597                                       
-    16: 1.2626167  0.04936351  0.000000  0.000000  0.0  0.0  0.000000  / MAT 3 (REFLECTOR)                  
+    16: 1.2626167  0.04936351  0.000000  0.000000  0.0  0.0  0.000000  ! MAT 3 (REFLECTOR)                  
     17:                                                                                                     
     18: ! GEOMETRY CARD                                                                                     
     19: %GEOM                                                                                               
@@ -78,7 +78,7 @@
     71: ! Final Bank Pos (steps)     Starts Move (seconds)     Speed (steps/seconds)                        
     72:      60.                       7.5                     3.0    ! Bank 1                              
     73:      180.                       0.0                     3.0    ! Bank 2                             
-    74: 1.  0.25 1.0  1.0            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd
+    74: 1.  0.25  1.0  1.0            ! (seconds) total time, 1st time step, when to start 2nd time step, 2n
     75: 0.00025    0.00138    0.00122    0.00265    0.00083    0.00017           !beta                      
     76: 0.01270    0.03170    0.11500    0.31100    1.40000    3.87000           !decay constants           
     77: 1.25E7    2.5E5     ! Neutron velocity                                                              
@@ -125,7 +125,7 @@
       1        0.000000    0.027597
       2        0.000000    0.000000
 
-  ...Macroscopic CX Card is sucessfully read...
+  ...Macroscopic CX Card is successfully read...
 
 
             >>>>>READING CORE GEOMETRY<<<<<
@@ -221,7 +221,7 @@
   Z-directed Bottom : ZERO INCOMING CURRENT
   Z-directed Top    : ZERO INCOMING CURRENT
 
-  ...Core geometry is sucessfully read...
+  ...Core geometry is successfully read...
 
 
             >>>> READING CONTROL RODS INSERTION <<<<
@@ -270,7 +270,7 @@
       1      0.000000 -0.010040
       2      0.000000  0.000000
 
-  ...Control Rods Insertion card is sucessfully read...
+  ...Control Rods Insertion card is successfully read...
 
 
             >>>>     READING ROD EJECTION DATA      <<<<
@@ -295,7 +295,7 @@
   NEUTRON VELOCITY (cm/s) : 
     1.25000E+07    2.50000E+05
 
-  ...Rod Ejection Card is sucessfully read...
+  ...Rod Ejection Card is successfully read...
 
 
   **********************************  STOP READING INPUT  *******************************************
@@ -316,4 +316,4 @@
    4     1.000    0.0143     1.0167E+00   180.00   103.00
 
 
- Total time :    44.416026000000002       seconds
+ Total time :    106.07836200000000       seconds

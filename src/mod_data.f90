@@ -74,7 +74,7 @@ REAL(DP) :: fer, ser        ! Flux and Fission source error in BCSEARCH calcs.
 INTEGER :: nin = 2      ! Maximum inner iteration
 INTEGER :: nout = 500   ! Maximum outer iteration
 INTEGER :: nac = 5      ! number of outer iteration before next source EXTRAPOLATION
-INTEGER :: th_niter = 2                           ! Maximum number of thermal-hydraulics iteration
+INTEGER :: th_niter = 30                           ! Maximum number of thermal-hydraulics iteration
 
 ! OUTPUT PRINT OPTION
 INTEGER :: aprad=1, apaxi=1, afrad=1
@@ -126,7 +126,7 @@ REAL(DP), DIMENSION(:,:), ALLOCATABLE :: csigtr, csiga, cnuf, csigf   ! CX chang
 REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: csigs                      ! Used only for CBCS card
 
 ! Transient parameters
-INTEGER, PARAMETER :: nf = 6                       ! Number of delaye dneutron precusor family
+INTEGER, PARAMETER :: nf = 6                           ! Number of delayed neutron precusor family
 REAL(DP), DIMENSION(nf) :: ibeta, lamb                 ! beta (delayed neutron fraction) and precusor decay constant
 REAL(DP) :: tbeta                                      ! total beta
 REAL(DP), DIMENSION(:), ALLOCATABLE :: velo            ! Neutron velocity
@@ -144,6 +144,7 @@ REAL(DP) :: tpow                                       ! Total reactor power
 REAL(DP), DIMENSION(:), ALLOCATABLE :: npow            ! nodes power (watt)
 REAL(DP) :: tin                                        ! coolant inlet temperature (kelvin)
 REAL(DP) :: cflow                                      ! Sub-channel mass flow rate (kg/s)
+REAL(DP), DIMENSION(:), ALLOCATABLE :: nflow           ! new channel mass flow rate
 REAL(DP) :: rf, tg, tc, ppitch                         ! Fuel meat radius, gap thickness, clad thickness, and pin picth (m)
 REAL(DP) :: rg, rc                                     ! Outer radius of gap and cladding
 REAL(DP) :: dia, dh, farea                             ! Pi diameter, Hydraulic diameter (m) and sub-channel area (m2)

@@ -207,6 +207,13 @@ ELSE
     CONTINUE
 END IF
 
+IF (mode == 'BCSEARCH' .AND. bxtab == 1 .AND. bther == 0) THEN
+  WRITE(ounit,*) '   ERROR: THER CARD MUST BE PRESENT IN THIS PROBLEM'
+  WRITE(*,*) '   ERROR: THER CARD MUST BE PRESENT IN THIS PROBLEM'
+  STOP
+END IF
+
+
 !CARD CROD
 IF (bcrod == 1) CALL inp_crod (ucrod)
 
@@ -270,6 +277,7 @@ END IF
 
 !!CARD BCON
 IF (bbcon == 1 .AND. bxtab == 0) CALL inp_bcon (ubcon)
+IF (bbcon == 1 .AND. bxtab == 1 .AND. mode == 'RODEJECT') CALL inp_bcon (ubcon)
 
 !!CARD FTEM
 IF (bftem == 1 .AND. bxtab == 0) CALL inp_ftem (uftem)
@@ -985,18 +993,38 @@ DO k= 1, nz
                         IF (mnum(xtot, ytot, ztot) > nmat) THEN
                             WRITE(ounit,'(2X,A17,I3,A37)') 'ERROR: MATERIAL ', &
                             mnum(xtot, ytot, ztot), ' IS GREATER THAN NUMBER OF MATERIAL'
+                            WRITE(*,'(2X,A17,I3,A37)') 'ERROR: MATERIAL ', &
+                            mnum(xtot, ytot, ztot), ' IS GREATER THAN NUMBER OF MATERIAL'
                             STOP
                         END IF
                         IF (mnum(xtot, ytot, ztot) < 0) THEN
                             WRITE(ounit,'(2X,A)') 'ERROR: NEGATIVE MATERIAL FOUND'
+                            WRITE(*,'(2X,A)') 'ERROR: NEGATIVE MATERIAL FOUND'
                             STOP
                         END IF
-                        plnr(zpln(k))%node(xtot,ytot) = plnr(zpln(k))%asm(i,j)
                     END DO
                 END DO
             END DO
         END DO
     END DO
+END DO
+
+! Assign assembly wise planar to node wise planar for output
+ztot = 0
+DO k= 1, np
+  ytot = 0
+  DO j= 1, ny
+      DO ly= 1, ydiv(j)
+          ytot = ytot+1
+          xtot = 0
+          DO i= 1, nx
+              DO lx= 1, xdiv(i)
+                  xtot = xtot+1
+                  plnr(k)%node(xtot,ytot) = plnr(k)%asm(i,j)
+              END DO
+          END DO
+      END DO
+  END DO
 END DO
 
 ! -Indexing non zero material for staggered mesh-
@@ -1090,10 +1118,10 @@ IF (ogeom) THEN
 
         DO j = 1, nyy
             DO i = 1, nxx
-                IF (plnr(zpln(k))%node(i,j) == 0) THEN
+                IF (plnr(k)%node(i,j) == 0) THEN
                     mmap(i,j) = '  '
                 ELSE
-                    WRITE (mmap(i,j),'(I2)') plnr(zpln(k))%node(i,j)
+                    WRITE (mmap(i,j),'(I2)') plnr(k)%node(i,j)
                     mmap(i,j) = TRIM(ADJUSTL(mmap(i,j)))
                 END IF
             END DO
@@ -1188,8 +1216,8 @@ IF (ogeom) THEN
 END IF
 
 
-1016 FORMAT(2X,A,'-directed nodes divison (delta-',A,')')
-1017 FORMAT(2X, 'Planar Region : ', I2)
+1016 FORMAT(2X,A,'-directed nodes division (delta-',A,')')
+1017 FORMAT(3X, 'Planar Region : ', I2)
 1018 FORMAT(2X, 'Planar Region Assignment to planes.')
 
 WRITE(ounit,*)
@@ -1320,17 +1348,8 @@ INTEGER :: n
 DO n = 1, nnod
   CALL brInterp(0, mat(n), xcden(n),  xbcon, xftem(n), xmtem(n), sigtr(n,:), &
   siga(n,:), nuf(n,:), sigf(n,:), sigs(n,:,:), dc(n,:,:))
-  ! CALL brInterp(0, 5,  0.75206_DP, 2000._DP, 900._DP, 500._DP, sigtr(n,:), &
-  ! siga(n,:), nuf(n,:), sigf(n,:), sigs(n,:,:), dc(n,:,:))
-  ! WRITE(*,'(16ES16.5)') sigtr(n,:)
-  ! WRITE(*,'(16ES16.5)') siga(n,:)
-  ! WRITE(*,'(16ES16.5)') nuf(n,:)
-  ! WRITE(*,'(16ES16.5)') sigf(n,:)
-  ! WRITE(*,'(16ES16.5)') sigs(n,:,:)
-  ! WRITE(*,*) 'HERE'
-  ! STOP
 END DO
-! IF (bcrod == 1) CALL crod_updt(xbpos)
+IF (bcrod == 1) CALL crod_tab_updt(xbpos)
 CALL DsigrDc_updt()
 
 
@@ -1383,14 +1402,15 @@ INTEGER :: i, g, h
 REAL(DP) :: dum
 
 DO i = 1, nnod
-    DO g = 1, ng
-        D(i,g) = 1./(3.*sigtr(i,g))
-        dum = 0.
-        DO h= 1, ng
-            IF (g /= h) dum = dum + sigs(i,g,h)
-        END DO
-        sigr(i,g) =  siga(i,g) + dum
+  DO g = 1, ng
+    IF (sigtr(i,g) < 1.e-5 ) STOP "Negative diffusion coefficient encountered"
+    D(i,g) = 1./(3.*sigtr(i,g))
+    dum = 0.
+    DO h= 1, ng
+        IF (g /= h) dum = dum + sigs(i,g,h)
     END DO
+    sigr(i,g) =  siga(i,g) + dum
+  END DO
 END DO
 
 END SUBROUTINE Dsigr_updt
@@ -1413,14 +1433,15 @@ INTEGER :: i, j, k, g, h
 REAL(DP) :: dum
 
 DO i = 1, nnod
-    DO g = 1, ng
-        D(i,g) = 1./(3.*sigtr(i,g))
-        dum = 0.
-        DO h= 1, ng
-            IF (g /= h) dum = dum + sigs(i,g,h)
-        END DO
-        sigr(i,g) =  siga(i,g) + dum
+  DO g = 1, ng
+    IF (sigtr(i,g) < 1.e-5 ) STOP "Negative diffusion coefficient encountered"
+    D(i,g) = 1./(3.*sigtr(i,g))
+    dum = 0.
+    DO h= 1, ng
+        IF (g /= h) dum = dum + sigs(i,g,h)
     END DO
+    sigr(i,g) =  siga(i,g) + dum
+  END DO
 END DO
 
 ! Calculate alpha
@@ -2387,7 +2408,8 @@ REAL(DP) :: sum1, sum2, sum3, sum4, sumx
 REAL(DP), DIMENSION(ng) :: sum5
 REAL(DP), DIMENSION(:), ALLOCATABLE :: f
 
-DO j = 1, nyy
+! For each node
+DO j = nyy, 1, -1
   DO i = 1, nxx
      IF (fbmap(i,j) > 0) THEN
         !!!(rodh -> posistion the tip of the control rod the top of core)
@@ -2482,7 +2504,6 @@ DO j = 1, nyy
          ! if negative CX found, Surpress CX to zero  and calculate D and sigr
          DO k = nzz, 1, -1
            DO g = 1, ng
-              IF (sigtr(xyz(i,j,k),g) < 0.) sigtr(xyz(i,j,k),g) = 0.
               IF (siga(xyz(i,j,k),g) < 0.) siga(xyz(i,j,k),g) = 0.
               IF (nuf(xyz(i,j,k),g) < 0.) nuf(xyz(i,j,k),g) = 0.
               IF (sigf(xyz(i,j,k),g) < 0.) sigf(xyz(i,j,k),g) = 0.
@@ -2497,6 +2518,170 @@ END DO
 
 
 END SUBROUTINE crod_updt
+
+!******************************************************************************!
+
+SUBROUTINE crod_tab_updt (bpos)
+!
+! Purpose: TO UPDATE AND CALCUALTE VOLUME WEIGHTED HOMOGENIZED CX FOR RODDED NODE
+!
+
+USE sdata, ONLY: ng, nxx, nyy, nzz, xyz, zdel, mat, cusp, &
+                 sigtr, siga, nuf, sigf, sigs, dc, &
+                 coreh, fbmap, pos0, ssize, m, &
+                 nnod, cden, ftem, mtem, bcon
+
+IMPLICIT NONE
+
+REAL(DP), DIMENSION(:), INTENT(IN) :: bpos
+
+INTEGER ::i, j, k, g, h
+REAL(DP) :: rodh, vfrac
+REAL(DP) :: dum
+
+INTEGER :: n, n1, n2, nmax, nd
+REAL(DP) :: del1, del2, eta1, eta2
+REAL(DP) :: sum1, sum2, sum3, sum4, sumx
+REAL(DP), DIMENSION(ng) :: sum5
+REAL(DP), DIMENSION(6) :: sum6
+REAL(DP), DIMENSION(:), ALLOCATABLE :: f
+
+REAL(DP), DIMENSION(nnod,ng) :: rsigtr, rsiga, rnuf, rsigf
+REAL(DP), DIMENSION(nnod,ng,ng) :: rsigs
+REAL(DP), DIMENSION(nnod,6,ng) :: rdc
+
+DO j = 1, nyy
+  DO i = 1, nxx
+    IF (fbmap(i,j) > 0) THEN
+       !(rodh -> posistion the tip of the control rod the top of core)
+       rodh = coreh - pos0  - bpos(fbmap(i,j))*ssize
+       dum = 0._DP
+         DO k = nzz, 1, -1
+           nd = xyz(i,j,k)                                  ! Node number
+           IF (m(mat(nd))%trod == 1) THEN
+             CALL brInterp(1, mat(nd), cden(nd), bcon, ftem(nd), &
+             mtem(nd), rsigtr(nd,:), rsiga(nd,:), rnuf(nd,:), &
+             rsigf(nd,:), rsigs(nd,:,:), rdc(nd,:,:))
+           ELSE
+             WRITE(101,1671) fbmap(i,j), mat(nd)
+             WRITE(*,1671) fbmap(i,j), mat(nd)
+             STOP
+             1671 FORMAT (2X, 'CONTROL ROD BANK NUMBER ', I4, &
+             ' COINCIDES WITH MATERIAL NUMBER ', I4, &
+             ' THAT DOES NOT HAVE CONTROL ROD DATA IN XTAB FILE')
+           END IF
+           ! For partially rodded node, get volume weighted homogenized CX (0 < vfrac < 1._DP)
+           IF (rodh >= dum .AND. rodh <= dum+zdel(k)) THEN   ! If this node partially rodded
+             eta1 = rodh - dum
+             eta2 = zdel(k) - rodh + dum
+             IF (cusp == 0 .OR. eta1 < 1. .OR. eta2 < 1.) THEN    ! IF ROD CUSPING NOT ACTIVE OR LESS THAN 1 CM CLOSE TO Boundary
+                vfrac = (rodh - dum) / zdel(k)                    ! Rodded fraction
+                sigtr(nd,:)  = (1._DP - vfrac) * sigtr(nd,:)  + &
+                vfrac * rsigtr(nd,:)
+                siga(nd,:)   = (1._DP - vfrac) * siga(nd,:)   + &
+                vfrac * rsiga(nd,:)
+                nuf(nd,:)    = (1._DP - vfrac) * nuf(nd,:)    + &
+                vfrac * rnuf(nd,:)
+                sigf(nd,:)   = (1._DP - vfrac) * sigf(nd,:)   + &
+                vfrac * rsigf(nd,:)
+                sigs(nd,:,:) = (1._DP - vfrac) * sigs(nd,:,:) + &
+                vfrac * rsigs(nd,:,:)
+                dc(nd,:,:)   = (1._DP - vfrac) * dc(nd,:,:)   + &
+                vfrac * rdc(nd,:,:)
+             ELSE                    ! IF ROD CUSPING ACTIVE
+                n1 = CEILING(rodh - dum)        ! Number of mesh in rodded area
+                del1 = (rodh - dum) / REAL(n1)  ! mesh size in rodded area
+                n2 = CEILING(zdel(k) - rodh + dum)  ! Number of mesh in non-rodded area
+                del2 = (zdel(k) - rodh + dum) / REAL(n2)  ! mesh size in non-rodded area
+
+                nmax = n1 + n2                     ! Total number of mesh
+
+                ! Calculate weighted flux
+                ALLOCATE(f(nmax))
+
+                DO g = 1, ng
+                   ! Calculate weighted flux for group g
+                   CALL fcusp(g, i, j, k, n1, nmax, del1, del2, f)
+
+                   ! Calculate homogenized CXs
+                   ! Rodded area
+                   sumx = 0.
+                   sum1 = 0.; sum2 = 0.; sum3 = 0.; sum4 = 0.; sum5 = 0.; sum6 = 0.
+                   DO n = 1, n1
+                     sumx = sumx + f(n) * del1
+                     sum1 = sum1 + f(n) * rsigtr(nd,g) * del1
+                     sum2 = sum2 + f(n) * rsiga(nd,g) * del1
+                     sum3 = sum3 + f(n) * rnuf(nd,g) * del1
+                     sum4 = sum4 + f(n) * rsigf(nd,g) * del1
+                     DO h = 1, ng
+                         sum5(h) = sum5(h) + f(n) * rsigs(nd,g,h) * del1
+                     END DO
+                     DO h = 1, 6
+                         sum6(h) = sum6(h) + f(n) * rdc(nd,h,g) * del1
+                     END DO
+                   END DO
+                   ! Non-rodded area
+                   DO n = n1+1, nmax
+                     sumx = sumx + f(n) * del2
+                     sum1 = sum1 + f(n) * sigtr(nd,g) * del2
+                     sum2 = sum2 + f(n) * siga(nd,g) * del2
+                     sum3 = sum3 + f(n) * nuf(nd,g) * del2
+                     sum4 = sum4 + f(n) * sigf(nd,g) * del2
+                     DO h = 1, ng
+                         sum5(h) = sum5(h) + f(n) * sigs(nd,g,h) * del2
+                     END DO
+                     DO h = 1, 6
+                         sum6(h) = sum6(h) + f(n) * dc(nd,h,g) * del2
+                     END DO
+                   END DO
+
+                   sigtr(nd,g) = sum1 / sumx
+                   siga(nd,g)  = sum2 / sumx
+                   nuf(nd,g)   = sum3 / sumx
+                   sigf(nd,g)  = sum4 / sumx
+                   DO h = 1, ng
+                     sigs(nd,g,h) = sum5(h) / sumx
+                   END DO
+                   DO h = 1, 6
+                     dc(nd,h,g) = sum6(h) / sumx
+                   END DO
+
+                END DO
+                DEALLOCATE(f)
+             END IF
+
+             EXIT
+           END IF
+           ! For fully rodded node, vfrac = 1.
+           sigtr(nd,:)  = rsigtr(nd,:)
+           siga(nd,:)   = rsiga(nd,:)
+           nuf(nd,:)    = rnuf(nd,:)
+           sigf(nd,:)   = rsigf(nd,:)
+           sigs(nd,:,:) = rsigs(nd,:,:)
+           dc(nd,:,:)   = rdc(nd,:,:)
+
+           dum = dum + zdel(k)
+         END DO
+         ! if negative CX found, Surpress CX to zero  and calculate D and sigr
+         DO k = nzz, 1, -1
+           nd = xyz(i,j,k)
+           DO g = 1, ng
+             IF (siga(nd,g) < 0.) siga(nd,g)  = 0.
+             IF (nuf(nd,g)  < 0.) nuf(nd,g)   = 0.
+             IF (sigf(nd,g) < 0.) sigf(nd,g)  = 0.
+             DO h = 1, ng
+               IF (sigs(nd,g,h) < 0.) sigs( nd,g,h) = 0.
+             END DO
+             DO h = 1, 6
+               IF (dc(nd,h,g) < 0.) dc(nd,h,g) = 0.
+             END DO
+           END DO
+         END DO
+     END IF
+  END DO
+END DO
+
+END SUBROUTINE crod_tab_updt
 
 !******************************************************************************!
 
@@ -2564,7 +2749,7 @@ SUBROUTINE inp_ejct (xbunit)
 
 USE sdata, ONLY: nf, ng, lamb, iBeta, velo, nb, &
                  ttot, tstep1, tdiv, tstep2, bpos, fbpos, tmove, &
-                 bspeed, mdir
+                 bspeed, mdir, nstep
 
 IMPLICIT NONE
 
@@ -2592,6 +2777,12 @@ DO i = 1, nb
     cnb = TRIM(ADJUSTL(cnb))
     message = ' error in reading Final CR Bank Position, time to move and speed for bank : ' // cnb
     CALL er_message(ounit, ios, ln, message)
+    IF (fbpos(i) > nstep) THEN
+      WRITE(ounit, 1889) ln
+      WRITE(*, 1889) ln
+      STOP
+      1889 FORMAT(2X, "ERROR AT LINE ", I4, ": WRONG FINAL CONTROL ROD POSITION")
+    END IF
     IF (ABS(fbpos(i)-bpos(i)) < 1.e-5_DP) THEN
         mdir(i) = 0
     ELSE IF (fbpos(i)-bpos(i) > 1.e-5_DP) THEN
@@ -2609,42 +2800,48 @@ CALL er_message(ounit, ios, ln, message)
 ! ttot must be bigger than tstep1 and tstep2
 IF ((ttot < tstep1) .OR. (ttot < tstep2)) THEN
     WRITE(ounit,*) 'ERROR: TOTAL SIMULATION TIME SHALL BE GREATER THAN TIME STEPS'
+    WRITE(*,*) 'ERROR: TOTAL SIMULATION TIME SHALL BE GREATER THAN TIME STEPS'
     STOP
 END IF
 
 ! tdiv must be bigger than tstep1
 IF (tdiv < tstep1) THEN
     WRITE(ounit,*) 'ERROR: THE TIME WHEN SECOND TIME STEP STARTS SHALL BE GREATER THAN FIRST TIME STEP'
+    WRITE(*,*) 'ERROR: THE TIME WHEN SECOND TIME STEP STARTS SHALL BE GREATER THAN FIRST TIME STEP'
     STOP
 END IF
 
 ! tdiv must be less than ttot
 IF (tdiv > ttot) THEN
     WRITE(ounit,*) 'ERROR: THE TIME WHEN SECOND TIME STEP STARTS SHALL BE LESS THAN TOTAL TIME'
+    WRITE(*,*) 'ERROR: THE TIME WHEN SECOND TIME STEP STARTS SHALL BE LESS THAN TOTAL TIME'
     STOP
 END IF
 
 ! number of steps shall be less than 10,000
 IF (NINT(tdiv/tstep1)+NINT((ttot-tdiv)/tstep2) > 10000) THEN
     WRITE(ounit,*) 'ERROR: NUMBER OF TOTAL TIME STEPS ARE MORE THAN 10,000'
+    WRITE(*,*) 'ERROR: NUMBER OF TOTAL TIME STEPS ARE MORE THAN 10,000'
     STOP
 END IF
 
-! Read beta (delayed neutron fraction)
-READ(xbunit, *, IOSTAT=ios) ind, ln, (iBeta(i), i = 1, nf)
-message = ' error in reading delayed netron fraction (beta)'
-CALL er_message(ounit, ios, ln, message)
+IF (bxtab == 0) THEN  ! IF XTAB File does not present
+  ! Read beta (delayed neutron fraction)
+  READ(xbunit, *, IOSTAT=ios) ind, ln, (iBeta(i), i = 1, nf)
+  message = ' error in reading delayed netron fraction (beta)'
+  CALL er_message(ounit, ios, ln, message)
 
-! Read precusor decay constant
-READ(xbunit, *, IOSTAT=ios) ind, ln, (lamb(i), i = 1, nf)
-message = ' error in reading precusor decay constant'
-CALL er_message(ounit, ios, ln, message)
+  ! Read precusor decay constant
+  READ(xbunit, *, IOSTAT=ios) ind, ln, (lamb(i), i = 1, nf)
+  message = ' error in reading precusor decay constant'
+  CALL er_message(ounit, ios, ln, message)
 
-! Read neutron velocity
-ALLOCATE(velo(ng))
-READ(xbunit, *, IOSTAT=ios) ind, ln, (velo(g), g = 1, ng)
-message = ' error in reading neutron velocity'
-CALL er_message(ounit, ios, ln, message)
+  ! Read neutron velocity
+  ALLOCATE(velo(ng))
+  READ(xbunit, *, IOSTAT=ios) ind, ln, (velo(g), g = 1, ng)
+  message = ' error in reading neutron velocity'
+  CALL er_message(ounit, ios, ln, message)
+END IF
 
 
 !! EJCT PRINT OPTION
@@ -2666,17 +2863,19 @@ IF (ios == 0 .AND. popt > 0) THEN
     WRITE(ounit,1299) tstep2
     WRITE(ounit,1300) tdiv
 
-    WRITE(ounit,*)
-    WRITE(ounit,*) ' DELAYED NEUTRON FRACTION : '
-    WRITE(ounit,'(100F11.5)') (iBeta(i), i = 1, nf)
+    IF (bxtab == 0) THEN  ! IF XTAB File does not present
+      WRITE(ounit,*)
+      WRITE(ounit,*) ' DELAYED NEUTRON FRACTION : '
+      WRITE(ounit,'(100F11.5)') (iBeta(i), i = 1, nf)
 
-    WRITE(ounit,*)
-    WRITE(ounit,*) ' PRECUSOR DECAY CONSTANT (1/s): '
-    WRITE(ounit,'(100F11.5)') (lamb(i), i = 1, nf)
+      WRITE(ounit,*)
+      WRITE(ounit,*) ' PRECUSOR DECAY CONSTANT (1/s): '
+      WRITE(ounit,'(100F11.5)') (lamb(i), i = 1, nf)
 
-    WRITE(ounit,*)
-    WRITE(ounit,*) ' NEUTRON VELOCITY (cm/s) : '
-    WRITE(ounit,'(100ES15.5)') (velo(g), g = 1, ng)
+      WRITE(ounit,*)
+      WRITE(ounit,*) ' NEUTRON VELOCITY (cm/s) : '
+      WRITE(ounit,'(100ES15.5)') (velo(g), g = 1, ng)
+    END IF
 END IF
 
 WRITE(ounit,*)
@@ -3304,7 +3503,7 @@ USE sdata, ONLY: pow, tin, nx, ny, nxx, nyy, ystag, &
                  rf, tg, tc, rg, rc, ppitch, cf, dia, cflow, dh, pi, &
                  farea, xdiv, ydiv, ystag, node_nf, nm, nt, rdel, rpos, &
                  nnod, tfm, ppow, ent, heatf, ntem, stab, ftem, mtem, cden, &
-                 thunit
+                 nflow, thunit
 
 IMPLICIT NONE
 
@@ -3374,7 +3573,7 @@ CALL er_message(ounit, ios, ln, message)
 
 ! Calculate outer radius of gap and cladding
 rg = rf + tg
-rc = rf + tg + tc
+rc = rg + tc
 
 ! Calculate fuel pin diameter
 dia = 2. * rc
@@ -3387,6 +3586,12 @@ farea = ppitch**2 - 0.25*pi*dia**2
 
 ! Calculate sub-channel mass flow rate
 cflow = cmflow / REAL(nfpin)
+
+! If rod eject card active, initialize mass flow rate
+IF (bejct == 1) THEN
+  ALLOCATE(nflow(nnod))
+  nflow = cflow
+END IF
 
 ! Calculate total coolant mass flow rate and number of fuel pins per node
 barea = 0.
@@ -3416,7 +3621,6 @@ DO j= 1, ny
         END DO
     END DO
 END DO
-
 
 ! Calculate fuel pin mesh delta and position
 nm = 10      ! Fuel meat divided into 10 mesh
@@ -3452,15 +3656,34 @@ ALLOCATE(heatf(nnod))
 heatf = 0.
 
 ! Open steam table file
-CALL openFile (thunit, 'st155bar', 'steam table', 'Steam Table Open Failed--status')
-
-! Save steam table data to stab
-DO i = 1, ntem
-   READ(thunit,*) stab(i,1), stab(i,2), stab(i,3), &
-                  stab(i,4), stab(i,5), stab(i,6)
-END DO
-
-CLOSE(UNIT=thunit)
+OPEN (UNIT=thunit, FILE='st155bar', STATUS='OLD', ACTION='READ', IOSTAT = ios)
+IF (ios == 0) THEN  !If steam table present in the current directory
+  ! Save steam table data to stab
+  DO i = 1, ntem
+     READ(thunit,*) stab(i,1), stab(i,2), stab(i,3), &
+                    stab(i,4), stab(i,5), stab(i,6)
+  END DO
+  CLOSE(UNIT=thunit)
+ELSE  ! if steam table not present, use steam table data at 15.5 MPa
+  stab(1,1)=543.15; stab(1,2)=0.78106745; stab(1,3)=1182595.0;
+  stab(1,4)=0.820773; stab(1,5)=0.128988; stab(1,6)=0.60720
+  stab(2,1)=553.15; stab(2,2)=0.76428125; stab(2,3)=1232620.0;
+  stab(2,4)=0.829727; stab(2,5)=0.126380; stab(2,6)=0.59285
+  stab(3,1)=563.15; stab(3,2)=0.74619716; stab(3,3)=1284170.0;
+  stab(3,4)=0.846662; stab(3,5)=0.124118; stab(3,6)=0.57710
+  stab(4,1)=573.15; stab(4,2)=0.72650785; stab(4,3)=1337630.0;
+  stab(4,4)=0.863597; stab(4,5)=0.121856; stab(4,6)=0.55970
+  stab(5,1)=583.15; stab(5,2)=0.70475081; stab(5,3)=1393570.0;
+  stab(5,4)=0.915035; stab(5,5)=0.120105; stab(5,6)=0.54045
+  stab(6,1)=593.15; stab(6,2)=0.68018488; stab(6,3)=1452895.0;
+  stab(6,4)=0.966472; stab(6,5)=0.118354; stab(6,6)=0.51880
+  stab(7,1)=603.15; stab(7,2)=0.65150307; stab(7,3)=1517175.0;
+  stab(7,4)=1.166745; stab(7,5)=0.143630; stab(7,6)=0.49420
+  stab(8,1)=613.15; stab(8,2)=0.61590149; stab(8,3)=1589770.0;
+  stab(8,4)=1.515852; stab(8,5)=0.195931; stab(8,6)=0.46550
+  stab(9,1)=617.91; stab(9,2)=0.59896404; stab(9,3)=1624307.1;
+  stab(9,4)=1.681940; stab(9,5)=0.220813; stab(9,6)=0.45185
+END IF
 
 !! THER PRINT OPTION
 READ(xbunit, *, IOSTAT=ios) ind, ln, popt
@@ -4075,6 +4298,7 @@ INTEGER, INTENT(IN) :: xbunit
 INTEGER :: ln !Line number
 INTEGER :: iost  ! IOSTAT status
 
+INTEGER, DIMENSION(nf) :: precf
 INTEGER :: i, j, g, h, s,t,u,v
 
 ! XTAB TYPE
@@ -4105,12 +4329,12 @@ ALLOCATE(chi(nmat,ng))
 ALLOCATE(xtab(nmat), noty(nmat), m(nmat))
 noty = .TRUE.
 
-! Reading XTAB file names and composition number in xtab file
+! Reading input file for XTAB file names and composition number
 DO i= 1, nmat
     READ(xbunit, '(A2,I5,A100)', IOSTAT=iost) ind, ln, iline
-    iline = ADJUSTL(iline)         !Adjust to left
-    comm = INDEX(iline, ' ')       ! Get space position
-    xtab(i)%fname = iline(1:comm-1)  !Get xtab file name
+    iline = ADJUSTL(iline)                !Adjust to left
+    comm = INDEX(iline, ' ')              ! Get space position
+    xtab(i)%fname = iline(1:comm-1)       !Get xtab file name
     READ(iline(comm:100),*) xtab(i)%cnum  ! Get composition number (convert to integer)
     message = ' error in reading XTAB files'
     CALL er_message(ounit, iost, ln, message)
@@ -4246,23 +4470,31 @@ IF (iost == 0 .AND. popt > 0) THEN
   DO g = 1, ng
     group(g) = g
   END DO
+  DO j = 1, nf
+    precf(j) = j
+  END DO
   DO i= 1, nmat
       WRITE(ounit,*)
       WRITE(ounit,1709) i
       WRITE(ounit,'(A,I3)') '     XTAB FILE '// TRIM(ADJUSTL(xtab(i)%fname)) &
       // '. COMPOSITION NUMBER', xtab(i)%cnum
       WRITE(ounit,1707)'GROUP', 'TRANSPORT', 'DIFFUSION', 'ABSORPTION', &
-      'NU*FISS', 'KAP*FIS','FISS. SPCTR'
+      'NU*FISS', 'KAP*FIS','FISS. SPCTR', 'NEUTRON VELOCITY'
       DO g= 1, ng
           WRITE(ounit,1706) g, m(i)%xsec(s,t,u,v)%sigtr(g), &
           1./(3.*m(i)%xsec(s,t,u,v)%sigtr(g)), m(i)%xsec(s,t,u,v)%siga(g), &
-           m(i)%xsec(s,t,u,v)%nuf(g), m(i)%xsec(s,t,u,v)%sigf(g), chi(i,g)
+           m(i)%xsec(s,t,u,v)%nuf(g), m(i)%xsec(s,t,u,v)%sigf(g), chi(i,g), &
+           m(i)%velo(g)
       END DO
       WRITE(ounit,*)'  --SCATTERING MATRIX--'
       WRITE(ounit,'(4X, A5, 20I11)') "G/G'", (group(g), g=1,ng)
       DO g= 1, ng
           WRITE(ounit,1015)g, (m(i)%xsec(s,t,u,v)%sigs(g,h), h=1,ng)
       END DO
+      WRITE(ounit,*)'  --BETA AND LAMBDA--'
+      WRITE(ounit,'(6X, A5, I9, 20I13)') "GROUP", (precf(j), j=1,nf)
+      WRITE(ounit,1016)'BETA ', (m(i)%ibeta(j), j = 1, nf)
+      WRITE(ounit,1016)'LAMBDA ', (m(i)%lamb(j), j = 1, nf)
   END DO
 END IF
 
@@ -4270,10 +4502,10 @@ WRITE(ounit,*)
 WRITE(ounit,*) ' ...XTAB FILE Card is successfully read...'
 
 1709 FORMAT(5X, 'MATERIAL', I3)
-1707 FORMAT(2X, A7, A12, A13, A12, A11, A13, A15)
-1706 FORMAT(2X, I6, F13.6, 2F12.6, 3F13.6)
+1707 FORMAT(2X, A7, A12, A13, A12, A11, A13, A15, A18)
+1706 FORMAT(2X, I6, F13.6, 2F12.6, F13.6, ES14.5, F12.6, ES16.5)
 1015 FORMAT(4X, I3, F16.6, 20F12.6)
-
+1016 FORMAT(4X, A9, 20ES13.5)
 
 DEALLOCATE(xtab, noty)
 
@@ -4509,6 +4741,7 @@ TYPE(XBRANCH), DIMENSION(nx) :: xs   !Temporary xsec for interpolation
 INTEGER :: s, t, u, v, mx
 INTEGER :: s1, s2, t1, t2, u1, u2, v1, v2  ! Dimnesion Position of the given parameters
 INTEGER :: i
+REAL(DP) :: radx
 
 !Define + and - operators for XBRANCH type addition and substitution respectively
 INTERFACE OPERATOR (+)
@@ -4536,17 +4769,17 @@ IF (m(mn)%nd > 1) THEN
         EXIT
       END IF
     END DO
-  ELSE IF (xcden < m(mn)%pd(1) .AND. (m(mn)%pd(1) - xcden) / m(mn)%pd(1) < 0.1) THEN
+  ELSE IF (xcden < m(mn)%pd(1) .AND. (m(mn)%pd(1) - xcden) / m(mn)%pd(1) < 0.2) THEN
     s1 = 1
     s2 = 2
-  ELSE IF (xcden < m(mn)%pd(mx) .AND. (xcden - m(mn)%pd(mx)) / m(mn)%pd(mx) < 0.1) THEN
+  ELSE IF (xcden > m(mn)%pd(mx) .AND. (xcden - m(mn)%pd(mx)) / m(mn)%pd(mx) < 0.2) THEN
     s1 = mx - 1
     s2 = mx
   ELSE
     WRITE(ounit,1567) xcden
     WRITE(*,1567) xcden
     STOP
-    1567 FORMAT(2X, '  ERROR: COOLANT DENSITY', F7.3 ,' g/cm3 &
+    1567 FORMAT(2X, '  ERROR: COOLANT DENSITY ', F7.3 ,' g/cm3 &
     & IS OUT OF THE RANGE OF THE BRANCH PARAMETER')
   END IF
 END IF
@@ -4565,14 +4798,14 @@ IF (m(mn)%nb > 1) THEN
   ELSE IF (xbcon < m(mn)%pb(1) .AND. (m(mn)%pb(1) - xbcon) < 100.) THEN
     t1 = 1
     t2 = 2
-  ELSE IF (xbcon < m(mn)%pb(mx) .AND. (xbcon - m(mn)%pb(mx)) < 100.) THEN
+  ELSE IF (xbcon > m(mn)%pb(mx) .AND. (xbcon - m(mn)%pb(mx)) < 100.) THEN
     t1 = mx - 1
     t2 = mx
   ELSE
     WRITE(ounit,1568) xbcon
     WRITE(*,1568) xbcon
     STOP
-    1568 FORMAT(2X, '  ERROR: BORON CONCENTRATION', F8.1 ,' PPM &
+    1568 FORMAT(2X, '  ERROR: BORON CONCENTRATION ', F8.1 ,' PPM &
     & IS OUT OF THE RANGE OF THE BRANCH PARAMETER')
   END IF
 END IF
@@ -4588,17 +4821,17 @@ IF (m(mn)%nf > 1) THEN
         EXIT
       END IF
     END DO
-  ELSE IF (xftem < m(mn)%pf(1) .AND. (m(mn)%pf(1) - xftem) / m(mn)%pf(1) < 0.1) THEN
+  ELSE IF (xftem < m(mn)%pf(1) .AND. (m(mn)%pf(1) - xftem) / m(mn)%pf(1) < 0.2) THEN
     u1 = 1
     u2 = 2
-  ELSE IF (xftem < m(mn)%pf(mx) .AND. (xftem - m(mn)%pf(mx)) / m(mn)%pf(mx) < 0.1) THEN
+  ELSE IF (xftem > m(mn)%pf(mx) .AND. (xftem - m(mn)%pf(mx)) / m(mn)%pf(mx) < 0.2) THEN
     u1 = mx - 1
     u2 = mx
   ELSE
     WRITE(ounit,1570) xftem
     WRITE(*,1570) xftem
     STOP
-    1570 FORMAT(2X, '  ERROR: FUEL TEMPERATURE', F7.1 ,' K &
+    1570 FORMAT(2X, '  ERROR: FUEL TEMPERATURE ', F7.1 ,' K &
     & IS OUT OF THE RANGE OF THE BRANCH PARAMETER')
   END IF
 END IF
@@ -4614,17 +4847,17 @@ IF (m(mn)%nm > 1) THEN
         EXIT
       END IF
     END DO
-  ELSE IF (xmtem < m(mn)%pm(1) .AND. (m(mn)%pm(1) - xmtem) / m(mn)%pm(1) < 0.1) THEN
+  ELSE IF (xmtem < m(mn)%pm(1) .AND. (m(mn)%pm(1) - xmtem) / m(mn)%pm(1) < 0.2) THEN
     v1 = 1
     v2 = 2
-  ELSE IF (xmtem < m(mn)%pm(mx) .AND. (xmtem - m(mn)%pm(mx)) / m(mn)%pm(mx) < 0.1) THEN
+  ELSE IF (xmtem > m(mn)%pm(mx) .AND. (xmtem - m(mn)%pm(mx)) / m(mn)%pm(mx) < 0.2) THEN
     v1 = mx - 1
     v2 = mx
   ELSE
     WRITE(ounit,1569) xmtem
     WRITE(*,1569) xmtem
     STOP
-    1569 FORMAT(2X, '  ERROR: MODERATOR TEMPERATURE', F7.1 ,' K &
+    1569 FORMAT(2X, '  ERROR: MODERATOR TEMPERATURE ', F7.1 ,' K &
     & IS OUT OF THE RANGE OF THE BRANCH PARAMETER')
   END IF
 END IF
@@ -4642,30 +4875,23 @@ END DO
 IF (rod == 0) THEN   ! For Unrodded XSEC
   !interpolation on Moderator Temperature
   IF (m(mn)%nm > 1) THEN
+    radx = (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1))
     xs(1) = m(mn)%xsec(s1,t1,u1,v1) + &
-    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
-    (m(mn)%xsec(s1,t1,u1,v2) - m(mn)%xsec(s1,t1,u1,v1))
+    radx * (m(mn)%xsec(s1,t1,u1,v2) - m(mn)%xsec(s1,t1,u1,v1))
     xs(2) = m(mn)%xsec(s1,t1,u2,v1) + &
-    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
-    (m(mn)%xsec(s1,t1,u2,v2) - m(mn)%xsec(s1,t1,u2,v1))
+    radx * (m(mn)%xsec(s1,t1,u2,v2) - m(mn)%xsec(s1,t1,u2,v1))
     xs(3) = m(mn)%xsec(s1,t2,u1,v1) + &
-    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
-    (m(mn)%xsec(s1,t2,u1,v2) - m(mn)%xsec(s1,t2,u1,v1))
+    radx * (m(mn)%xsec(s1,t2,u1,v2) - m(mn)%xsec(s1,t2,u1,v1))
     xs(4) = m(mn)%xsec(s1,t2,u2,v1) + &
-    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
-    (m(mn)%xsec(s1,t2,u2,v2) - m(mn)%xsec(s1,t2,u2,v1))
+    radx * (m(mn)%xsec(s1,t2,u2,v2) - m(mn)%xsec(s1,t2,u2,v1))
     xs(5) = m(mn)%xsec(s2,t1,u1,v1) + &
-    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
-    (m(mn)%xsec(s2,t1,u1,v2) - m(mn)%xsec(s2,t1,u1,v1))
+    radx * (m(mn)%xsec(s2,t1,u1,v2) - m(mn)%xsec(s2,t1,u1,v1))
     xs(6) = m(mn)%xsec(s2,t1,u2,v1) + &
-    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
-    (m(mn)%xsec(s2,t1,u2,v2) - m(mn)%xsec(s2,t1,u2,v1))
+    radx * (m(mn)%xsec(s2,t1,u2,v2) - m(mn)%xsec(s2,t1,u2,v1))
     xs(7) = m(mn)%xsec(s2,t2,u1,v1) + &
-    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
-    (m(mn)%xsec(s2,t2,u1,v2) - m(mn)%xsec(s2,t2,u1,v1))
+    radx * (m(mn)%xsec(s2,t2,u1,v2) - m(mn)%xsec(s2,t2,u1,v1))
     xs(8) = m(mn)%xsec(s2,t2,u2,v1) + &
-    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
-    (m(mn)%xsec(s2,t2,u2,v2) - m(mn)%xsec(s2,t2,u2,v1))
+    radx * (m(mn)%xsec(s2,t2,u2,v2) - m(mn)%xsec(s2,t2,u2,v1))
   ELSE
     xs(1) = m(mn)%xsec(s1,t1,u1,v1)
     xs(2) = m(mn)%xsec(s1,t1,u2,v1)
@@ -4676,62 +4902,45 @@ IF (rod == 0) THEN   ! For Unrodded XSEC
     xs(7) = m(mn)%xsec(s2,t2,u1,v1)
     xs(8) = m(mn)%xsec(s2,t2,u2,v1)
   END IF
-!   WRITE(*,'(10I4)') s1, s2, t1, t2, u1, u2, v1, v2
-! WRITE(*,'(16ES16.5)') xs(1)%sigtr(:), xs(5)%sigtr(:)
   !interpolation on Fuel Temperature
   IF (m(mn)%nf > 1) THEN
-    xs(1) = xs(1) + (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1)) * &
-    (xs(2) - xs(1))
-    xs(3) = xs(3) + (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1)) * &
-    (xs(4) - xs(3))
-    xs(5) = xs(5) + (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1)) * &
-    (xs(6) - xs(5))
-    xs(7) = xs(7) + (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1)) * &
-    (xs(8) - xs(7))
+    radx = (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1))
+    xs(1) = xs(1) + radx * (xs(2) - xs(1))
+    xs(3) = xs(3) + radx * (xs(4) - xs(3))
+    xs(5) = xs(5) + radx * (xs(6) - xs(5))
+    xs(7) = xs(7) + radx * (xs(8) - xs(7))
   END IF
-! WRITE(*,'(16ES16.5)') xs(1)%sigtr(:), xs(5)%sigtr(:)
   !interpolation on Boron concentration
   IF (m(mn)%nb > 1) THEN
-    xs(1) = xs(1) + (xbcon - m(mn)%pb(t1)) / (m(mn)%pb(t2) - m(mn)%pb(t1)) * &
-    (xs(3) - xs(1))
-    xs(5) = xs(5) + (xbcon - m(mn)%pb(t1)) / (m(mn)%pb(t2) - m(mn)%pb(t1)) * &
-    (xs(7) - xs(5))
+    radx = (xbcon - m(mn)%pb(t1)) / (m(mn)%pb(t2) - m(mn)%pb(t1))
+    xs(1) = xs(1) + radx * (xs(3) - xs(1))
+    xs(5) = xs(5) + radx * (xs(7) - xs(5))
   END IF
-! WRITE(*,'(16ES16.5)') xs(1)%sigtr(:), xs(5)%sigtr(:)
   !interpolation on coolant density
   IF (m(mn)%nd > 1) THEN
     xs(1) = xs(1) + (xcden - m(mn)%pd(s1)) / (m(mn)%pd(s2) - m(mn)%pd(s1)) * &
     (xs(5) - xs(1))
   END IF
-!   WRITE(*,'(16ES16.5)') xs(1)%sigtr(:)
-! WRITE(*,*) '-------'
 ELSE   ! For Rodded XSEC
   !interpolation on Moderator Temperature
   IF (m(mn)%nm > 1) THEN
+    radx = (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1))
     xs(1) = m(mn)%rxsec(s1,t1,u1,v1) + &
-    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
-    (m(mn)%rxsec(s1,t1,u1,v2) - m(mn)%rxsec(s1,t1,u1,v1))
+    radx * (m(mn)%rxsec(s1,t1,u1,v2) - m(mn)%rxsec(s1,t1,u1,v1))
     xs(2) = m(mn)%rxsec(s1,t1,u2,v1) + &
-    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
-    (m(mn)%rxsec(s1,t1,u2,v2) - m(mn)%rxsec(s1,t1,u2,v1))
+    radx * (m(mn)%rxsec(s1,t1,u2,v2) - m(mn)%rxsec(s1,t1,u2,v1))
     xs(3) = m(mn)%rxsec(s1,t2,u1,v1) + &
-    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
-    (m(mn)%rxsec(s1,t2,u1,v2) - m(mn)%rxsec(s1,t2,u1,v1))
+    radx * (m(mn)%rxsec(s1,t2,u1,v2) - m(mn)%rxsec(s1,t2,u1,v1))
     xs(4) = m(mn)%rxsec(s1,t2,u2,v1) + &
-    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
-    (m(mn)%rxsec(s1,t2,u2,v2) - m(mn)%rxsec(s1,t2,u2,v1))
+    radx * (m(mn)%rxsec(s1,t2,u2,v2) - m(mn)%rxsec(s1,t2,u2,v1))
     xs(5) = m(mn)%rxsec(s2,t1,u1,v1) + &
-    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
-    (m(mn)%rxsec(s2,t1,u1,v2) - m(mn)%rxsec(s2,t1,u1,v1))
+    radx * (m(mn)%rxsec(s2,t1,u1,v2) - m(mn)%rxsec(s2,t1,u1,v1))
     xs(6) = m(mn)%rxsec(s2,t1,u2,v1) + &
-    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
-    (m(mn)%rxsec(s2,t1,u2,v2) - m(mn)%rxsec(s2,t1,u2,v1))
+    radx * (m(mn)%rxsec(s2,t1,u2,v2) - m(mn)%rxsec(s2,t1,u2,v1))
     xs(7) = m(mn)%rxsec(s2,t2,u1,v1) + &
-    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
-    (m(mn)%rxsec(s2,t2,u1,v2) - m(mn)%rxsec(s2,t2,u1,v1))
+    radx * (m(mn)%rxsec(s2,t2,u1,v2) - m(mn)%rxsec(s2,t2,u1,v1))
     xs(8) = m(mn)%rxsec(s2,t2,u2,v1) + &
-    (xmtem - m(mn)%pm(v1)) / (m(mn)%pm(v2) - m(mn)%pm(v1)) * &
-    (m(mn)%rxsec(s2,t2,u2,v2) - m(mn)%rxsec(s2,t2,u2,v1))
+    radx * (m(mn)%rxsec(s2,t2,u2,v2) - m(mn)%rxsec(s2,t2,u2,v1))
   ELSE
     xs(1) = m(mn)%rxsec(s1,t1,u1,v1)
     xs(2) = m(mn)%rxsec(s1,t1,u2,v1)
@@ -4745,22 +4954,18 @@ ELSE   ! For Rodded XSEC
 
   !interpolation on Fuel Temperature
   IF (m(mn)%nf > 1) THEN
-    xs(1) = xs(1) + (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1)) * &
-    (xs(2) - xs(1))
-    xs(3) = xs(3) + (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1)) * &
-    (xs(4) - xs(3))
-    xs(5) = xs(5) + (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1)) * &
-    (xs(6) - xs(5))
-    xs(7) = xs(7) + (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1)) * &
-    (xs(8) - xs(7))
+    radx = (xftem - m(mn)%pf(u1)) / (m(mn)%pf(u2) - m(mn)%pf(u1))
+    xs(1) = xs(1) + radx * (xs(2) - xs(1))
+    xs(3) = xs(3) + radx * (xs(4) - xs(3))
+    xs(5) = xs(5) + radx * (xs(6) - xs(5))
+    xs(7) = xs(7) + radx * (xs(8) - xs(7))
   END IF
 
   !interpolation on Boron concentration
   IF (m(mn)%nb > 1) THEN
-    xs(1) = xs(1) + (xbcon - m(mn)%pb(t1)) / (m(mn)%pb(t2) - m(mn)%pb(t1)) * &
-    (xs(3) - xs(1))
-    xs(5) = xs(5) + (xbcon - m(mn)%pb(t1)) / (m(mn)%pb(t2) - m(mn)%pb(t1)) * &
-    (xs(7) - xs(5))
+    radx = (xbcon - m(mn)%pb(t1)) / (m(mn)%pb(t2) - m(mn)%pb(t1))
+    xs(1) = xs(1) + radx * (xs(3) - xs(1))
+    xs(5) = xs(5) + radx * (xs(7) - xs(5))
   END IF
 
   !interpolation on coolant density

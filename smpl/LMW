@@ -9,11 +9,11 @@ LMW  TRANSIENT
 2  3    ! Number of groups and number of materials
 !  sigtr      siga      nu*sigf    sigf    chi sigs_g1  sigs_g2
 0.2340967  0.01040206  0.006478  0.006478  1.0  0.0  0.017556
-0.9355255  0.08766217  0.112733  0.112733  0.0  0.0  0.000000  / MAT 1 (INNER CORE)
+0.9355255  0.08766217  0.112733  0.112733  0.0  0.0  0.000000  ! MAT 1 (INNER CORE)
 0.2338179  0.01099263  0.007503  0.007503  1.0  0.0  0.017178
-0.9508216  0.09925634  0.137800  0.137800  0.0  0.0  0.000000  / MAT 2 (OUTER CORE)
+0.9508216  0.09925634  0.137800  0.137800  0.0  0.0  0.000000  ! MAT 2 (OUTER CORE)
 0.2039700  0.00266057  0.000000  0.000000  1.0  0.0  0.027597
-1.2626167  0.04936351  0.000000  0.000000  0.0  0.0  0.000000  / MAT 3 (REFLECTOR)
+1.2626167  0.04936351  0.000000  0.000000  0.0  0.0  0.000000  ! MAT 3 (REFLECTOR)
 
 ! GEOMETRY CARD
 %GEOM
@@ -71,7 +71,7 @@ LMW  TRANSIENT
 ! Final Bank Pos (steps)     Starts Move (seconds)     Speed (steps/seconds)
      60.                       7.5                     3.0    ! Bank 1
      180.                       0.0                     3.0    ! Bank 2
-60.  0.25  60.0  1.0            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
+1.  0.25  1.0  1.0            ! (seconds) total time, 1st time step, when to start 2nd time step, 2nd time step
 0.00025    0.00138    0.00122    0.00265    0.00083    0.00017           !beta
 0.01270    0.03170    0.11500    0.31100    1.40000    3.87000           !decay constants
 1.25E7    2.5E5     ! Neutron velocity

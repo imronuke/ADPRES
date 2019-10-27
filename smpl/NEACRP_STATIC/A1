@@ -83,13 +83,13 @@ NEACRP Critical Boron Concentration Search - Case A1
 %CROD
 7    228                     ! Number of CR banks and max number of banks
 37.7 1.5942237                ! Zero step pos. (cm) and cm/step (total 228 steps)
-0.   0.  0.  228.   0.   0.  0.           ! CR Bank pos.
+200.   200.  200.  200.   200.   0.  0.           ! CR Bank pos.
  1  0  2  0  0  0  3  0  0
- 0  4  0  0  0  6  0  0  0
+ 0  4  0  0  0  7  0  0  0
  2  0  5  0  6  0  6  0  0
  0  0  0  4  0  0  0  0  0
- 0  0  6  0  7  0  0  0  0
- 0  6  0  0  0  0  0  0  0
+ 0  0  6  0  6  0  0  0  0
+ 0  7  0  0  0  0  0  0  0
  3  0  6  0  0  0  0  0  0
  0  0  0  0  0  0  0  0  0
  0  0  0  0  0  0  0  0  0

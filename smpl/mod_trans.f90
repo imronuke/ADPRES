@@ -329,7 +329,7 @@ CALL iPden()
 
 ! Total beta
 IF (bxtab == 1) CALL calc_beta(af)
-tbeta = 0._DP
+tbeta = 0.
 DO j = 1, nf
   tbeta = tbeta + iBeta(j)
 END DO
@@ -438,7 +438,7 @@ DO i = 1, imax
     CALL PowDis(npow)
 
     ! Power change
-    xppow = ppow * tpow2/tpow1 * 0.01_DP
+    xppow = ppow * tpow2/tpow1 * 0.01
 
     ! Calculate linear power density for each nodes (W/cm)
     DO n = 1, nnod
@@ -543,7 +543,7 @@ DO i = 1, imax
     CALL PowDis(npow)
 
     ! Power change
-    xppow = ppow * tpow2/tpow1 * 0.01_DP
+    xppow = ppow * tpow2/tpow1 * 0.01
 
     ! Calculate linear power density for each nodes (W/cm)
     DO n = 1, nnod
@@ -639,7 +639,6 @@ END DO
 
 
 END SUBROUTINE calc_beta
-
 
 SUBROUTINE KNE1()
 
@@ -759,6 +758,10 @@ IF (bxtab == 1) THEN
          cx2(n,j) = (cx2(n,j) + beth * fsx2(n)) / lat
          cy2(n,j) = (cy2(n,j) + beth * fsy2(n)) / lat
          cz2(n,j) = (cz2(n,j) + beth * fsz2(n)) / lat
+       ELSE
+         c0(n,j) = 0.
+         cx1(n,j) = 0.; cy1(n,j) = 0.; cz1(n,j) = 0.
+         cx2(n,j) = 0.; cy2(n,j) = 0.; cz2(n,j) = 0.
        END IF
      END DO
   END DO

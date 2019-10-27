@@ -30,16 +30,17 @@ NEACRP Critical Boron Concentration Search - Case A1
 /home/imronuke/github/ADPRES/smpl/2G_XSEC_m43   2  !MAT  16: m43m  17.5 GWD/TON
 /home/imronuke/github/ADPRES/smpl/2G_XSEC_m43   6  !MAT  17: m43m  35.0 GWD/TON
 /home/imronuke/github/ADPRES/smpl/2G_XSEC_refl  1  !MAT  18: REFLECTOR
+1
 
 %GEOM
-9 9 22               !nx, ny, nz
-10.71  8*21.42      !x-direction assembly size in cm
-1  8*2              !x-direction assembly division
-10.71  8*21.42      !y-direction assembly size in cm
-1  8*2              !y-direction assembly ddivision
-20. 20*18.288 20.   !z-direction assembly size in cm
-22*1                !z-direction assembly division
-2                   !np number of planar type
+9 9 22                  !nx, ny, nz
+10.71  8*21.42          !x-direction assembly size in cm
+1  8*2                  !x-direction assembly division
+10.71  8*21.42          !y-direction assembly size in cm
+1  8*2                  !y-direction assembly ddivision
+21.42 20*18.288 21.42   !z-direction assembly size in cm
+22*2                    !z-direction assembly division
+2                       !np number of planar type
 2 20*1 2
 
 ! Planar_type_1
@@ -62,7 +63,6 @@ NEACRP Critical Boron Concentration Search - Case A1
 18 18 18 18 18 18 18 18 18
 18 18 18 18 18 18 18 18 18
 18 18 18 18 18 18 18 18 18
-
 ! Boundary conditions (east), (west), (north), (south), (bottom), (top)
 0 2 0 2 0 0
 

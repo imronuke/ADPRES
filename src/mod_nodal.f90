@@ -1163,7 +1163,8 @@ USE sdata, ONLY: nod, chi, mat, nnod, ng, tbeta, velo, lamb, iBeta, nf, omeg, si
                  c0, cx1, cy1, cz1, cx2, cy2, cz2, &
                  ft, ftx1, fty1, ftz1, ftx2, fty2, ftz2, &
                  f0, fx1, fy1, fz1, fx2, fy2, fz2, &
-                 fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2
+                 fs0, fsx1, fsy1, fsz1, fsx2, fsy2, fsz2, m
+USE InpOutp, ONLY: bxtab
 
 IMPLICIT NONE
 
@@ -1177,6 +1178,7 @@ INTEGER :: n, i, h
 s0 = 0.; sx1 = 0.; sy1 = 0.; sz1 = 0.
 sx2 = 0.; sy2 = 0.; sz2 = 0.
 
+! calaculate Scattering source
 DO h = 1, ng
     DO n = 1, nnod
         IF (g /= h) THEN
@@ -1191,35 +1193,81 @@ DO h = 1, ng
     END DO
 END DO
 
-DO n = 1, nnod
-     dt = 0.; dtx1 = 0.; dty1 = 0.; dtz1 = 0.; dtx2 = 0.; dty2 = 0.; dtz2 = 0.
-     dfis = 0.
-     DO i = 1, nf
-        lat = 1. + lamb(i) * ht
-        dt = dt  + lamb(i) * c0(n,i) / lat
-        dtx1 = dtx1 + lamb(i) * cx1(n,i) / lat
-        dty1 = dty1 + lamb(i) * cy1(n,i) / lat
-        dtz1 = dtz1 + lamb(i) * cz1(n,i) / lat
-        dtx2 = dtx2 + lamb(i) * cx2(n,i) / lat
-        dty2 = dty2 + lamb(i) * cy2(n,i) / lat
-        dtz2 = dtz2 + lamb(i) * cz2(n,i) / lat
-        dfis = dfis + chi(mat(n),g) * iBeta(i) * lamb(i) * ht / lat
-    END DO
-    nod(n,g)%Q(1) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fs0(n)  &
-    + s0(n) + chi(mat(n),g) * dt + ft(n,g)  * EXP(omeg(n,g) * ht) / (velo(g) * ht)
-    nod(n,g)%Q(2) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsx1(n)  &
-    + sx1(n) + chi(mat(n),g) * dtx1 + ftx1(n,g)  * EXP(omeg(n,g) * ht) / (velo(g) * ht)
-    nod(n,g)%Q(3) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsy1(n)  &
-    + sy1(n) + chi(mat(n),g) * dty1 + fty1(n,g)  * EXP(omeg(n,g) * ht) / (velo(g) * ht)
-    nod(n,g)%Q(4) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsz1(n)  &
-    + sz1(n) + chi(mat(n),g) * dtz1 + ftz1(n,g)  * EXP(omeg(n,g) * ht) / (velo(g) * ht)
-    nod(n,g)%Q(5) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsx2(n)  &
-    + sx2(n) + chi(mat(n),g) * dtx2 + ftx2(n,g)  * EXP(omeg(n,g) * ht) / (velo(g) * ht)
-    nod(n,g)%Q(6) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsy2(n)  &
-    + sy2(n) + chi(mat(n),g) * dty2 + fty2(n,g)  * EXP(omeg(n,g) * ht) / (velo(g) * ht)
-    nod(n,g)%Q(7) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsz2(n)  &
-    + sz2(n) + chi(mat(n),g) * dtz2 + ftz2(n,g)  * EXP(omeg(n,g) * ht) / (velo(g) * ht)
-END DO
+IF (bxtab == 0) THEN
+  DO n = 1, nnod
+       dt = 0.; dtx1 = 0.; dty1 = 0.; dtz1 = 0.; dtx2 = 0.; dty2 = 0.; dtz2 = 0.
+       dfis = 0.
+       DO i = 1, nf
+          lat = lamb(i) / (1._DP + lamb(i) * ht)
+          dt   = dt   + c0(n,i)  * lat
+          dtx1 = dtx1 + cx1(n,i) * lat
+          dty1 = dty1 + cy1(n,i) * lat
+          dtz1 = dtz1 + cz1(n,i) * lat
+          dtx2 = dtx2 + cx2(n,i) * lat
+          dty2 = dty2 + cy2(n,i) * lat
+          dtz2 = dtz2 + cz2(n,i) * lat
+          dfis = dfis + chi(mat(n),g) * iBeta(i) * ht * lat
+      END DO
+      nod(n,g)%Q(1) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fs0(n)  &
+      + s0(n) + chi(mat(n),g) * dt + ft(n,g)  * EXP(omeg(n,g) * ht) &
+      / (velo(g) * ht)
+      nod(n,g)%Q(2) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsx1(n)  &
+      + sx1(n) + chi(mat(n),g) * dtx1 + ftx1(n,g)  * EXP(omeg(n,g) * ht) &
+      / (velo(g) * ht)
+      nod(n,g)%Q(3) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsy1(n)  &
+      + sy1(n) + chi(mat(n),g) * dty1 + fty1(n,g)  * EXP(omeg(n,g) * ht) &
+      / (velo(g) * ht)
+      nod(n,g)%Q(4) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsz1(n)  &
+      + sz1(n) + chi(mat(n),g) * dtz1 + ftz1(n,g)  * EXP(omeg(n,g) * ht) &
+      / (velo(g) * ht)
+      nod(n,g)%Q(5) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsx2(n)  &
+      + sx2(n) + chi(mat(n),g) * dtx2 + ftx2(n,g)  * EXP(omeg(n,g) * ht) &
+      / (velo(g) * ht)
+      nod(n,g)%Q(6) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsy2(n)  &
+      + sy2(n) + chi(mat(n),g) * dty2 + fty2(n,g)  * EXP(omeg(n,g) * ht) &
+      / (velo(g) * ht)
+      nod(n,g)%Q(7) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsz2(n)  &
+      + sz2(n) + chi(mat(n),g) * dtz2 + ftz2(n,g)  * EXP(omeg(n,g) * ht) &
+      / (velo(g) * ht)
+  END DO
+ELSE
+  DO n = 1, nnod
+       dt = 0.; dtx1 = 0.; dty1 = 0.; dtz1 = 0.; dtx2 = 0.; dty2 = 0.; dtz2 = 0.
+       dfis = 0.
+       DO i = 1, nf
+         lat = m(mat(n))%lamb(i) / (1._DP + m(mat(n))%lamb(i) * ht)
+         dt   = dt   + c0(n,i)  * lat
+         dtx1 = dtx1 + cx1(n,i) * lat
+         dty1 = dty1 + cy1(n,i) * lat
+         dtz1 = dtz1 + cz1(n,i) * lat
+         dtx2 = dtx2 + cx2(n,i) * lat
+         dty2 = dty2 + cy2(n,i) * lat
+         dtz2 = dtz2 + cz2(n,i) * lat
+         dfis = dfis + chi(mat(n),g) * m(mat(n))%iBeta(i) * ht * lat
+       END DO
+      nod(n,g)%Q(1) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fs0(n)  &
+      + s0(n) + chi(mat(n),g) * dt + ft(n,g)  * EXP(omeg(n,g) * ht) &
+      / (m(mat(n))%velo(g) * ht)
+      nod(n,g)%Q(2) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsx1(n)  &
+      + sx1(n) + chi(mat(n),g) * dtx1 + ftx1(n,g)  * EXP(omeg(n,g) * ht) &
+      / (m(mat(n))%velo(g) * ht)
+      nod(n,g)%Q(3) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsy1(n)  &
+      + sy1(n) + chi(mat(n),g) * dty1 + fty1(n,g)  * EXP(omeg(n,g) * ht) &
+      / (m(mat(n))%velo(g) * ht)
+      nod(n,g)%Q(4) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsz1(n)  &
+      + sz1(n) + chi(mat(n),g) * dtz1 + ftz1(n,g)  * EXP(omeg(n,g) * ht) &
+      / (m(mat(n))%velo(g) * ht)
+      nod(n,g)%Q(5) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsx2(n)  &
+      + sx2(n) + chi(mat(n),g) * dtx2 + ftx2(n,g)  * EXP(omeg(n,g) * ht) &
+      / (m(mat(n))%velo(g) * ht)
+      nod(n,g)%Q(6) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsy2(n)  &
+      + sy2(n) + chi(mat(n),g) * dty2 + fty2(n,g)  * EXP(omeg(n,g) * ht) &
+      / (m(mat(n))%velo(g) * ht)
+      nod(n,g)%Q(7) = ((1. - tbeta) * chi(mat(n),g) + dfis) * fsz2(n)  &
+      + sz2(n) + chi(mat(n),g) * dtz2 + ftz2(n,g)  * EXP(omeg(n,g) * ht) &
+      / (m(mat(n))%velo(g) * ht)
+  END DO
+END IF
 
 END SUBROUTINE TSrcT
 
@@ -1248,7 +1296,7 @@ sx2 = 0.; sy2 = 0.; sz2 = 0.
 DO h = 1, ng
     DO n = 1, nnod
         IF (g /= h) THEN
-            s0(n)  = s0(n)   + sigs(n,g,h) * f0(n,h)
+            s0(n)  = s0(n)  + sigs(n,g,h) * f0(n,h)
             sx1(n) = sx1(n) + sigs(n,g,h) * fx1(n,h)
             sy1(n) = sy1(n) + sigs(n,g,h) * fy1(n,h)
             sz1(n) = sz1(n) + sigs(n,g,h) * fz1(n,h)
@@ -1808,17 +1856,17 @@ REAL(DP), DIMENSION(:), INTENT(OUT) :: p
 INTEGER :: g, n
 REAL(DP) :: tpow, pow
 
-p = 0.0
+p = 0._DP
 DO g= 1, ng
     DO n= 1, nnod
-       pow = f0(n,g) * sigf(n,g) * vdel(n)
-    IF (pow < 0.) pow = 0.
-        p(n) = p(n) + pow
+      pow = f0(n,g) * sigf(n,g) * vdel(n)
+      IF (pow < 0.) pow = 0.
+      p(n) = p(n) + pow
     END DO
 END DO
 
 ! Normalize to 1._DP
-tpow = 0.
+tpow = 0._DP
 DO n = 1, nnod
     tpow = tpow + p(n)
 END DO
@@ -1855,16 +1903,19 @@ REAL(DP), INTENT(OUT) :: tpow
 
 REAL(DP), DIMENSION(nnod) :: p
 INTEGER :: g, n
+REAL(DP) :: pow
 
-p = 0.0
+p = 0._DP
 DO g= 1, ng
     DO n= 1, nnod
-        p(n) = p(n) + fx(n,g) * sigf(n,g) * vdel(n)
+      pow = fx(n,g) * sigf(n,g) * vdel(n)
+      IF (pow < 0.) pow = 0.
+      p(n) = p(n) + pow
     END DO
 END DO
 
 
-tpow = 0.
+tpow = 0._DP
 DO n = 1, nnod
     tpow = tpow + p(n)
 END DO
