@@ -1,6 +1,6 @@
 ---
 title: Quick install guide
-theme: jekyll-theme-minimal
+theme: jekyll-theme-Cayman
 filename: install
 --- 
 
