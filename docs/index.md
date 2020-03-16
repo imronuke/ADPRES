@@ -1,6 +1,6 @@
 ---
 title: PAGE TITLE HERE
-layout: jekyll-theme-minimal
+theme: jekyll-theme-minimal
 filename: quick-install.md
 --- 
 
