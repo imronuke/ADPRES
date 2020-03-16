@@ -11,7 +11,7 @@ Abu Dhabi Polytechnic Reactor Simulator (ADPRES) solves static and transient dif
 ADPRES is a great learning tool for reactor theory classes. The input is modular and it is designed to be straightforward. ADPRES' main objective is to make all nuclear engineering students have access on similar nuclear computer code. It is open and completely free, so everyone has access to the source code and modify for his/her own purposes.
 
 ADPRES features:
-* Solves both transient core problems with or without TH feedback
+* Solves both static and transient core problems with or without TH feedback
 * Performs forward, adjoint and fixed-source problems
 * Can handle core problems with Assembly Discontinuity Factors (ADFs)
 * Critical boron concentration search
