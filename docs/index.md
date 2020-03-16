@@ -17,12 +17,14 @@ ADPRES features:
 * Critical boron concentration search
 * Rod ejection simulation
 * Theta-method to solve transient problems
-a
+
 # ADPRES User Manual
+
 We have been striving hard to make ADPRES easy for everyone. Here you can find guides on how to use ADPRES
+
 * [Install with "one enter"](https://imronuke.github.io/ADPRES/install)
 * [Quick guides](https://imronuke.github.io/ADPRES/install)
-* [Advanced guides]
+* Advanced guides
   * General rules
   * Cards Description
     * Mandatory cards
