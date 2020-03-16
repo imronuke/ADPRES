@@ -1,7 +1,7 @@
 ---
-title: PAGE TITLE HERE
+title: ADPRES
 theme: jekyll-theme-minimal
-filename: quick-install.md
+filename: index.md
 --- 
 
 This is the index
