@@ -1,6 +1,6 @@
 ---
 title: ADPRES
-theme: jekyll-theme-minimal
+theme: jekyll-theme-Cayman
 filename: index
 --- 
 
