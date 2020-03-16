@@ -1,6 +1,6 @@
 ---
 title: Quick install guide
-layout: jekyll-theme-minimal
+theme: jekyll-theme-minimal
 filename: install
 --- 
 
