@@ -1,7 +1,7 @@
 ---
 title: ADPRES
 theme: jekyll-theme-minimal
-filename: index.md
+filename: index
 --- 
 
 # ADPRES
