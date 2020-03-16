@@ -1,6 +1,6 @@
 ---
 title: PAGE TITLE HERE
-layout: jekyll-theme-architect
+layout: template
 filename:quick-install.md
 --- 
 
