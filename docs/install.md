@@ -1,7 +1,7 @@
 ---
 title: Quick install guide
 layout: jekyll-theme-minimal
-filename: index.md
+filename: install.md
 --- 
 
 This tells you how to install
