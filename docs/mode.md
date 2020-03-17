@@ -10,7 +10,7 @@ This card is used to describe the calculation mode. It has several options as fo
 
 | `%MODE` |
 | --- |
-| LINE 1 | MODE | Calculation mode | FORWARD  : Forward Calculation ADJOINT   : Adjoint Calculation FIXEDSRC : Fixed Source Calculation RODEJECT : Rod ejection and/or insertion mode (transient problems) |
+| LINE 1 | MODE | Calculation mode | `FORWARD`  : Forward Calculation<br>`ADJOINT`   : Adjoint Calculation<br>`FIXEDSRC` : Fixed Source Calculation<br>`BCSEARCH`: Critical boron concentration search<br>`RODEJECT` : Rod ejection and/or insertion mode (transient problems) |
 
 Example:
 ```
