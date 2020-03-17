@@ -5,7 +5,7 @@ filename: quick-guides
 ---
 
 # Quick Guides
-ADPRES input is designed to be self-explanatory. It has 12 input cards, for example: `%mode`, `%geom`, `%xsec`, and so on. Some cards are mandatory for any problems. While some cards are conditional, depending on the problem being solved and some cards are optional. Comments are marked by `!`. For example, the following is the [IAEA3D input](https://github.com/imronuke/ADPRES/tree/master/smpl/static), where you can find its specification [here](https://engineering.purdue.edu/PARCS/Code/TestSuite/CalculationMode/StandAloneMode/Eigenvalue/IAEA3DPWR).
+ADPRES input is designed to be self-explanatory. It has several input cards, for example: `%mode`, `%geom`, `%xsec`, and so on. Some cards are mandatory for any problems. While some cards are conditional, depending on the problem being solved and some cards are optional. Comments are marked by `!`. For example, the following is the [IAEA3D input](https://github.com/imronuke/ADPRES/tree/master/smpl/static), where you can find its specification [here](https://engineering.purdue.edu/PARCS/Code/TestSuite/CalculationMode/StandAloneMode/Eigenvalue/IAEA3DPWR).
 
 ```
 ! IAEA3D input data
@@ -37,15 +37,15 @@ IAEA3D
 0.166667  0.000  0.000  0.000    0.0   0.000    0.040
 1.111111  0.055  0.000  0.000    0.0   0.000    0.000    ! MAT5 : Reflector + Control Rod
 %GEOM
-9 9 19         !nx, ny, nz
-10.0 8*20.0    !x-direction assembly size in cm
-1  8*2         !x-direction assembly divided into 2 (10 cm each)
-8*20.0 10.0    !y-direction assembly size in cm
-8*2  1         !y-direction assembly divided into 2 (10 cm each)
-19*20.0        !z-direction assembly  in cm
-19*1           !z-direction nodal is not divided
-4              !np number of planar type
-1  13*2  4*3  4     !planar assignment (from bottom to top)
+9 9 19         ! number of assembly in x, y, z directions
+10.0 20.0 20.0 20.0 20.0 20.0 20.0 20.0 20.0    !x-direction assembly size in cm
+1      8    8    8    8    8    8    8    8     !x-direction assembly divided into 2 (10 cm each)
+20.0 20.0 20.0 20.0 20.0 20.0 20.0 20.0 10.0    !y-direction assembly size in cm
+8      8    8    8    8    8    8    8    1     !y-direction assembly divided into 2 (10 cm each)
+19*20.0                                         !z-direction assembly  in cm
+19*1                                            !z-direction nodal is not divided
+4                                               !np number of planar type
+1  13*2  4*3  4                                 !planar assignment (from bottom to top)
 ! Planar_type_1 (Bottom Reflector)
   4  4  4  4  4  4  4  4  4
   4  4  4  4  4  4  4  4  4
@@ -86,8 +86,29 @@ IAEA3D
   4  4  4  4  4  4  4  0  0
   4  4  4  4  4  4  0  0  0
   4  4  4  4  0  0  0  0  0
-! Boundary conditions (east), (west), (north), (south), (bottom), (top)
-1 2 2 1 1 1
+! Boundary conditions
+! 0 = zero-flux
+! 1 = zero-incoming current
+! 2 = reflective
+(east), (west), (north), (south), (bottom), (top)
+   1       2       2        1        1        1
+
+! NOTE: Writing 19*20.0 is equivalent to write 20.0 nineteen times in a row
 ```
 
-In the above example,
+In the above example, there are
+1. Two mandatory cards : `%MODE` and `%GEOM`
+2. One conditional card: `%XSEC`
+3. One optional card   : `%CASE`
+
+## Card `%MODE`
+This is the mode of ADPRES calculation. Since here we want to calculate static forward calculation (eigenvalue problem) the calculation mode is `FORWARD`
+
+## Card `%CASE`
+This card is optional. This describes the problem at hand.
+
+## Card `%XSEC`
+This card is conditional, needed only if `XTAB` card is not present. This card tells ADPRES the cross sections data for the problem. The cross section data must be given for each group and for each material as shown in the example. The description of the cross sections data can be seen in the comments.
+
+## Card `%GEOM`
+This card is describes the geometry of the problem. It quite similar to other reactor core simulator which you can easily understand if you have background on nuclear engineering. The description of the inputs given in the comments.
