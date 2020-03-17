@@ -4,7 +4,7 @@ theme: _config.yml
 filename: thet
 ---
 
-# %MODE Card
+# %THET Card
 
 This card is used to set the value of theta. Only effective for `RODEJECT` mode.
 

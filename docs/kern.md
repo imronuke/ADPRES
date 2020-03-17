@@ -4,7 +4,7 @@ theme: _config.yml
 filename: kern
 ---
 
-# %MODE Card
+# %KERN Card
 
 This card is used to choose other nodal kernel. By default, ADPRES uses Semi-Analytic Nodal Method.
 
