@@ -14,3 +14,10 @@ This card is used to describe the calculation mode. It has several options as fo
 ADJOINT   : Adjoint Calculation
 FIXEDSRC : Fixed Source Calculation
 RODEJECT : Rod ejection and/or insertion mode (transient problems) |
+
+Example:
+```
+! Mode card
+%MODE
+FORWARD
+```
