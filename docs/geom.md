@@ -1,12 +1,18 @@
 ---
-title: %XSEC
+title: %GEOM
 theme: _config.yml
-filename: xsec
+filename: geom
 ---
 
 # %XSEC Card
 
-This card is used to describe the cross section data. This card is conditional : either `%XSEC` or `XTAB` card must be present
+This card is used to describe the problem geometry in rectangular coordinate system. This card is mandatory. The coordinate system used in ADPRES is shown in the following figure
+
+![alt text](https://github.com/imronuke/ADPRES/blob/master/docs/images/geom_1.png "ADPRES 3D coordinate system")
+
+The point of origin is located at the corner between west, bottom and south sides. The next figure shows the coordinate system seen from top which typically used for two-dimensional problems.
+
+![alt text](https://github.com/imronuke/ADPRES/blob/master/docs/images/geom_2.png "ADPRES 2D coordinate system")
 
 | `%XSEC` | Variable | Description | Remarks |
 | --- |
