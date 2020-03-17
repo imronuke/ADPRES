@@ -5,6 +5,7 @@ filename: quick-guides
 ---
 
 # Quick Guides
+## Writing Input
 ADPRES input is designed to be self-explanatory. It has several input cards, for example: `%mode`, `%geom`, `%xsec`, and so on. Some cards are mandatory for any problems. While some cards are conditional, depending on the problem being solved and some cards are optional. Comments are marked by `!`. For example, the following is the [IAEA3D input](https://github.com/imronuke/ADPRES/tree/master/smpl/static), where you can find its specification [here](https://engineering.purdue.edu/PARCS/Code/TestSuite/CalculationMode/StandAloneMode/Eigenvalue/IAEA3DPWR).
 
 ```
@@ -101,14 +102,14 @@ In the above example, there are
 2. One conditional card: `%XSEC`
 3. One optional card   : `%CASE`
 
-## Card `%MODE`
+### Card `%MODE`
 This is the mode of ADPRES calculation. Since here we want to calculate static forward calculation (eigenvalue problem) the calculation mode is `FORWARD`
 
-## Card `%CASE`
+### Card `%CASE`
 This card is optional. This describes the problem at hand.
 
-## Card `%XSEC`
+### Card `%XSEC`
 This card is conditional, needed only if `XTAB` card is not present. This card tells ADPRES the cross sections data for the problem. The cross section data must be given for each group and for each material as shown in the example. The description of the cross sections data can be seen in the comments.
 
-## Card `%GEOM`
+### Card `%GEOM`
 This card is describes the geometry of the problem. It quite similar to other reactor core simulator which you can easily understand if you have background on nuclear engineering. The description of the inputs given in the comments.
