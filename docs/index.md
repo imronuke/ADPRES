@@ -12,13 +12,15 @@ ADPRES is a great learning tool for reactor theory classes, and we have been str
 
 ADPRES features:
 * Solves both static and transient core problems with or without TH feedback
-* It can handle multi-group of neutron energy
+* CMFD accelerated using two-node problem non-linear iteration
+* Perform branch calculations. An example of library format can be seen [here]
 * Three nodal kernels are available:
   * Traditional Finite Difference Method
   * Polynomial Nodal Method (PNM)
   * Semi-Analytic Nodal Method
+* It can handle multi-group of neutron energy
 * Performs forward, adjoint and fixed-source calculations
-* It handle core problems with Assembly Discontinuity Factors (ADFs)
+* It handle calculations with Assembly Discontinuity Factors (ADFs)
 * Critical boron concentration search
 * Rod ejection simulation
 * Theta-method to solve transient problems
