@@ -28,9 +28,9 @@ The point of origin is located at the corner between west, bottom and south side
 | LINE 8 | NP | Number of different core planar with different material composition |  |
 | LINE 9 | ZPLN(1:NZ) | Planar assignment along Z-direction from bottom to top |  |
 | LINE 10 | DO j = NY, 1, -1     ASM(1:NX)END DO | Planar material map |  |
-| LINE 11 | XEAST | East boundary conditions | 0 = Zero flux<br>1 = Zero incoming current<br>2 = Reflective |
-|   | XWEST | West boundary conditions |
-|   | YNORTH | North boundary conditions |
+| LINE 11 | XEAST | East boundary conditions | 0 = Zero flux |
+|   | XWEST | West boundary conditions | 1 = Zero incoming current |
+|   | YNORTH | North boundary conditions | 2 = Reflective |
 |   | YSOUTH | South boundary conditions |
 |   | ZBOTT | Bottom boundary conditions |
 |   | ZTOP | Top boundary conditions |
