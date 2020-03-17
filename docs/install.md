@@ -8,7 +8,7 @@ filename: install
 To compile ADPRES source codes you just need a Fortran compiler, that's it. We design ADPRES to be very portable, so it can be installed on any machine.
 
 ## Compiling in Ubuntu or other GNU-Linux based OS
-In Ubuntu, other GNU-Linux based OS or CYGWIN you can use either gfotran or intel fortran to compile the source codes. You can install gfortran in Ubuntu OS by using command
+In Ubuntu, other GNU-Linux based OS or CYGWIN you can use either gfotran or intel fortran to compile the source codes. You can install gfortran in Ubuntu OS by using this command in your computer's terminal
 
 ```
 sudo apt install gfortran
@@ -62,7 +62,7 @@ In Windows you can compile ADPRES using g95 which can be obtained from [here](ht
 
 Then you can download the [ADPRES zip files](https://github.com/imronuke/ADPRES) from Github.
 
-After you install g95 and download ADPRES, go to the [src folder](https://github.com/imronuke/ADPRES/tree/master/src) located inside the ADPRES folder which you had been downloaded, and compile the source codes using g95:
+After you install g95 and download ADPRES, from the command prompt, go to the [src folder](https://github.com/imronuke/ADPRES/tree/master/src) located inside the ADPRES folder which you had been downloaded, and compile the source codes using g95:
 
 ```
 g95 -O4 -c mod_data.f90
