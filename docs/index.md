@@ -1,6 +1,6 @@
 ---
 title: ADPRES
-theme: jekyll-theme-Cayman
+theme: _config.yml
 filename: index
 ---
 
