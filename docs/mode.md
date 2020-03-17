@@ -10,4 +10,7 @@ This card is used to describe the calculation mode. It has several options as fo
 
 | `%MODE` |
 | --- |
-| LINE 1 | MODE | Calculation mode | FORWARD  : Forward CalculationADJOINT   : Adjoint CalculationFIXEDSRC : Fixed Source CalculationRODEJECT : Rod ejection and/or insertion mode (transient problems) |
+| LINE 1 | MODE | Calculation mode | FORWARD  : Forward Calculation
+ADJOINT   : Adjoint Calculation
+FIXEDSRC : Fixed Source Calculation
+RODEJECT : Rod ejection and/or insertion mode (transient problems) |
