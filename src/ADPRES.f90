@@ -83,4 +83,7 @@ end if
 WRITE(*,*)
 WRITE(*,*) "  ADPRES EXIT NORMALLY"
 
+! ADPRES stop to prevent remain memory not allocated for g95 compiler
+stop
+
 END PROGRAM
