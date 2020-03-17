@@ -163,6 +163,13 @@ contains
 
     integer  :: n, p
     integer  :: i, j, k
+    logical  :: first =.true.
+
+    if (first) then
+      allocate(a1n(ng), a2n(ng), a3n(ng), a4n(ng))
+      allocate(a1p(ng), a2p(ng), a3p(ng), a4p(ng))
+      first = .false.
+    end if
 
     allocate(Ln1(ng), Lp1(ng))
     allocate(Bcn(ng,ng), Bcp(ng,ng))
