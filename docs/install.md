@@ -1,6 +1,6 @@
 ---
 title: Quick install guide
-theme: jekyll-theme-Cayman
+theme: _config.yml
 filename: install
 ---
 
@@ -14,7 +14,7 @@ In Ubuntu, other GNU-Linux based OS or CYGWIN you can use either gfotran or inte
 sudo apt install gfortran
 ```
 
-Then you can download the [ADPRES zip files](https://github.com/imronuke/ADPRES) from Github or clone them
+Then you can download the [ADPRES zip files](https://github.com/imronuke/ADPRES) from Github or clone them (you need to download git first if you don't have one)
 
 ```
 git clone https://github.com/imronuke/ADPRES.git
