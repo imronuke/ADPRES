@@ -8,10 +8,11 @@ filename: card-desc
 
 ADPRES has several input cards. Card is a keyword marked with `%`. Each card can be placed arbitrarily in the input deck. Three cards are mandatory for any problems, while the rest are optional and conditional depend on the nature problem being solved. The description of input for each card is explained in this subsection. Following table list all cards used in ADPRES. You can click each cards to get their description
 
+
 | **No.** | **Cards** | **Description** | **Remark** |
 | --- | --- | --- | --- |
 | 1. | [`%MODE`](https://imronuke.github.io/ADPRES/mode) | Calculation mode | Mandatory |
-| 2. | %XSEC | Cross Sections | Conditional |
+| 2. | [`%XSEC`](https://imronuke.github.io/ADPRES/xsec) | Cross Sections | Conditional |
 | 3. | %GEOM | Geometry of the problem | Mandatory |
 | 4. | %CASE | Problem case | Optional |
 | 5. | %ESRC | Extra source | Conditional |
