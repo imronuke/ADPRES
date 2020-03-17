@@ -4,26 +4,36 @@ theme: _config.yml
 filename: geom
 ---
 
-# %XSEC Card
+# %GEOM Card
 
 This card is used to describe the problem geometry in rectangular coordinate system. This card is mandatory. The coordinate system used in ADPRES is shown in the following figure
 
-![alt text](https://github.com/imronuke/ADPRES/blob/master/docs/images/geom_1.png "ADPRES 3D coordinate system")
+![alt text](https://github.com/imronuke/ADPRES/tree/master/docs/images/geom_1.png "ADPRES 3D coordinate system")
 
 The point of origin is located at the corner between west, bottom and south sides. The next figure shows the coordinate system seen from top which typically used for two-dimensional problems.
 
-![alt text](https://github.com/imronuke/ADPRES/blob/master/docs/images/geom_2.png "ADPRES 2D coordinate system")
+![alt text](https://github.com/imronuke/ADPRES/tree/master/docs/images/geom_2.png "ADPRES 2D coordinate system")
 
-| `%XSEC` | Variable | Description | Remarks |
+| `%GEOM` | Variable | Description | Remarks |
 | --- |
-| LINE 1 | NG | Number of groups |  |
-|        | NMAT | Number materials |
-| LINE 2 | SIGTR(g) | Transport macroscopic XS for group g | Repeat LINE 2 NG times. And again repeat this input segment NMAT times.(See example in the provided sample inputs) |
-| SIGA(g) | Absorption macroscopic XS for group g |
-| NUF(g) | Nu \* Fission macroscopic XS for group g |
-| SIGF(g) | Fission macroscopic XS for group g |
-| CHI(g) | Fission neutron spectrum for group g |
-| SIGS(g,1:NG) | Scattering macroscopic XS from group g to other groups |
+| LINE 1 | NX | Number of assemblies along X-direction |  |
+|   | NY | Number of assemblies along Y-direction |
+|   | NZ | Number of assemblies along Z-direction |
+| LINE 2 | XSIZE(1:NX) | Assembly size along X-direction(from west to east) |  |
+| LINE 3 | XDIV(1:NX) | Assembly division along X-direction(from west to east) |  |
+| LINE 4 | YSIZE(1:NY) | Assembly size along Y-direction(from south to north) |  |
+| LINE 5 | YDIV(1:NY) | Assembly division along Y-direction(from south to north) |  |
+| LINE 6 | ZSIZE(1:NZ) | Assembly size along Z-direction(from bottom to top) |  |
+| LINE 7 | ZDIV(1:NZ) | Assembly division along Z-direction(from bottom to top) |  |
+| LINE 8 | NP | Number of different core planar with different material composition |  |
+| LINE 9 | ZPLN(1:NZ) | Planar assignment along Z-direction from bottom to top |  |
+| LINE 10 | DO j = NY, 1, -1     ASM(1:NX)END DO | Planar material map |  |
+| LINE 11 | XEAST | East boundary conditions | 0 = Zero flux<br>1 = Zero incoming current<br>2 = Reflective |
+|   | XWEST | West boundary conditions |
+|   | YNORTH | North boundary conditions |
+|   | YSOUTH | South boundary conditions |
+|   | ZBOTT | Bottom boundary conditions |
+|   | ZTOP | Top boundary conditions |
 
 Example:
 ```
