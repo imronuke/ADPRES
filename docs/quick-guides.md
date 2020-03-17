@@ -13,11 +13,16 @@ ADPRES input is designed to be self-explanatory. It has 12 input cards, for exam
 ! PARCS K-EFF  : 1.029096
 ! ADPRES K-EFF : 1.029082 (ERROR = 1.4 PCM)
 
+! Mode card
 %MODE
 FORWARD
+
+! Case card
 %CASE
 IAEA3D
 10 CM NODE SIZE
+
+! Cross-sections card
 %XSEC
 2  5    ! Number of groups and number of materials
 ! sigtr   siga   nu*sigf sigf   chi   sigs_g1  sigs_g2
