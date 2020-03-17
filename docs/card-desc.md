@@ -10,7 +10,7 @@ ADPRES has several input cards. Card is a keyword marked with `%`. Each card can
 
 | **No.** | **Cards** | **Description** | **Remark** |
 | --- | --- | --- | --- |
-| 1. | %MODE | Calculation mode | Mandatory |
+| 1. | [`%MODE`](https://imronuke.github.io/ADPRES/mode) | Calculation mode | Mandatory |
 | 2. | %XSEC | Cross Sections | Conditional |
 | 3. | %GEOM | Geometry of the problem | Mandatory |
 | 4. | %CASE | Problem case | Optional |

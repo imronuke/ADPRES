@@ -17,7 +17,7 @@ ADPRES features:
 * Three nodal kernels are available:
   * Traditional Finite Difference Method
   * Polynomial Nodal Method (PNM)
-  * Semi-Analytic Nodal Method
+  * Semi-Analytic Nodal Method (SANM)
 * It can handle multi-group of neutron energy
 * Performs forward, adjoint and fixed-source calculations
 * It handle calculations with Assembly Discontinuity Factors (ADFs)
