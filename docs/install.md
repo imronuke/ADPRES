@@ -47,7 +47,7 @@ for example, you can run a test by
 ./adpres /home/imronuke/smpl/static/IAEA3Ds
 ```
 
-For you to be able to execute ADPRES from any folder, you can copy it to `usr/bin` (provided you have an admin privilege)
+If you see `ADPRES EXIT NORMALLY` at the end of terminal output, then congratulations! you have compiled ADPRES. For you to be able to execute ADPRES from any folder, you can copy it to `usr/bin` (provided you have an admin privilege)
 
 ```
 sudo cp adpres /usr/bin
@@ -86,3 +86,5 @@ for example, you can run a test by
 ```
 adpres C:\Users\imronuke\Downloads\ADPRES-master\smpl\static\IAEA3Ds
 ```
+
+If you see `ADPRES EXIT NORMALLY` at the end of terminal output, then congratulations! you have compiled ADPRES.

@@ -34,6 +34,3 @@ Here you can find quick guides on how to use ADPRES. We believe you can create y
 * Advanced guides
   * General rules
   * Cards Description
-    * Mandatory cards
-    * Conditional cards
-    * Optional cards

@@ -113,3 +113,6 @@ This card is conditional, needed only if `XTAB` card is not present. This card t
 
 ### Card `%GEOM`
 This card is describes the geometry of the problem. It quite similar to other reactor core simulator which you can easily understand if you have background on nuclear engineering. The description of the inputs given in the comments.
+
+
+## Reading Output 
