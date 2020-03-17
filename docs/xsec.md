@@ -8,7 +8,7 @@ filename: xsec
 
 This card is used to describe the cross section data. This card is conditional : either `%XSEC` or `XTAB` card must be present
 
-| `%XSEC` |
+| `%XSEC` | Variable | Description | Remarks |
 | --- |
 | LINE 1 | NG | Number of groups | 2  4    ! Number of groups and number of materials |
 |        | NMAT | Number materials |
