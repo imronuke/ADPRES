@@ -47,7 +47,9 @@ for example, you can run a test by
 ./adpres /home/imronuke/smpl/static/IAEA3Ds
 ```
 
-If you see `ADPRES EXIT NORMALLY` at the end of terminal output, then congratulations! you have compiled ADPRES. For you to be able to execute ADPRES from any folder, you can copy it to `usr/bin` (provided you have an admin privilege)
+If you see `ADPRES EXIT NORMALLY` at the end of terminal output, then congratulations! you have compiled ADPRES. By the way, it should take less than 0.2 seconds in you compile using gfortran in a typical today's computer.
+
+For you to be able to execute ADPRES from any folder, you can copy it to `usr/bin` (provided you have an admin privilege)
 
 ```
 sudo cp adpres /usr/bin
