@@ -32,5 +32,5 @@ Here you can find quick guides on how to use ADPRES. We believe you can create y
 * [Source code compilation](https://imronuke.github.io/ADPRES/install)
 * [Quick guides](https://imronuke.github.io/ADPRES/quick-guides)
 * Advanced guides
-  * General rules
-  * Cards Description
+  * [General rules](https://imronuke.github.io/ADPRES/general-rules)
+  * [Cards Description](https://imronuke.github.io/ADPRES/card-desc)

@@ -102,15 +102,13 @@ In the above example, there are
 2. One conditional card: `%XSEC`
 3. One optional card   : `%CASE`
 
+You find the detailed description for each card [here](https://imronuke.github.io/ADPRES/card-desc), but we will explain theme briefly here
 ### Card `%MODE`
 This is the mode of ADPRES calculation. Since here we want to calculate static forward calculation (eigenvalue problem) the calculation mode is `FORWARD`
-
 ### Card `%CASE`
 This card is optional. This describes the problem at hand.
-
 ### Card `%XSEC`
-This card is conditional, needed only if `XTAB` card is not present. This card tells ADPRES the cross sections data for the problem. The cross section data must be given for each group and for each material as shown in the example. The description of the cross sections data can be seen in the comments.
-
+This card is conditional, needed only if `%XTAB` card is not present. This card tells ADPRES the cross sections data for the problem. The cross section data must be given for each group and for each material as shown in the example. The description of the cross sections data can be seen in the comments.
 ### Card `%GEOM`
 This card is describes the geometry of the problem. It quite similar to other reactor core simulator which you can easily understand if you have background on nuclear engineering. The description of the inputs given in the comments.
 
