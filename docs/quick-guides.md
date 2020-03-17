@@ -5,7 +5,7 @@ filename: quick-guides
 ---
 
 # Quick Guides
-ADPRES input is designed to be self-explanatory. It has 12 input cards, for example: `%mode`, `%geom`, `%xsec`, and so on. Some cards are mandatory for any problems. While some cards are conditional, depending on the problem being solved and some cards are optional. For example, the following is the [IAEA3D input](https://github.com/imronuke/ADPRES/tree/master/smpl/static)
+ADPRES input is designed to be self-explanatory. It has 12 input cards, for example: `%mode`, `%geom`, `%xsec`, and so on. Some cards are mandatory for any problems. While some cards are conditional, depending on the problem being solved and some cards are optional. Comments are marked by `!`. For example, the following is the [IAEA3D input](https://github.com/imronuke/ADPRES/tree/master/smpl/static)
 
 ```
 ! IAEA3D input data
