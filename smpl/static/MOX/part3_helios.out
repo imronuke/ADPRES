@@ -1,0 +1,360 @@
+           ###########################################################
+           #                     ADPRES 1.2                          #
+           #        ABU DHABI POLYTECHNIC REACTOR SIMULATOR          #
+           ###########################################################
+
+
+  =============================INPUT DATA STARTS HERE===========================
+     1: ! CRITICAL BORON CONCENTRATION SEARCH CALCULATION                                                   
+     2:                                                                                                     
+     3: %MODE                                                                                               
+     4: BCSEARCH                                                                                            
+     5:                                                                                                     
+     6: ! CASE CARD                                                                                         
+     7: %CASE                                                                                               
+     8: PWR Transient UO2/MOX Benchmark (with XS benchmark) - Part3                                         
+     9: 10.803 CM NODE SIZE                                                                                 
+    10:                                                                                                     
+    11: ! XSEC CARD                                                                                         
+    12: %XTAB                                                                                               
+    13: 2  18    ! Number of groups and number of materials                                                 
+    14: ! XTAB files for each material                                                                      
+    15: smpl/xsec/HELIOS/2G_XSEC_u42   1  !MAT  1 : u42u  0.15 GWD/TON                                      
+    16: smpl/xsec/HELIOS/2G_XSEC_u42   2  !MAT  2 : u42u  17.5 GWD/TON                                      
+    17: smpl/xsec/HELIOS/2G_XSEC_u42   4  !MAT  3 : u42u  22.5 GWD/TON                                      
+    18: smpl/xsec/HELIOS/2G_XSEC_u42   5  !MAT  4 : u42u  32.5 GWD/TON                                      
+    19: smpl/xsec/HELIOS/2G_XSEC_u42   6  !MAT  5 : u42u  35.0 GWD/TON                                      
+    20: smpl/xsec/HELIOS/2G_XSEC_u42   7  !MAT  6 : u42u  37.5 GWD/TON                                      
+    21: smpl/xsec/HELIOS/2G_XSEC_u45   1  !MAT  7 : u45u  0.15 GWD/TON                                      
+    22: smpl/xsec/HELIOS/2G_XSEC_u45   2  !MAT  8 : u45u  17.5 GWD/TON                                      
+    23: smpl/xsec/HELIOS/2G_XSEC_u45   3  !MAT  9 : u45u  20.5 GWD/TON                                      
+    24: smpl/xsec/HELIOS/2G_XSEC_u45   5  !MAT  10: u45u  32.5 GWD/TON                                      
+    25: smpl/xsec/HELIOS/2G_XSEC_u45   7  !MAT  11: u45u  37.5 GWD/TON                                      
+    26: smpl/xsec/HELIOS/2G_XSEC_m40   1  !MAT  12: m40m  0.15 GWD/TON                                      
+    27: smpl/xsec/HELIOS/2G_XSEC_m40   4  !MAT  13: m40m  22.5 GWD/TON                                      
+    28: smpl/xsec/HELIOS/2G_XSEC_m40   7  !MAT  14: m40m  37.5 GWD/TON                                      
+    29: smpl/xsec/HELIOS/2G_XSEC_m43   1  !MAT  15: m43m  0.15 GWD/TON                                      
+    30: smpl/xsec/HELIOS/2G_XSEC_m43   2  !MAT  16: m43m  17.5 GWD/TON                                      
+    31: smpl/xsec/HELIOS/2G_XSEC_m43   6  !MAT  17: m43m  35.0 GWD/TON                                      
+    32: smpl/xsec/HELIOS/2G_XSEC_refl  1  !MAT  18: REFLECTOR                                               
+    33:                                                                                                     
+    34: %GEOM                                                                                               
+    35: 9 9 22                  !nx, ny, nz                                                                 
+    36: 10.71  8*21.42          !x-direction assembly size in cm                                            
+    37: 1  8*2                  !x-direction assembly division                                              
+    38: 10.71  8*21.42          !y-direction assembly size in cm                                            
+    39: 1  8*2                  !y-direction assembly ddivision                                             
+    40: 21.42 20*18.288 21.42   !z-direction assembly size in cm                                            
+    41: 22*1                    !z-direction assembly division                                              
+    42: 2                       !np number of planar type                                                   
+    43: 2 20*1 2                                                                                            
+    44:                                                                                                     
+    45: ! Planar_type_1                                                                                     
+    46: 18 18 18 18 18  0  0  0  0                                                                          
+    47:  4  8 17  9 18 18 18  0  0                                                                          
+    48:  7 12  7 15  2 10 18 18  0                                                                          
+    49: 16  4 16  9  7 15 10 18  0                                                                          
+    50: 11  1  3  1  6  7  2 18 18                                                                          
+    51:  7 13  1 14  1  9 15  9 18                                                                          
+    52:  3 10  3  1  3 16  7 17 18                                                                          
+    53:  1  2 10 13  1  4 12  8 18                                                                          
+    54:  5  1  3  7 11 16  7  4 18                                                                          
+    55:                                                                                                     
+    56:  ! Planar_type_2                                                                                    
+    57:  18 18 18 18 18  0  0  0  0                                                                         
+    58:  18 18 18 18 18 18 18  0  0                                                                         
+    59:  18 18 18 18 18 18 18 18  0                                                                         
+    60:  18 18 18 18 18 18 18 18  0                                                                         
+    61:  18 18 18 18 18 18 18 18 18                                                                         
+    62:  18 18 18 18 18 18 18 18 18                                                                         
+    63:  18 18 18 18 18 18 18 18 18                                                                         
+    64:  18 18 18 18 18 18 18 18 18                                                                         
+    65:  18 18 18 18 18 18 18 18 18                                                                         
+    66:                                                                                                     
+    67: ! Boundary conditions (east), (west), (north), (south), (bottom), (top)                             
+    68: 0 2 0 2 0 0                                                                                         
+    69:                                                                                                     
+    70: ! CONTROL CARD                                                                                      
+    71: %CROD                                                                                               
+    72: 8    200.                   ! Number of CR banks and max number of banks                            
+    73: 21.42  1.8288                ! Zero step pos. (cm) and cm/step (total 200 steps)                    
+    74: 0. 0. 0. 0.  200. 200. 200. 200.           ! CR Bank pos.                                           
+    75: 0  0  0  0  0  0  0  0  0                                                                           
+    76: 0  0  0  0  0  0  0  0  0                                                                           
+    77: 3  0  2  0  5  0  0  0  0                                                                           
+    78: 0  6  0  7  0  0  0  0  0                                                                           
+    79: 8  0  0  0  4  0  5  0  0                                                                           
+    80: 0  0  0  0  0  7  0  0  0                                                                           
+    81: 1  0  3  0  0  0  2  0  0                                                                           
+    82: 0  0  0  0  0  6  0  0  0                                                                           
+    83: 4  0  1  0  8  0  3  0  0                                                                           
+    84: 1                                                                                                   
+    85:                                                                                                     
+    86: ! THERMAL-HYDRAULIC CARD                                                                            
+    87: %THER                                                                                               
+    88: 0.0001                              ! Percent power in %                                            
+    89: 891.25e6                            ! Reactor thermal power for full geometry in Watt               
+    90: 560.  82.121243523                  ! Inlet coolant temp. (Kelvin) and Fuel Assembly Mass flow rate 
+    91: 3.951E-03  5.9E-05  5.73E-04  1.26E-2 ! Fuel meat rad., gap thinkness, cladding thinkness and pin pi
+    92: 264  25                                ! Number of fuel pin and guide tubes                         
+    93: 0.0                                  ! FRACTION OF HEAT DEPOSITED IN COOLANT                        
+    94: 1                                                                                                   
+  =============================INPUT DATA   ENDS HERE===========================
+
+
+
+                              START READING INPUT
+  ******************************************************************************
+  CALCULATION MODE : CRITICAL BORON CONCENTRATION SEARCH WITH T-H FEEDBACK       
+
+  CASE ID : PWR Transient UO2/MOX Benchmark (with XS benchmark) - Part3                                         
+  10.803 CM NODE SIZE                                                                                 
+
+
+            >>>> READING TABULAR XSEC FILE <<<<
+            --------------------------------------------
+
+  ...XTAB FILE Card is successfully read...
+
+
+            >>>>>READING CORE GEOMETRY<<<<<
+            -------------------------------
+  Number of assembly in x, y and z directions respectively :
+           9           9          22
+  Number of nodes in x, y and z directions respectively :
+          17          17          22
+
+  x-directed nodes division (delta-x)
+    10.71  10.71  10.71  10.71  10.71  10.71  10.71  10.71  10.71  10.71
+    10.71  10.71  10.71  10.71  10.71  10.71  10.71
+  y-directed nodes division (delta-y)
+    10.71  10.71  10.71  10.71  10.71  10.71  10.71  10.71  10.71  10.71
+    10.71  10.71  10.71  10.71  10.71  10.71  10.71
+
+   Planar Region :  1
+        1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17
+    17  18 18 18 18 18 18 18 18 18                        
+    16  18 18 18 18 18 18 18 18 18                        
+    15  4  8  8  17 17 9  9  18 18 18 18 18 18            
+    14  4  8  8  17 17 9  9  18 18 18 18 18 18            
+    13  7  12 12 7  7  15 15 2  2  10 10 18 18 18 18      
+    12  7  12 12 7  7  15 15 2  2  10 10 18 18 18 18      
+    11  16 4  4  16 16 9  9  7  7  15 15 10 10 18 18      
+    10  16 4  4  16 16 9  9  7  7  15 15 10 10 18 18      
+     9  11 1  1  3  3  1  1  6  6  7  7  2  2  18 18 18 18
+     8  11 1  1  3  3  1  1  6  6  7  7  2  2  18 18 18 18
+     7  7  13 13 1  1  14 14 1  1  9  9  15 15 9  9  18 18
+     6  7  13 13 1  1  14 14 1  1  9  9  15 15 9  9  18 18
+     5  3  10 10 3  3  1  1  3  3  16 16 7  7  17 17 18 18
+     4  3  10 10 3  3  1  1  3  3  16 16 7  7  17 17 18 18
+     3  1  2  2  10 10 13 13 1  1  4  4  12 12 8  8  18 18
+     2  1  2  2  10 10 13 13 1  1  4  4  12 12 8  8  18 18
+     1  5  1  1  3  3  7  7  11 11 16 16 7  7  4  4  18 18
+   Planar Region :  2
+        1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17
+    17  18 18 18 18 18 18 18 18 18                        
+    16  18 18 18 18 18 18 18 18 18                        
+    15  18 18 18 18 18 18 18 18 18 18 18 18 18            
+    14  18 18 18 18 18 18 18 18 18 18 18 18 18            
+    13  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18      
+    12  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18      
+    11  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18      
+    10  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18      
+     9  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+     8  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+     7  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+     6  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+     5  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+     4  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+     3  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+     2  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+     1  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+
+  Planar Region Assignment to planes.
+ --------------------------------------
+   Plane Number     Planar Region    delta-z
+       22 (TOP)            2          21.42
+       21                  1          18.29
+       20                  1          18.29
+       19                  1          18.29
+       18                  1          18.29
+       17                  1          18.29
+       16                  1          18.29
+       15                  1          18.29
+       14                  1          18.29
+       13                  1          18.29
+       12                  1          18.29
+       11                  1          18.29
+       10                  1          18.29
+        9                  1          18.29
+        8                  1          18.29
+        7                  1          18.29
+        6                  1          18.29
+        5                  1          18.29
+        4                  1          18.29
+        3                  1          18.29
+        2                  1          18.29
+        1 (BOTTOM)         2          21.42
+
+   Boundary conditions
+  X-directed West   : REFLECTIVE
+  X-directed East   : ZERO FLUX
+  Y-directed North  : ZERO FLUX
+  Y-directed South  : REFLECTIVE
+  Z-directed Bottom : ZERO FLUX
+  Z-directed Top    : ZERO FLUX
+
+  ...Core geometry is successfully read...
+
+
+            >>>> READING CONTROL RODS INSERTION <<<<
+            --------------------------------------------
+  NUMBER OF CONTROL ROD BANK  :  8
+  MAX. NUMBER OF STEPS        : 200
+  FULLY INSERTED POSITION (cm): 21.4 (FROM BOTTOM OF THE CORE)
+  STEP SIZE (cm)              :   1.8288
+  INITIAL CONTROL ROD BANK POSITION (STEPS) : 
+  (0 means fully inserted) 
+    Bank  1  Bank  2  Bank  3  Bank  4  Bank  5  Bank  6  Bank  7  Bank  8
+      0.0      0.0      0.0      0.0    200.0    200.0    200.0    200.0
+
+  CONTROL ROD BANK MAP : 
+  0  0  0  0  0  0  0  0  0
+  0  0  0  0  0  0  0  0  0
+  3  0  2  0  5  0  0  0  0
+  0  6  0  7  0  0  0  0  0
+  8  0  0  0  4  0  5  0  0
+  0  0  0  0  0  7  0  0  0
+  1  0  3  0  0  0  2  0  0
+  0  0  0  0  0  6  0  0  0
+  4  0  1  0  8  0  3  0  0
+
+  ...Control Rods Insertion card is successfully read...
+
+
+            >>>>   READING THERMAL-HYDRAULIC DATA   <<<<
+            --------------------------------------------
+  REACTOR PERCENT POWER (%)                :      0.00010
+  REACTOR POWER (Watt)                     :   8.9125E+08
+  COOLANT INLET TEMPERATURE (Kelvin)       :   5.6000E+02
+  FUEL ASSEMBLY MASS FLOW RATE (Kg/s)      :   8.2121E+01
+  FUEL MEAT RADIUS (m)                     :   3.9510E-03
+  GAP THICKNESS (m)                        :   5.9000E-05
+  CLAD THICKNESS (m)                       :   5.7300E-04
+  PIN PITCH(m)                             :   1.2600E-02
+  FRACTION OF HEAT DEPOSITED IN COOL.      :   0.0000E+00
+
+  ...Thermal-hydraulic Card is successfully read...
+
+
+  ************************  STOP READING INPUT  ********************************
+
+
+ =========================================================================
+                   CRITICAL BORON CONCENTRATION SEARCH
+ =========================================================================
+
+Itr  Boron Conc.   K-EFF     FLUX ERR.    FISS. SRC. ERR.  DOPPLER ERR.
+ -----------------------------------------------------------------------
+  1     0.00       1.10125   1.97555E-02  2.66981E-03      1.06482E-04
+  2   500.00       1.06055   3.79780E-05  5.48455E-06      3.29031E-06
+  3  1244.06       1.00654   8.28574E-05  1.60869E-05      4.96122E-06
+  4  1334.14       1.00052   6.16684E-06  6.56965E-06      5.51324E-07
+  5  1341.99       1.00000   3.32003E-06  6.43719E-06      4.88162E-08
+
+
+     Radial Power Distribution
+   ==============================
+           1       2       3       4       5       6       7       8       9
+     9                                                                        
+     8   0.302   0.399   0.340   0.378                                        
+     7   0.512   0.853   0.580   1.075   0.842   0.438                        
+     6   1.202   1.111   1.392   1.500   1.408   1.113   0.438                
+     5   1.346   1.794   1.685   1.668   0.643   1.408   0.842                
+     4   1.547   1.397   1.610   1.350   1.668   1.500   1.075   0.378        
+     3   0.529   0.821   0.630   1.610   1.685   1.392   0.580   0.340        
+     2   0.807   0.830   0.821   1.397   1.794   1.111   0.853   0.399        
+     1   0.358   0.807   0.529   1.547   1.346   1.202   0.512   0.302        
+
+   MAX POS.       Maximum Value
+  (  2,  5)          1.794
+
+
+     Axial Power Density Distribution
+   ====================================
+
+     Plane Number        Power      Height
+    -----------------------------------------
+        22  (TOP)        0.000      408.60
+        21               0.217      387.18
+        20               0.437      368.89
+        19               0.647      350.60
+        18               0.843      332.32
+        17               1.019      314.03
+        16               1.173      295.74
+        15               1.300      277.45
+        14               1.399      259.16
+        13               1.465      240.88
+        12               1.499      222.59
+        11               1.499      204.30
+        10               1.465      186.01
+         9               1.399      167.72
+         8               1.300      149.44
+         7               1.173      131.15
+         6               1.019      112.86
+         5               0.843       94.57
+         4               0.647       76.28
+         3               0.437       58.00
+         2               0.217       39.71
+         1  (BOTTOM)     0.000       21.42
+
+   MAX POS.       Maximum Value
+    ( 11)             1.499
+
+
+     Radial Flux Distribution
+   ==============================
+    Group :   1
+             1          2          3          4          5          6          7          8          9
+     9   6.232E-04  6.906E-04  6.841E-04  5.666E-04  1.342E-04                                             
+     8   5.732E-03  6.757E-03  6.480E-03  6.572E-03  2.117E-03  8.106E-04  1.396E-04                       
+     7   1.089E-02  1.433E-02  1.245E-02  1.780E-02  1.438E-02  8.228E-03  1.531E-03  1.396E-04            
+     6   2.115E-02  2.151E-02  2.456E-02  2.549E-02  2.195E-02  1.829E-02  8.228E-03  8.106E-04            
+     5   2.564E-02  2.837E-02  2.939E-02  2.642E-02  1.719E-02  2.195E-02  1.438E-02  2.117E-03  1.342E-04 
+     4   2.425E-02  2.521E-02  2.574E-02  2.600E-02  2.642E-02  2.549E-02  1.780E-02  6.572E-03  5.666E-04 
+     3   1.248E-02  1.526E-02  1.484E-02  2.574E-02  2.939E-02  2.456E-02  1.245E-02  6.480E-03  6.841E-04 
+     2   1.272E-02  1.384E-02  1.526E-02  2.521E-02  2.837E-02  2.151E-02  1.433E-02  6.757E-03  6.906E-04 
+     1   9.312E-03  1.272E-02  1.248E-02  2.425E-02  2.564E-02  2.115E-02  1.089E-02  5.732E-03  6.232E-04 
+
+    Group :   2
+             1          2          3          4          5          6          7          8          9
+     9   3.412E-03  3.709E-03  3.522E-03  3.024E-03  7.982E-04                                             
+     8   6.772E-03  7.200E-03  4.429E-03  6.957E-03  1.138E-02  4.409E-03  8.292E-04                       
+     7   7.538E-03  7.392E-03  8.515E-03  8.817E-03  1.620E-02  9.158E-03  8.212E-03  8.292E-04            
+     6   1.246E-02  2.478E-02  1.441E-02  2.774E-02  2.390E-02  9.148E-03  9.158E-03  4.409E-03            
+     5   2.998E-02  3.246E-02  3.405E-02  3.017E-02  1.342E-02  2.390E-02  1.620E-02  1.138E-02  7.982E-04 
+     4   2.621E-02  1.675E-02  2.904E-02  2.005E-02  3.017E-02  2.774E-02  8.817E-03  6.957E-03  3.024E-03 
+     3   9.432E-03  1.722E-02  1.125E-02  2.904E-02  3.405E-02  1.441E-02  8.515E-03  4.429E-03  3.522E-03 
+     2   1.464E-02  1.608E-02  1.722E-02  1.675E-02  3.246E-02  2.478E-02  7.392E-03  7.200E-03  3.709E-03 
+     1   7.278E-03  1.464E-02  9.432E-03  2.621E-02  2.998E-02  1.246E-02  7.538E-03  6.772E-03  3.412E-03 
+
+
+   HEAT FLUX HOT CHANNEL FACTOR :  2.723
+
+  AVERAGE DOPPLER TEMPERATURE     :   560.0 K (  286.9 C)
+  MAX FUEL CENTERLINE TEMPERATURE :   560.0 K (  286.9 C)
+  AVERAGE MODERATOR TEMPERATURE   :   560.0 K (  286.9 C)
+  MAXIMUM MODERATOR TEMPERATURE   :   560.0 K (  286.9 C)
+  OUTLET MODERATOR TEMPERATURE    :   560.0 K (  286.9 C)
+  AVERAGE MODERATOR DENSITY       :   751.9 kg/m3 (  0.752 g/cc)
+  OUTLET MODERATOR DENSITY        :   751.9 kg/m3 (  0.752 g/cc)
+
+
+  CPU time breakdown in seconds
+    Input reading time   :    0.0273  ( 4.0%)
+    XSEC processing time :    0.2897  (42.1%)
+    CMFD time            :    0.1286  (18.7%)
+    Nodal update time    :    0.2312  (33.6%)
+    T-H time             :    0.0116  ( 1.7%)
+    ------------------------------------------
+    Total time           :    0.6884

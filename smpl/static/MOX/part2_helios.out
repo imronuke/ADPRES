@@ -1,0 +1,573 @@
+           ###########################################################
+           #                     ADPRES 1.2                          #
+           #        ABU DHABI POLYTECHNIC REACTOR SIMULATOR          #
+           ###########################################################
+
+
+  =============================INPUT DATA STARTS HERE===========================
+     1: ! CRITICAL BORON CONCENTRATION SEARCH CALCULATION                                                   
+     2:                                                                                                     
+     3: %MODE                                                                                               
+     4: BCSEARCH                                                                                            
+     5:                                                                                                     
+     6: ! CASE CARD                                                                                         
+     7: %CASE                                                                                               
+     8: MOX_HEL_P2                                                                                          
+     9: PWR Transient UO2/MOX Benchmark (with XS benchmark) - Part2                                         
+    10:                                                                                                     
+    11:                                                                                                     
+    12: ! XSEC CARD                                                                                         
+    13: %XTAB                                                                                               
+    14: 2  18    ! Number of groups and number of materials                                                 
+    15: ! XTAB files for each material                                                                      
+    16: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u42   1  !MAT  1 : u42u  0.15 GWD/TON                
+    17: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u42   2  !MAT  2 : u42u  17.5 GWD/TON                
+    18: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u42   4  !MAT  3 : u42u  22.5 GWD/TON                
+    19: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u42   5  !MAT  4 : u42u  32.5 GWD/TON                
+    20: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u42   6  !MAT  5 : u42u  35.0 GWD/TON                
+    21: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u42   7  !MAT  6 : u42u  37.5 GWD/TON                
+    22: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u45   1  !MAT  7 : u45u  0.15 GWD/TON                
+    23: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u45   2  !MAT  8 : u45u  17.5 GWD/TON                
+    24: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u45   3  !MAT  9 : u45u  20.5 GWD/TON                
+    25: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u45   5  !MAT  10: u45u  32.5 GWD/TON                
+    26: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u45   7  !MAT  11: u45u  37.5 GWD/TON                
+    27: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_m40   1  !MAT  12: m40m  0.15 GWD/TON                
+    28: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_m40   4  !MAT  13: m40m  22.5 GWD/TON                
+    29: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_m40   7  !MAT  14: m40m  37.5 GWD/TON                
+    30: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_m43   1  !MAT  15: m43m  0.15 GWD/TON                
+    31: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_m43   2  !MAT  16: m43m  17.5 GWD/TON                
+    32: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_m43   6  !MAT  17: m43m  35.0 GWD/TON                
+    33: /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_refl  1  !MAT  18: REFLECTOR                         
+    34: 1                                                                                                   
+    35:                                                                                                     
+    36: %GEOM                                                                                               
+    37: 9 9 22                  !nx, ny, nz                                                                 
+    38: 10.71  8*21.42          !x-direction assembly size in cm                                            
+    39: 1  8*2                  !x-direction assembly division                                              
+    40: 10.71  8*21.42          !y-direction assembly size in cm                                            
+    41: 1  8*2                  !y-direction assembly ddivision                                             
+    42: 21.42 20*18.288 21.42   !z-direction assembly size in cm                                            
+    43: 22*1                    !z-direction assembly division                                              
+    44: 2                       !np number of planar type                                                   
+    45: 2 20*1 2                                                                                            
+    46:                                                                                                     
+    47: ! Planar_type_1                                                                                     
+    48: 18 18 18 18 18  0  0  0  0                                                                          
+    49:  4  8 17  9 18 18 18  0  0                                                                          
+    50:  7 12  7 15  2 10 18 18  0                                                                          
+    51: 16  4 16  9  7 15 10 18  0                                                                          
+    52: 11  1  3  1  6  7  2 18 18                                                                          
+    53:  7 13  1 14  1  9 15  9 18                                                                          
+    54:  3 10  3  1  3 16  7 17 18                                                                          
+    55:  1  2 10 13  1  4 12  8 18                                                                          
+    56:  5  1  3  7 11 16  7  4 18                                                                          
+    57: ! Planar_type_2                                                                                     
+    58: 18 18 18 18 18  0  0  0  0                                                                          
+    59: 18 18 18 18 18 18 18  0  0                                                                          
+    60: 18 18 18 18 18 18 18 18  0                                                                          
+    61: 18 18 18 18 18 18 18 18  0                                                                          
+    62: 18 18 18 18 18 18 18 18 18                                                                          
+    63: 18 18 18 18 18 18 18 18 18                                                                          
+    64: 18 18 18 18 18 18 18 18 18                                                                          
+    65: 18 18 18 18 18 18 18 18 18                                                                          
+    66: 18 18 18 18 18 18 18 18 18                                                                          
+    67: ! Boundary conditions (east), (west), (north), (south), (bottom), (top)                             
+    68: 0 2 0 2 0 0                                                                                         
+    69:                                                                                                     
+    70: ! THERMAL-HYDRAULIC CARD                                                                            
+    71: %THER                                                                                               
+    72: 100.                                ! Percent power in %                                            
+    73: 891.25e6                            ! Reactor thermal power for quarter geometry in Watt            
+    74: 560.  82.121243523                  ! Inlet coolant temp. (Kelvin) and Fuel Assembly Mass flow rate 
+    75: 3.951E-03  5.9E-05  5.73E-04  1.26E-2 ! Fuel meat rad., gap thinkness, cladding thinkness and pin pi
+    76: 264  25                                ! Number of fuel pin and guide tubes                         
+    77: 0.0                                  ! FRACTION OF HEAT DEPOSITED IN COOLANT                        
+    78: 1                                                                                                   
+  =============================INPUT DATA   ENDS HERE===========================
+
+
+
+                              START READING INPUT
+  ******************************************************************************
+  CALCULATION MODE : CRITICAL BORON CONCENTRATION SEARCH WITH T-H FEEDBACK       
+
+  CASE ID : MOX_HEL_P2                                                                                          
+  PWR Transient UO2/MOX Benchmark (with XS benchmark) - Part2                                         
+
+
+            >>>> READING TABULAR XSEC FILE <<<<
+            --------------------------------------------
+
+     MATERIAL  1
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u42. COMPOSITION NUMBER  1
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.229048    1.455299    0.009439     0.007481   9.70273E-14    1.000000     1.79429E+07     1.00860E+00
+       2     0.785837    0.424176    0.104767     0.154901   2.06197E-12    0.000000     4.22094E+05     9.98990E-01
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.483225    0.014866
+      2        0.000000    1.195350
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   2.45232E-04  1.30968E-03  1.27501E-03  2.95585E-03  1.31463E-03  5.47075E-04
+      LAMBDA   1.33535E-02  3.26024E-02  1.21051E-01  3.05532E-01  8.60589E-01  2.89036E+00
+
+     MATERIAL  2
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u42. COMPOSITION NUMBER  2
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.227182    1.467252    0.009858     0.006276   7.95434E-14    1.000000     1.82444E+07     1.00125E+00
+       2     0.808587    0.412242    0.103749     0.159960   2.03201E-12    0.000000     4.11206E+05     9.41370E-01
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.483118    0.014481
+      2        0.000000    1.209490
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   1.86953E-04  1.06844E-03  9.99030E-04  2.29298E-03  1.07961E-03  4.32194E-04
+      LAMBDA   1.33553E-02  3.21573E-02  1.20047E-01  3.05441E-01  8.64836E-01  2.89466E+00
+
+     MATERIAL  3
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u42. COMPOSITION NUMBER  4
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.226389    1.472392    0.010030     0.005966   7.51612E-14    1.000000     1.82434E+07     1.00097E+00
+       2     0.812097    0.410460    0.102543     0.155249   1.95539E-12    0.000000     4.09155E+05     9.38770E-01
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.483742    0.014455
+      2        0.000000    1.211600
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   1.73474E-04  1.01633E-03  9.38242E-04  2.15395E-03  1.03139E-03  4.08895E-04
+      LAMBDA   1.33585E-02  3.20264E-02  1.19816E-01  3.05557E-01  8.66116E-01  2.89832E+00
+
+     MATERIAL  4
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u42. COMPOSITION NUMBER  5
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.224782    1.482918    0.010334     0.005397   6.72309E-14    1.000000     1.81942E+07     1.00086E+00
+       2     0.817605    0.407695    0.099179     0.143521   1.78070E-12    0.000000     4.05398E+05     9.36950E-01
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.485006    0.014455
+      2        0.000000    1.214980
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   1.49676E-04  9.26112E-04  8.32341E-04  1.91515E-03  9.49097E-04  3.69269E-04
+      LAMBDA   1.33669E-02  3.17628E-02  1.19372E-01  3.05879E-01  8.68703E-01  2.90712E+00
+
+     MATERIAL  5
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u42. COMPOSITION NUMBER  6
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.224373    1.485621    0.010403     0.005266   6.54199E-14    1.000000     1.81768E+07     1.00087E+00
+       2     0.818775    0.407112    0.098193     0.140363   1.73552E-12    0.000000     4.04511E+05     9.36790E-01
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.485275    0.014462
+      2        0.000000    1.215710
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   1.44291E-04  9.05743E-04  8.08493E-04  1.86182E-03  9.30693E-04  3.60462E-04
+      LAMBDA   1.33693E-02  3.16975E-02  1.19263E-01  3.05973E-01  8.69351E-01  2.90952E+00
+
+     MATERIAL  6
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u42. COMPOSITION NUMBER  7
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.223959    1.488368    0.010469     0.005140   6.36795E-14    1.000000     1.81589E+07     1.00087E+00
+       2     0.819868    0.406570    0.097172     0.137181   1.69049E-12    0.000000     4.03641E+05     9.36700E-01
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.485560    0.014469
+      2        0.000000    1.216440
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   1.39111E-04  8.86085E-04  7.85555E-04  1.81063E-03  9.12987E-04  3.52016E-04
+      LAMBDA   1.33719E-02  3.16326E-02  1.19154E-01  3.06072E-01  8.69997E-01  2.91198E+00
+
+     MATERIAL  7
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u45. COMPOSITION NUMBER  1
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.229147    1.454670    0.009594     0.007809   1.01372E-13    1.000000     1.81329E+07     1.00820E+00
+       2     0.784603    0.424843    0.108868     0.163559   2.17728E-12    0.000000     4.24454E+05     9.96350E-01
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.482550    0.014679
+      2        0.000000    1.194010
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   2.48078E-04  1.32414E-03  1.28872E-03  2.98614E-03  1.32654E-03  5.52093E-04
+      LAMBDA   1.33532E-02  3.26046E-02  1.21047E-01  3.05492E-01  8.60438E-01  2.88985E+00
+
+     MATERIAL  8
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u45. COMPOSITION NUMBER  2
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.227344    1.466207    0.009971     0.006576   8.35451E-14    1.000000     1.83949E+07     1.00118E+00
+       2     0.806708    0.413202    0.107875     0.168190   2.14227E-12    0.000000     4.13698E+05     9.41030E-01
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.482573    0.014347
+      2        0.000000    1.207720
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   1.92194E-04  1.09112E-03  1.02344E-03  2.34890E-03  1.09980E-03  4.41571E-04
+      LAMBDA   1.33546E-02  3.21947E-02  1.20117E-01  3.05394E-01  8.64368E-01  2.89355E+00
+
+     MATERIAL  9
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u45. COMPOSITION NUMBER  3
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.226953    1.468733    0.010053     0.006413   8.12446E-14    1.000000     1.83966E+07     1.00100E+00
+       2     0.808559    0.412256    0.107292     0.165988   2.10537E-12    0.000000     4.12621E+05     9.39370E-01
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.482881    0.014332
+      2        0.000000    1.208840
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   1.85511E-04  1.06493E-03  9.93078E-04  2.27909E-03  1.07543E-03  4.29815E-04
+      LAMBDA   1.33558E-02  3.21343E-02  1.20008E-01  3.05440E-01  8.64962E-01  2.89512E+00
+
+     MATERIAL 10
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u45. COMPOSITION NUMBER  5
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.225018    1.481363    0.010416     0.005661   7.07275E-14    1.000000     1.83362E+07     1.00071E+00
+       2     0.815846    0.408574    0.103160     0.151595   1.88754E-12    0.000000     4.07712E+05     9.36110E-01
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.484461    0.014328
+      2        0.000000    1.213320
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   1.55698E-04  9.50751E-04  8.59655E-04  1.97675E-03  9.70807E-04  3.79454E-04
+      LAMBDA   1.33648E-02  3.18259E-02  1.19482E-01  3.05782E-01  8.67989E-01  2.90485E+00
+
+     MATERIAL 11
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_u45. COMPOSITION NUMBER  7
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.224223    1.486615    0.010542     0.005388   6.69679E-14    1.000000     1.82963E+07     1.00073E+00
+       2     0.818169    0.407414    0.101068     0.145048   1.79409E-12    0.000000     4.05875E+05     9.35800E-01
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.485021    0.014347
+      2        0.000000    1.214840
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   1.45180E-04  9.10783E-04  8.12987E-04  1.87226E-03  9.34672E-04  3.62180E-04
+      LAMBDA   1.33694E-02  3.17020E-02  1.19276E-01  3.05957E-01  8.69217E-01  2.90936E+00
+
+     MATERIAL 12
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_m40. COMPOSITION NUMBER  1
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.228636    1.457921    0.011093     0.008188   9.71310E-14    1.000000     1.95047E+07     1.00464E+00
+       2     0.815569    0.408713    0.239482     0.366941   4.33680E-12    0.000000     4.46285E+05     1.25269E+00
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.477294    0.012775
+      2        0.000000    1.161750
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   9.68130E-05  6.52186E-04  5.49697E-04  1.18295E-03  6.71243E-04  2.35929E-04
+      LAMBDA   1.33339E-02  3.10291E-02  1.16272E-01  3.03992E-01  8.77543E-01  2.88755E+00
+
+     MATERIAL 13
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_m40. COMPOSITION NUMBER  4
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.227413    1.465762    0.011685     0.006915   8.19569E-14    1.000000     1.95818E+07     9.97060E-01
+       2     0.811931    0.410544    0.181520     0.273905   3.23062E-12    0.000000     4.29919E+05     1.12998E+00
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.480334    0.012576
+      2        0.000000    1.164730
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   9.38540E-05  7.09951E-04  5.72418E-04  1.28454E-03  7.35784E-04  2.60674E-04
+      LAMBDA   1.33791E-02  3.07927E-02  1.16686E-01  3.05746E-01  8.78051E-01  2.92167E+00
+
+     MATERIAL 14
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_m40. COMPOSITION NUMBER  7
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.226361    1.472574    0.011980     0.006174   7.31420E-14    1.000000     1.94975E+07     9.96650E-01
+       2     0.810540    0.411248    0.153555     0.224652   2.64488E-12    0.000000     4.21069E+05     1.07897E+00
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.481991    0.012582
+      2        0.000000    1.167270
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   9.12619E-05  7.41690E-04  5.83091E-04  1.34128E-03  7.72831E-04  2.75035E-04
+      LAMBDA   1.34101E-02  3.06611E-02  1.16941E-01  3.06779E-01  8.78420E-01  2.94106E+00
+
+     MATERIAL 15
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_m43. COMPOSITION NUMBER  1
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.228605    1.458119    0.011274     0.008567   1.01530E-13    1.000000     1.97123E+07     1.00378E+00
+       2     0.817560    0.407717    0.248017     0.382948   4.52538E-12    0.000000     4.48495E+05     1.29022E+00
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.476719    0.012601
+      2        0.000000    1.162390
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   9.70662E-05  6.54092E-04  5.50589E-04  1.18324E-03  6.71390E-04  2.35689E-04
+      LAMBDA   1.33333E-02  3.10246E-02  1.16238E-01  3.03907E-01  8.77445E-01  2.88666E+00
+
+     MATERIAL 16
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_m43. COMPOSITION NUMBER  2
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.227579    1.464693    0.011766     0.007553   8.94721E-14    1.000000     1.97905E+07     9.97420E-01
+       2     0.813873    0.409564    0.204243     0.310724   3.66689E-12    0.000000     4.36990E+05     1.19752E+00
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.479252    0.012432
+      2        0.000000    1.163180
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   9.45247E-05  6.92547E-04  5.64681E-04  1.25190E-03  7.15486E-04  2.52753E-04
+      LAMBDA   1.33655E-02  3.08519E-02  1.16549E-01  3.05231E-01  8.77883E-01  2.91217E+00
+
+     MATERIAL 17
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_m43. COMPOSITION NUMBER  6
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.226563    1.471261    0.012097     0.006660   7.88410E-14    1.000000     1.97466E+07     9.95750E-01
+       2     0.812048    0.410485    0.168360     0.250926   2.95551E-12    0.000000     4.25751E+05     1.12639E+00
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.481016    0.012393
+      2        0.000000    1.166040
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   9.22906E-05  7.35654E-04  5.81560E-04  1.32739E-03  7.63539E-04  2.71132E-04
+      LAMBDA   1.34008E-02  3.06926E-02  1.16842E-01  3.06431E-01  8.78226E-01  2.93527E+00
+
+     MATERIAL 18
+     XTAB FILE /home/imronuke/ADPRES/smpl/xsec/HELIOS/2G_XSEC_refl. COMPOSITION NUMBER  1
+    GROUP   TRANSPORT    DIFFUSION  ABSORPTION    NU*FISS      KAP*FIS    FISS. SPCTR  NEUTRON VELOCITY
+       1     0.303521    1.098222    0.002045     0.000000   0.00000E+00    1.000000     1.35479E+07     1.15642E+00
+       2     1.275640    0.261307    0.016275     0.000000   0.00000E+00    0.000000     3.62628E+05     1.46140E-01
+   --SCATTERING MATRIX--
+     G/G'          1          2
+      1        0.637098    0.027340
+      2        0.000000    2.055600
+   --BETA AND LAMBDA--
+      GROUP        1            2            3            4            5            6
+        BETA   0.00000E+00  0.00000E+00  0.00000E+00  0.00000E+00  0.00000E+00  0.00000E+00
+      LAMBDA   0.00000E+00  0.00000E+00  0.00000E+00  0.00000E+00  0.00000E+00  0.00000E+00
+
+  ...XTAB FILE Card is successfully read...
+
+
+            >>>>>READING CORE GEOMETRY<<<<<
+            -------------------------------
+  Number of assembly in x, y and z directions respectively :
+           9           9          22
+  Number of nodes in x, y and z directions respectively :
+          17          17          22
+
+  x-directed nodes division (delta-x)
+    10.71  10.71  10.71  10.71  10.71  10.71  10.71  10.71  10.71  10.71
+    10.71  10.71  10.71  10.71  10.71  10.71  10.71
+  y-directed nodes division (delta-y)
+    10.71  10.71  10.71  10.71  10.71  10.71  10.71  10.71  10.71  10.71
+    10.71  10.71  10.71  10.71  10.71  10.71  10.71
+
+   Planar Region :  1
+        1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17
+    17  18 18 18 18 18 18 18 18 18                        
+    16  18 18 18 18 18 18 18 18 18                        
+    15  4  8  8  17 17 9  9  18 18 18 18 18 18            
+    14  4  8  8  17 17 9  9  18 18 18 18 18 18            
+    13  7  12 12 7  7  15 15 2  2  10 10 18 18 18 18      
+    12  7  12 12 7  7  15 15 2  2  10 10 18 18 18 18      
+    11  16 4  4  16 16 9  9  7  7  15 15 10 10 18 18      
+    10  16 4  4  16 16 9  9  7  7  15 15 10 10 18 18      
+     9  11 1  1  3  3  1  1  6  6  7  7  2  2  18 18 18 18
+     8  11 1  1  3  3  1  1  6  6  7  7  2  2  18 18 18 18
+     7  7  13 13 1  1  14 14 1  1  9  9  15 15 9  9  18 18
+     6  7  13 13 1  1  14 14 1  1  9  9  15 15 9  9  18 18
+     5  3  10 10 3  3  1  1  3  3  16 16 7  7  17 17 18 18
+     4  3  10 10 3  3  1  1  3  3  16 16 7  7  17 17 18 18
+     3  1  2  2  10 10 13 13 1  1  4  4  12 12 8  8  18 18
+     2  1  2  2  10 10 13 13 1  1  4  4  12 12 8  8  18 18
+     1  5  1  1  3  3  7  7  11 11 16 16 7  7  4  4  18 18
+   Planar Region :  2
+        1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17
+    17  18 18 18 18 18 18 18 18 18                        
+    16  18 18 18 18 18 18 18 18 18                        
+    15  18 18 18 18 18 18 18 18 18 18 18 18 18            
+    14  18 18 18 18 18 18 18 18 18 18 18 18 18            
+    13  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18      
+    12  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18      
+    11  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18      
+    10  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18      
+     9  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+     8  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+     7  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+     6  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+     5  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+     4  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+     3  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+     2  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+     1  18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18 18
+
+  Planar Region Assignment to planes.
+ --------------------------------------
+   Plane Number     Planar Region    delta-z
+       22 (TOP)            2          21.42
+       21                  1          18.29
+       20                  1          18.29
+       19                  1          18.29
+       18                  1          18.29
+       17                  1          18.29
+       16                  1          18.29
+       15                  1          18.29
+       14                  1          18.29
+       13                  1          18.29
+       12                  1          18.29
+       11                  1          18.29
+       10                  1          18.29
+        9                  1          18.29
+        8                  1          18.29
+        7                  1          18.29
+        6                  1          18.29
+        5                  1          18.29
+        4                  1          18.29
+        3                  1          18.29
+        2                  1          18.29
+        1 (BOTTOM)         2          21.42
+
+   Boundary conditions
+  X-directed West   : REFLECTIVE
+  X-directed East   : ZERO FLUX
+  Y-directed North  : ZERO FLUX
+  Y-directed South  : REFLECTIVE
+  Z-directed Bottom : ZERO FLUX
+  Z-directed Top    : ZERO FLUX
+
+  ...Core geometry is successfully read...
+
+
+            >>>>   READING THERMAL-HYDRAULIC DATA   <<<<
+            --------------------------------------------
+  REACTOR PERCENT POWER (%)                :    100.00000
+  REACTOR POWER (Watt)                     :   8.9125E+08
+  COOLANT INLET TEMPERATURE (Kelvin)       :   5.6000E+02
+  FUEL ASSEMBLY MASS FLOW RATE (Kg/s)      :   8.2121E+01
+  FUEL MEAT RADIUS (m)                     :   3.9510E-03
+  GAP THICKNESS (m)                        :   5.9000E-05
+  CLAD THICKNESS (m)                       :   5.7300E-04
+  PIN PITCH(m)                             :   1.2600E-02
+  FRACTION OF HEAT DEPOSITED IN COOL.      :   0.0000E+00
+
+  ...Thermal-hydraulic Card is successfully read...
+
+
+  ************************  STOP READING INPUT  ********************************
+
+
+ =========================================================================
+                   CRITICAL BORON CONCENTRATION SEARCH
+ =========================================================================
+
+Itr  Boron Conc.   K-EFF     FLUX ERR.    FISS. SRC. ERR.  DOPPLER ERR.
+ -----------------------------------------------------------------------
+  1     0.00       1.13334   3.18591E-02  3.56201E-03      2.13651E+02
+  2   500.00       1.08117   2.69562E-02  1.72079E-03      6.60584E+01
+  3  1277.87       1.02505   6.95016E-03  7.77696E-04      2.35981E+01
+  4  1625.09       1.00359   2.76396E-03  2.03154E-04      9.08090E+00
+  5  1683.23       1.00007   1.64624E-04  1.45716E-05      1.31155E+00
+  6  1684.43       1.00000   1.15342E-04  1.27637E-05      1.00940E-01
+  7  1684.42       1.00000   4.00535E-06  4.00678E-06      1.10854E-02
+
+
+     Radial Power Distribution
+   ==============================
+           1       2       3       4       5       6       7       8       9
+     9                                                                        
+     8   0.479   0.570   0.477   0.395                                        
+     7   1.102   1.098   1.095   0.989   0.634   0.313                        
+     6   1.102   0.960   1.175   1.162   1.105   0.827   0.313                
+     5   1.003   1.286   1.194   1.272   0.918   1.105   0.634                
+     4   1.353   1.184   1.319   1.053   1.272   1.162   0.989   0.395        
+     3   1.176   1.060   1.157   1.319   1.194   1.175   1.095   0.477        
+     2   1.358   1.241   1.060   1.184   1.286   0.960   1.098   0.570        
+     1   1.083   1.358   1.176   1.353   1.003   1.102   1.102   0.479        
+
+   MAX POS.       Maximum Value
+  (  1,  2)          1.358
+
+
+     Axial Power Density Distribution
+   ====================================
+
+     Plane Number        Power      Height
+    -----------------------------------------
+        22  (TOP)        0.000      408.60
+        21               0.211      387.18
+        20               0.411      368.89
+        19               0.595      350.60
+        18               0.761      332.32
+        17               0.909      314.03
+        16               1.037      295.74
+        15               1.147      277.45
+        14               1.239      259.16
+        13               1.314      240.88
+        12               1.371      222.59
+        11               1.409      204.30
+        10               1.426      186.01
+         9               1.419      167.72
+         8               1.384      149.44
+         7               1.317      131.15
+         6               1.211      112.86
+         5               1.060       94.57
+         4               0.860       76.28
+         3               0.609       58.00
+         2               0.311       39.71
+         1  (BOTTOM)     0.000       21.42
+
+   MAX POS.       Maximum Value
+    ( 10)             1.426
+
+
+     Radial Flux Distribution
+   ==============================
+    Group :   1
+             1          2          3          4          5          6          7          8          9
+     9   9.213E-04  9.758E-04  8.898E-04  6.140E-04  1.280E-04                                             
+     8   9.058E-03  9.714E-03  8.972E-03  6.850E-03  1.754E-03  5.790E-04  9.712E-05                       
+     7   1.814E-02  1.868E-02  1.818E-02  1.658E-02  1.095E-02  5.860E-03  1.071E-03  9.712E-05            
+     6   1.983E-02  1.924E-02  2.129E-02  2.056E-02  1.770E-02  1.369E-02  5.860E-03  5.790E-04            
+     5   1.973E-02  2.127E-02  2.173E-02  2.097E-02  1.827E-02  1.770E-02  1.095E-02  1.754E-03  1.280E-04 
+     4   2.220E-02  2.206E-02  2.205E-02  2.082E-02  2.097E-02  2.056E-02  1.658E-02  6.850E-03  6.140E-04 
+     3   2.120E-02  2.018E-02  2.080E-02  2.205E-02  2.173E-02  2.129E-02  1.818E-02  8.972E-03  8.898E-04 
+     2   2.230E-02  2.159E-02  2.018E-02  2.206E-02  2.127E-02  1.924E-02  1.868E-02  9.714E-03  9.758E-04 
+     1   2.125E-02  2.230E-02  2.120E-02  2.220E-02  1.973E-02  1.983E-02  1.814E-02  9.058E-03  9.213E-04 
+
+    Group :   2
+             1          2          3          4          5          6          7          8          9
+     9   4.572E-03  4.761E-03  4.160E-03  2.986E-03  6.809E-04                                             
+     8   1.058E-02  1.014E-02  6.098E-03  7.155E-03  8.551E-03  2.865E-03  5.170E-04                       
+     7   1.837E-02  9.247E-03  1.821E-02  7.888E-03  1.201E-02  6.455E-03  5.227E-03  5.170E-04            
+     6   1.108E-02  2.096E-02  1.178E-02  2.108E-02  1.863E-02  6.625E-03  6.455E-03  2.865E-03            
+     5   2.186E-02  2.310E-02  2.368E-02  2.287E-02  2.145E-02  1.863E-02  1.201E-02  8.551E-03  6.809E-04 
+     4   2.275E-02  1.374E-02  2.363E-02  1.517E-02  2.287E-02  2.108E-02  7.888E-03  7.155E-03  2.986E-03 
+     3   2.340E-02  2.185E-02  2.303E-02  2.363E-02  2.368E-02  1.178E-02  1.821E-02  6.098E-03  4.160E-03 
+     2   2.449E-02  2.364E-02  2.185E-02  1.374E-02  2.310E-02  2.096E-02  9.247E-03  1.014E-02  4.761E-03 
+     1   2.458E-02  2.449E-02  2.340E-02  2.275E-02  2.186E-02  1.108E-02  1.837E-02  1.058E-02  4.572E-03 
+
+
+   HEAT FLUX HOT CHANNEL FACTOR :  1.957
+
+  AVERAGE DOPPLER TEMPERATURE     :   829.0 K (  555.9 C)
+  MAX FUEL CENTERLINE TEMPERATURE :  1843.9 K ( 1570.8 C)
+  AVERAGE MODERATOR TEMPERATURE   :   581.2 K (  308.0 C)
+  MAXIMUM MODERATOR TEMPERATURE   :   611.6 K (  338.5 C)
+  OUTLET MODERATOR TEMPERATURE    :   598.6 K (  325.5 C)
+  AVERAGE MODERATOR DENSITY       :   705.7 kg/m3 (  0.706 g/cc)
+  OUTLET MODERATOR DENSITY        :   661.5 kg/m3 (  0.662 g/cc)
+
+
+  CPU time breakdown in seconds
+    Input reading time   :    0.0265  ( 2.7%)
+    XSEC processing time :    0.3547  (36.5%)
+    CMFD time            :    0.2324  (23.9%)
+    Nodal update time    :    0.3413  (35.1%)
+    T-H time             :    0.0164  ( 1.7%)
+    ------------------------------------------
+    Total time           :    0.9714
