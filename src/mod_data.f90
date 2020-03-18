@@ -150,7 +150,6 @@ REAL(DP) :: tpow                                       ! Total reactor power
 REAL(DP), DIMENSION(:), ALLOCATABLE :: npow            ! nodes power (watt)
 REAL(DP) :: tin                                        ! coolant inlet temperature (kelvin)
 REAL(DP) :: cflow                                      ! Sub-channel mass flow rate (kg/s)
-REAL(DP), DIMENSION(:), ALLOCATABLE :: nflow           ! new channel mass flow rate
 REAL(DP) :: rf, tg, tc, ppitch                         ! Fuel meat radius, gap thickness, clad thickness, and pin picth (m)
 REAL(DP) :: rg, rc                                     ! Outer radius of gap and cladding
 REAL(DP) :: dia, dh, farea                             ! Pi diameter, Hydraulic diameter (m) and sub-channel area (m2)

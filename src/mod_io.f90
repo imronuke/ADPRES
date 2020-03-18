@@ -2957,7 +2957,7 @@ USE sdata, ONLY: pow, tin, nx, ny, nxx, nyy, ystag, &
                  rf, tg, tc, rg, rc, ppitch, cf, dia, cflow, dh, pi, &
                  farea, xdiv, ydiv, ystag, node_nf, nm, nt, rdel, rpos, &
                  nnod, tfm, ppow, ent, heatf, ntem, stab, ftem, mtem, cden, &
-                 nflow, thunit
+                 thunit
 
 IMPLICIT NONE
 
@@ -3041,12 +3041,6 @@ farea = ppitch**2 - 0.25*pi*dia**2
 ! Calculate sub-channel mass flow rate
 cflow = cmflow / REAL(nfpin)
 
-! If rod eject card active, initialize mass flow rate
-IF (bejct == 1) THEN
-  ALLOCATE(nflow(nnod))
-  nflow = cflow
-END IF
-
 ! Calculate total coolant mass flow rate and number of fuel pins per node
 barea = 0.
 DO j = 1, ny
@@ -3096,7 +3090,7 @@ END DO
 
 ! Guess fuel and moderator temperature
 ALLOCATE(tfm(nnod, nt+1)) ! Allocate fuel pin mesh temperature
-tfm = 900.  !Initial guess for radial fuel temperature distribution
+tfm = 900.                !Initial guess for radial fuel pin temperature distribution
 IF (bxtab == 1) THEN
   ftem = 900.; cden = 0.711; mtem = 500.
 END IF
