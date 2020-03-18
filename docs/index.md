@@ -28,8 +28,21 @@ ADPRES features:
 
 # User Guides
 
-Here you can find quick guides on how to use ADPRES. Given you have background on nuclear engineering, we believe you can create your own ADPRES input within minutes!
-
+Here you can find quick and advanced guides on how to use ADPRES. Given you have background on nuclear engineering, we believe you can create your own ADPRES input within minutes!
 ## [Source code compilation](https://imronuke.github.io/ADPRES/install)
 ## [Quick guides](https://imronuke.github.io/ADPRES/quick-guides)
 ## [Advanced guides](https://imronuke.github.io/ADPRES/card-desc)
+
+
+## How to give feedbacks
+You may raise and issue or contact me
+* muhammad.imron[at]adpoly.ac.ae
+* makrus.imron[at]gmail.com
+
+## How to cite
+If you find this work helpful, please pray for me. And if you use this work for a publication, you mau cite as
+
+Imron, M. (2019). Development and verification of open reactor simulator ADPRES. Annals of Nuclear Energy, 133, 580–588. https://doi.org/10.1016/j.anucene.2019.06.049
+
+
+> **"The best of people are those who bring most benefit to the rest of mankind." (THE PROPHET)**
