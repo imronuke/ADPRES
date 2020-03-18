@@ -12,19 +12,19 @@ ADPRES is a great learning tool for reactor theory classes, and we have been str
 
 ADPRES features:
 * Input is straightforward, modular and in a free-format form
-* Solves both static and transient core problems with or without TH feedback
+* Solves both static and transient core problems **with or without TH feedback**
 * Performs forward, adjoint and fixed-source calculations
-* Perform branch calculations. An example of the library format can be seen [here]
+* Perform branch calculations. An example of the library format can be seen [here]((https://github.com/imronuke/ADPRES/blob/master/smpl/xsec/SERPENT_CMM/m40.tab))
 * Critical boron concentration search
 * Rod ejection simulation or Reactivity Initiated Accident (RIA)
+* It can handle multi-group of neutron energy
+* It handle calculations with Assembly Discontinuity Factors (ADFs)
 * CMFD accelerated using two-node problem non-linear iteration
 * CMFD matrix is solved with the latest matrix solver: BiCGSTAB
 * Three nodal kernels are available:
   * Traditional Finite Difference Method
   * Polynomial Nodal Method (PNM)
   * Semi-Analytic Nodal Method (SANM)
-* It can handle multi-group of neutron energy
-* It handle calculations with Assembly Discontinuity Factors (ADFs)
 
 # User Guides
 
@@ -34,12 +34,12 @@ Here you can find quick and advanced guides on how to use ADPRES. Given you have
 ## [Advanced guides](https://imronuke.github.io/ADPRES/card-desc)
 
 
-## How to give feedbacks
-You may raise and issue or contact me
+# How to give feedbacks
+You may raise an issue or contact me
 * muhammad.imron[at]adpoly.ac.ae
 * makrus.imron[at]gmail.com
 
-## How to cite
+# How to cite
 If you find this work helpful, please pray for me. And if you use this work for a publication, you mau cite as
 
 Imron, M. (2019). Development and verification of open reactor simulator ADPRES. Annals of Nuclear Energy, 133, 580–588. https://doi.org/10.1016/j.anucene.2019.06.049
