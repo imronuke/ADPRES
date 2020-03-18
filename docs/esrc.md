@@ -12,7 +12,7 @@ This card shall be present only if the calculation mode is `%FIXEDSRC`
 | --- |
 | LINE 1 | NSRC | Number of sources | Example:2 ! Number of extra sources |
 | LINE 2 | SDEN | Source density | Repeat LINE 2 through LINE 7 NSRC times |
-| LINE 3 | SPEC(1:NG) | Source energy spectrum (normalized to 1.0) | Example LINE 2 through LINE 3<br>Example: 1. 0!Source density 1<br>1.0 0.0 ! Spectrum 1.<br>.....<br>2.0 !Source density 2<br>0.9 0.1 ! Spectrum 2......  |
+| LINE 3 | SPEC(1:NG) | Source energy spectrum (normalized to 1.0) | Example LINE 2 through LINE 3<br>`!Source density 1<br>1.0 0.0 ! Spectrum 1.<br>.....<br>2.0 !Source density 2<br>0.9 0.1 ! Spectrum 2`  |
 | LINE 4 | ZPOS | Axial position of the source (between 1 to NZ) | This line must be followed by XPOS and YPOS.And then this input segment can be repeated as many as desired until 0 (LINE 7) is entered |
 | LINE 5 | XPOS | Radial position of the source (along X axis) for current axial position | Repeat this line as many as desired until 0 (LINE 6) is entered |
 |   | YPOS | Radial position of the source (along Y axis) for current axial position |
