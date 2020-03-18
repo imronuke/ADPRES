@@ -43,8 +43,8 @@ ADPRES has several input cards. Card is a keyword marked with `%`. Each card can
 | **No.** | **Cards** | **Description** | **Remark** |
 | --- | --- | --- | --- |
 | 1. | [`%MODE`](https://imronuke.github.io/ADPRES/mode) | Calculation mode | Mandatory |
-| 2. | [`%XSEC`](https://imronuke.github.io/ADPRES/xsec) | Cross Sections | Conditional |
-| 3. | [`%GEOM`](https://imronuke.github.io/ADPRES/geom) | Geometry of the problem | Mandatory |
+| 2. | [`%GEOM`](https://imronuke.github.io/ADPRES/geom) | Geometry of the problem | Mandatory |
+| 3. | [`%XSEC`](https://imronuke.github.io/ADPRES/xsec) | Cross Sections | Conditional |
 | 4. | [`%CASE`](https://imronuke.github.io/ADPRES/case) | Problem case | Optional |
 | 5. | [`%ESRC`](https://imronuke.github.io/ADPRES/esrc) | Extra source | Conditional |
 | 7. | [`%ITER`](https://imronuke.github.io/ADPRES/iter) | Iteration Control | Optional |

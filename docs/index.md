@@ -30,6 +30,6 @@ ADPRES features:
 
 Here you can find quick guides on how to use ADPRES. Given you have background on nuclear engineering, we believe you can create your own ADPRES input within minutes!
 
-* [Source code compilation](https://imronuke.github.io/ADPRES/install)
-* [Quick guides](https://imronuke.github.io/ADPRES/quick-guides)
-* [Advanced guides](https://imronuke.github.io/ADPRES/card-desc)
+## [Source code compilation](https://imronuke.github.io/ADPRES/install)
+## [Quick guides](https://imronuke.github.io/ADPRES/quick-guides)
+## [Advanced guides](https://imronuke.github.io/ADPRES/card-desc)

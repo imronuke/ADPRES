@@ -12,7 +12,7 @@ This card is used to describe the cross section data. This card is conditional :
 | --- |
 | LINE 1 | NG | Number of groups |  |
 |        | NMAT | Number materials |
-| LINE 2 | SIGTR(g) | Transport macroscopic XS for group g | Repeat LINE 2 NG times. And again repeat this input segment NMAT times.(See example in the provided sample inputs) |
+| LINE 2 | SIGTR(g) | Transport macroscopic XS for group g | Repeat LINE 2 NG times. And again repeat this input segment NMAT times.(See example below) |
 | SIGA(g) | Absorption macroscopic XS for group g |
 | NUF(g) | Nu \* Fission macroscopic XS for group g |
 | SIGF(g) | Fission macroscopic XS for group g |
