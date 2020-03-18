@@ -8,17 +8,17 @@ ADPRES features:
 * Input is straightforward, modular and in a free-format form
 * Solves both static and transient core problems **with or without TH feedback**
 * Performs forward, adjoint and fixed-source calculations
-* Perform branch calculations. An example of the library format can be seen [here]((https://github.com/imronuke/ADPRES/blob/master/smpl/xsec/SERPENT_CMM/m40.tab))
+* Perform branch calculations. An example of the library format can be seen [here](https://github.com/imronuke/ADPRES/blob/master/smpl/xsec/SERPENT_CMM/m40.tab)
 * Critical boron concentration search
 * Rod ejection simulation or Reactivity Initiated Accident (RIA)
+* It can handle multi-group of neutron energy
+* It handle calculations with Assembly Discontinuity Factors (ADFs)
 * CMFD accelerated using two-node problem non-linear iteration
 * CMFD matrix is solved with the latest matrix solver: BiCGSTAB
 * Three nodal kernels are available:
   * Traditional Finite Difference Method
   * Polynomial Nodal Method (PNM)
   * Semi-Analytic Nodal Method (SANM)
-* It can handle multi-group of neutron energy
-* It handle calculations with Assembly Discontinuity Factors (ADFs)
 
 # User Guides
 
