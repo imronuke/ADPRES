@@ -10,14 +10,14 @@ This card can be used to control the iterations in ADPRES calculation
 
 | %ITER | Variable | Description | Remarks |
 | --- | --- | --- | --- |
-| LINE 1 | NOUT  | Maximum number of outer iteration |
-|        | NIN   | Maximum number of inner iteration per an outer iteration |
-|        | SERC  | Fission source error criteria (relative error) |
-|        | FERC  | Flux source error criteria (relative error) |
-|        | NAC   | Outer iteration fission source extrapolation interval |
-|        | NUPD  | Nodal update interval through outer iteration |
-|        | TH_NITER  | Maximum number of T-H iteration |
-|        | NTH  | Maximum number of outer iteration per T-H iteration |
+| LINE 1 | NOUT  | Maximum number of outer iteration | Default = 2 |
+|        | NIN   | Maximum number of inner iteration per an outer iteration | Default = 500 |
+|        | SERC  | Fission source error criteria (relative error) | Default = 1.e-5 |
+|        | FERC  | Flux source error criteria (relative error) | Default = 1.e-5 |
+|        | NAC   | Outer iteration fission source extrapolation interval | Default = 5 |
+|        | NUPD  | Nodal update interval through outer iteration | Default = (NX+NY+NZ)/2.5 |
+|        | TH_NITER  | Maximum number of T-H iteration | Default = 30 |
+|        | NTH  | Maximum number of outer iteration per T-H iteration | Default = 20 |
 
 Example:
 ```
