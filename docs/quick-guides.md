@@ -103,13 +103,13 @@ In the above example, there are
 3. One optional card   : `%CASE`
 
 You find the detailed description for each card [here](https://imronuke.github.io/ADPRES/card-desc), but we will explain theme briefly here
-### Card `%MODE`
+### [%MODE Card](https://imronuke.github.io/ADPRES/mode)
 This is the mode of ADPRES calculation. Since here we want to calculate static forward calculation (eigenvalue problem) the calculation mode is `FORWARD`
-### Card `%CASE`
+### [%CASE Card](https://imronuke.github.io/ADPRES/mode)
 This card is optional. This describes the problem at hand.
-### Card `%XSEC`
+### [%XSEC Card](https://imronuke.github.io/ADPRES/mode)
 This card is conditional, needed only if `%XTAB` card is not present. This card tells ADPRES the cross sections data for the problem. The cross section data must be given for each group and for each material as shown in the example. The description of the cross sections data can be seen in the comments.
-### Card `%GEOM`
+### [%GEOM Card](https://imronuke.github.io/ADPRES/mode)
 This card is describes the geometry of the problem. It quite similar to other reactor core simulator which you can easily understand if you have background on nuclear engineering. The description of the inputs given in the comments.
 
 
@@ -183,4 +183,4 @@ MAX. CHANGE IN NODAL COUPLING COEF.=  3.16843E-01 AT NODE I =  6, J =  4, K = 19
   ADPRES EXIT NORMALLY
   ```
 
-  If you get `ADPRES EXIT NORMALLY` in the end of the terminal output, it means you successfully run ADPRES. Since it is a forward (eigenvalue) problem, you will see the outer iterations as they evolve and you will see also the effective multiplication factor as well as CPU time breakdown. The detailed output, such as radial and axial power distribution, can be found in the same file name but with `.out` extension.
+  If you get `ADPRES EXIT NORMALLY` in the end of the terminal output, it means you successfully run ADPRES. Since it is a forward (eigenvalue) problem, you will see the outer iterations as they evolve and you will see also the effective multiplication factor as well as CPU time breakdown. The detailed output, such as radial and axial power distribution, can be found in the same file name as input but with `.out` extension.
