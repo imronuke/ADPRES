@@ -6,7 +6,7 @@ filename: quick-guides
 
 # Quick Guides
 ## Writing Input
-ADPRES input is designed to be self-explanatory. It has several input cards, for example: `%mode`, `%geom`, `%xsec`, and so on. Some cards are mandatory for any problems. While some cards are conditional, depending on the problem being solved and some cards are optional. Comments are marked by `!`. For example, the following is the [IAEA3D input](https://github.com/imronuke/ADPRES/tree/master/smpl/static), where you can find its specification [here](https://engineering.purdue.edu/PARCS/Code/TestSuite/CalculationMode/StandAloneMode/Eigenvalue/IAEA3DPWR).
+ADPRES input is designed to be self-explanatory. It has several input cards, for example: `%mode`, `%geom`, `%xsec`, and so on. Some cards are mandatory for any problems. While some cards are conditional depending on the problems at hand and some cards are optional. Comments are marked by `!`. For example, the following is the [IAEA3D input](https://github.com/imronuke/ADPRES/tree/master/smpl/static), where you can find its specification [here](https://engineering.purdue.edu/PARCS/Code/TestSuite/CalculationMode/StandAloneMode/Eigenvalue/IAEA3DPWR).
 
 ```
 ! IAEA3D input data
@@ -104,13 +104,13 @@ In the above example, there are
 
 You find the detailed description for each card [here](https://imronuke.github.io/ADPRES/card-desc), but we will explain theme briefly here
 ### [%MODE Card](https://imronuke.github.io/ADPRES/mode)
-This is the mode of ADPRES calculation. Since here we want to calculate static forward calculation (eigenvalue problem) the calculation mode is `FORWARD`
-### [%CASE Card](https://imronuke.github.io/ADPRES/mode)
-This card is optional. This describes the problem at hand.
-### [%XSEC Card](https://imronuke.github.io/ADPRES/mode)
-This card is conditional, needed only if `%XTAB` card is not present. This card tells ADPRES the cross sections data for the problem. The cross section data must be given for each group and for each material as shown in the example. The description of the cross sections data can be seen in the comments.
-### [%GEOM Card](https://imronuke.github.io/ADPRES/mode)
-This card is describes the geometry of the problem. It quite similar to other reactor core simulator which you can easily understand if you have background on nuclear engineering. The description of the inputs given in the comments.
+This is the mode of ADPRES calculation. Since here we want to calculate static forward calculation (eigenvalue problem) the calculation mode is `FORWARD`. The detailed description of this card is [here](https://imronuke.github.io/ADPRES/mode).
+### [%CASE Card](https://imronuke.github.io/ADPRES/case)
+This card is optional. This describes the problem at hand. The detailed description of this card is [here](https://imronuke.github.io/ADPRES/case).
+### [%XSEC Card](https://imronuke.github.io/ADPRES/xsec)
+This card is conditional, needed only if `%XTAB` card is not present. This card tells ADPRES the cross sections data for the problem. The cross section data must be given for each group and for each material as shown in the example. The description of the cross sections data can be seen in the comments. The detailed description of this card is [here](https://imronuke.github.io/ADPRES/xsec).
+### [%GEOM Card](https://imronuke.github.io/ADPRES/geom)
+This card is describes the geometry of the problem. It quite similar to other reactor core simulator which you can easily understand if you have background on nuclear engineering. The description of the inputs given in the comments. The detailed description of this card is [here](https://imronuke.github.io/ADPRES/geom).
 
 
 ## Reading Output
