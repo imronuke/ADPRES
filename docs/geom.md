@@ -10,7 +10,7 @@ This card is used to describe the problem geometry in rectangular coordinate sys
 
 ![alt text](https://raw.githubusercontent.com/imronuke/ADPRES/master/docs/images/geom_1.png "ADPRES 3D coordinate system")
 
-The point of origin is located at the corner between west, bottom and south sides. The next figure shows the coordinate system seen from top which typically used for two-dimensional problems.
+The point of origin is located at the corner between west, bottom and south sides. The next figure shows the coordinate system for radial planar map (seen from top) which typically used for two-dimensional problems.
 
 ![alt text](https://raw.githubusercontent.com/imronuke/ADPRES/master/docs/images/geom_2.png "ADPRES 2D coordinate system")
 
