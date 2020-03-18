@@ -171,9 +171,7 @@ Table 4‑4. Geometry card
   1.
     1. 4.2.4Problem Case
 
-This card describes the problem case if necessary.
-
-Table 4‑5. Problem case card
+This card describes the problem case and case description if necessary.
 
 | %CASE |
 | --- |

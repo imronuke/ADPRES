@@ -26,8 +26,8 @@ The point of origin is located at the corner between west, bottom and south side
 | LINE 6 | ZSIZE(1:NZ) | Assembly size along Z-direction(from bottom to top) |  |
 | LINE 7 | ZDIV(1:NZ) | Assembly division along Z-direction(from bottom to top) |  |
 | LINE 8 | NP | Number of different core planar with different material composition |  |
-| LINE 9 | ZPLN(1:NZ) | Planar assignment along Z-direction from bottom to top |  |
-| LINE 10 | DO j = NY, 1, -1     ASM(1:NX)END DO | Planar material map |  |
+| LINE 9 | ZPLN(1:NZ) | Planar assignment along axial or z-direction from bottom to top |  |
+| LINE 10 | DO j = NY, 1, -1<br>  ASM(1:NX)<br>END DO | Radial planar material map | Repeat the planar map NP times |
 | LINE 11 | XEAST | East boundary conditions | 0 = Zero flux |
 |   | XWEST | West boundary conditions | 1 = Zero incoming current |
 |   | YNORTH | North boundary conditions | 2 = Reflective |
