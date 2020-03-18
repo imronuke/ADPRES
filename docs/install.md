@@ -5,16 +5,16 @@ filename: install
 ---
 
 # Compiling the source codes
-To compile ADPRES source codes you just need a Fortran compiler, that's it. We design ADPRES to be very portable, so it can be installed on any machine.
+To compile ADPRES source codes you just need a Fortran compiler, that's it. We design ADPRES to be very portable, so it can be installed using any Fortran compiler.
 
 ## Compiling in Ubuntu or other GNU-Linux based OS
-In Ubuntu, other GNU-Linux based OS or CYGWIN you can use either gfotran or intel fortran to compile the source codes. You can install gfortran in Ubuntu OS by using this command in your computer's terminal
+In Ubuntu, other GNU-Linux based OS or CYGWIN you can use either gfotran or Intel fortran to compile the source codes. You can install gfortran in Ubuntu OS by using this command in your computer's terminal
 
 ```
 sudo apt install gfortran
 ```
 
-Then you can download the [ADPRES zip files](https://github.com/imronuke/ADPRES) from Github or clone them (you need to download git first if you don't have one)
+Then you can download the [ADPRES zip files](https://github.com/imronuke/ADPRES/archive/ADPRES_v.1.2.zip) from Github or clone them (you need to download git first if you don't have one)
 
 ```
 git clone https://github.com/imronuke/ADPRES.git
@@ -47,7 +47,7 @@ for example, you can run a test by
 ./adpres /home/imronuke/smpl/static/IAEA3Ds
 ```
 
-If you see `ADPRES EXIT NORMALLY` at the end of terminal output, then congratulations! you have compiled ADPRES. By the way, it should take less than 0.2 seconds in you compile using gfortran in a typical today's computer.
+If you see `ADPRES EXIT NORMALLY` at the end of terminal output, then congratulations! you have compiled ADPRES correctly. By the way, it should take less than 0.2 seconds for ADPRES to solve IAEA3Ds problem if you compile using gfortran in a typical today's computer.
 
 For you to be able to execute ADPRES from any folder, you can copy it to `usr/bin` (provided you have an admin privilege)
 
@@ -58,11 +58,11 @@ sudo cp adpres /usr/bin
 And now you can execute ADPRES from the smpl folder directly.
 
 ## Compiling in Windows
-In Windows you can compile ADPRES using g95 which can be obtained from [here](https://www.fortran.com/wp-content/uploads/2013/05/g95-Mingw_201210.exe).
+In Windows you can compile ADPRES using g95 which can be obtained from [here](https://www.fortran.com/wp-content/uploads/2013/05/g95-Mingw_201210.exe). Then install g95 to your computer.
 
-Then you can download the [ADPRES zip files](https://github.com/imronuke/ADPRES) from Github.
+Then you can download the [ADPRES zip files](https://github.com/imronuke/ADPRES/archive/ADPRES_v.1.2.zip) from Github.
 
-After you install g95 and download ADPRES, from the command prompt, go to the [src folder](https://github.com/imronuke/ADPRES/tree/master/src) located inside the ADPRES folder which you had been downloaded, and compile the source codes using g95:
+After you install g95 and download ADPRES, open the command prompt. And from the command prompt, using `cd` command, go to the [src folder](https://github.com/imronuke/ADPRES/tree/master/src) located inside the ADPRES folder which you had been downloaded, and compile the source codes using g95:
 
 ```
 g95 -O4 -c mod_data.f90
@@ -89,4 +89,4 @@ for example, you can run a test by
 adpres C:\Users\imronuke\Downloads\ADPRES-master\smpl\static\IAEA3Ds
 ```
 
-If you see `ADPRES EXIT NORMALLY` at the end of terminal output, then congratulations! you have compiled ADPRES.
+If you see `ADPRES EXIT NORMALLY` at the end of terminal output, then congratulations! you have compiled ADPRES correctly.
