@@ -1,32 +1,32 @@
 ---
-title: %CROD
+title: %EJCT
 theme: _config.yml
-filename: crod
+filename: ejct
 ---
 
-# %CROD Card
+# %EJCT Card
 
-For transient problems due to control rods insertion or withdrawal, users can use this card.  This card is mandatory if calculation mode is `RODEJECT`.
+This card us used for transient problems due to control rods insertion or withdrawal.  This card is mandatory if calculation mode is `RODEJECT`.
 
 | %EJCT | Variable | Description | Remarks or examples |
-| --- |
-| LINE 1 | FBPOS(n) | Final bank n position after ejection and/or insertion (step) | Repeat this line NB times.<br>Example:60.  7.5 3.0 !Bank 1180. 0.0 3.0! Bank 2 |
+| --- | --- | --- | --- |
+| LINE 1 | FBPOS(n) | Final bank n position after ejection and/or insertion (step) | Repeat this line NB times (NB = Number of CR bank) |
 |   | TMOVE(n) | When bank n starts move (second) |
 |   | BSPEED(n) | Bank n speed (steps/second) |
-| LINE 2 | TTOT | Total simulation time (seconds) | Example:<br>60.  0.1  40.0  1.0 |
+| LINE 2 | TTOT | Total simulation time (seconds) | Example: `60.  0.1  40.0  1.0` |
 |   | TSTEP1 | First time step (seconds) |
 |   | TDIV | When to start second time step (seconds) |
 |   | TSTEP2 | Second time step (seconds) |
-| LINE 3 | IBETA(1:6) | 6-groups delayed neutron fraction |**Not necessary of `%XTAB` card present**|
-| LINE 4 | LAMB(1:6) | 6-groups precursor decay constant |**Not necessary of `%XTAB` card present**|
-| LINE 5 | VELO(1:NG) | Neutron velocity |**Not necessary of `%XTAB` card present**|
+| LINE 3 | IBETA(1:6) | 6-groups delayed neutron fraction | **Not necessary of `%XTAB` card present** |
+| LINE 4 | LAMB(1:6) | 6-groups precursor decay constant | **Not necessary of `%XTAB` card present** |
+| LINE 5 | VELO(1:NG) | Neutron velocity | **Not necessary of `%XTAB` card present** |
 
 Example:
 ```
 ! Rod ejection card
 %EJCT
 ! Final Bank Pos (steps)     Starts Move (seconds)     Speed (steps/seconds)
-     228.                     0.0                     2280.0    ! Bank 1
+     228.                     0.0                     2280.0    ! Bank 1     (LINE 1)
      0.                       0.0                     0.0       ! Bank 2
      0.                       0.0                     0.0       ! Bank 3
      228.                     0.0                     0.0       ! Bank 4

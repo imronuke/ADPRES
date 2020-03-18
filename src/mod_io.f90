@@ -3025,6 +3025,9 @@ READ(xbunit, *, IOSTAT=ios) ind, ln, cf
 message = ' error in reading fraction of heat deposited in the coolant'
 CALL er_message(ounit, ios, ln, message)
 
+if (cf < 0. .or. cf > 1.0) stop "The value of the fraction of heat ", &
+// "deposited in the coolant is incorrect"
+
 ! Calculate outer radius of gap and cladding
 rg = rf + tg
 rc = rg + tc

@@ -9,7 +9,7 @@ filename: xsec
 This card is used to describe the cross section data. This card is conditional : either `%XSEC` or `XTAB` card must be present
 
 | `%XSEC` | Variable | Description | Remarks |
-| --- |
+| --- | --- | --- | --- |
 | LINE 1 | NG | Number of groups |  |
 |        | NMAT | Number materials |
 | LINE 2 | SIGTR(g) | Transport macroscopic XS for group g | Repeat LINE 2 NG times. And again repeat this input segment NMAT times.(See example below) |

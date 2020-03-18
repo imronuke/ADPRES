@@ -9,7 +9,7 @@ filename: case
 This card describes the problem case and case description if necessary.
 
 | %CASE | Variable | Description | Examples |
-| --- |
+| --- | --- | --- | --- |
 | LINE 1 | CASE_ID | Case name | Example: `DVP` |
 | LINE 2 | CASE_EXP | Case Description | Example: `DVP Problem Test` |
 

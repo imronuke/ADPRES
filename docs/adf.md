@@ -9,15 +9,15 @@ filename: adf
 ADF card can be incorporated into ADPRES input, if any, to make the solution more accurate.
 
 | %ADF | Variable | Description | Remarks or examples |
-| --- |
-| LINE 1 | DC(1) | East side discontinuity factor | Repeat LINE 2 NG times. And again repeat this input segment NMAT times.(See example in the provided sample inputs) |
+| --- | --- | --- | --- |
+| LINE 1 | DC(1) | East side discontinuity factor | Repeat LINE 2 NG times. And again repeat this input segment NMAT times.(See example below) |
 |   | DC(2) | West side discontinuity factor |
 |   | DC(3) | North side discontinuity factor |
 |   | DC(4) | South side discontinuity factor |
 |   | DC(5) | Bottom side discontinuity factor |
 |   | DC(6) | Top side discontinuity factor |
 | LINE 2 | ROT | Direction for ADF rotation | This line is optional. Necessary if the value of discontinuity factor is not fully symmetric. Repeat this line followed by LINE 3 as many as desired until zero number (LINE 5) is entered.<br>1 = 90 degree counter clockwise<br>2 = 180 degree counter clock wise<br>3 = 270 degree counter clockwise |
-| LINE 3 | X1 | Start assembly position in X-direction | This line follows LINE 2 which tells the position of assembly being rotated. Repeat this line as many as desired until zero numbers (LINE 4). Followings are value limits for these line<br>1 \&lt;= X1 \&lt;= NX;<br>1 \&lt;= X2 \&lt;= NX<br>;1 \&lt;= Y1 \&lt;= NY;<br>1 \&lt;= Y2 \&lt;= NY;<br>1 \&lt;= Z1 \&lt;= NZ;<br>1 \&lt;= Z2 \&lt;= NZ;<br>X1 \&lt;= X2; Y1 \&lt;= Y2; Z1 \&lt;= Z2 |
+| LINE 3 | X1 | Start assembly position in X-direction | This line follows LINE 2 which tells the position of assembly being rotated. Repeat this line as many as desired until zero numbers (LINE 4). Followings are value limits for these line<br>1 \&lt;= X1 \&lt;= NX;<br>1 \&lt;= X2 \&lt;= NX;<br>1 \&lt;= Y1 \&lt;= NY;<br>1 \&lt;= Y2 \&lt;= NY;<br>1 \&lt;= Z1 \&lt;= NZ;<br>1 \&lt;= Z2 \&lt;= NZ;<br>X1 \&lt;= X2; Y1 \&lt;= Y2; Z1 \&lt;= Z2 |
 |   | X2 | End assembly position in X-direction |
 |   | Y1 | Start assembly position in Y-direction |
 |   | Y2 | End assembly position in Y-direction |

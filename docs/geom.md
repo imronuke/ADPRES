@@ -15,7 +15,7 @@ The point of origin is located at the corner between west, bottom and south side
 ![alt text](https://raw.githubusercontent.com/imronuke/ADPRES/master/docs/images/geom_2.png "ADPRES 2D coordinate system")
 
 | `%GEOM` | Variable    | Description | Remarks |
-| --- |
+| --- | --- | --- | --- |
 | LINE 1 | NX | Number of assemblies along X-direction |  |
 |   | NY | Number of assemblies along Y-direction |
 |   | NZ | Number of assemblies along Z-direction |
@@ -26,7 +26,7 @@ The point of origin is located at the corner between west, bottom and south side
 | LINE 6 | ZSIZE(1:NZ) | Assembly size along Z-direction(from bottom to top) |  |
 | LINE 7 | ZDIV(1:NZ) | Assembly division along Z-direction(from bottom to top) |  |
 | LINE 8 | NP | Number of different core planar with different material composition |  |
-| LINE 9 | ZPLN(1:NZ) | Planar assignment along axial or z-direction from bottom to top |  |
+| LINE 9 | ZPLN(1:NZ) | Planar assignment along axial or z-direction from bottom to top (see the example below) |  |
 | LINE 10 | ASM(1:NX) | Radial planar material map | Repeat this line NY times to form a core planar material map. Then, repeat this planar map NP times |
 | LINE 11 | XEAST | East boundary conditions | 0 = Zero flux |
 |   | XWEST | West boundary conditions | 1 = Zero incoming current |
@@ -48,7 +48,7 @@ Example:
 4              !np number of planar type
 1  13*2  4*3  4     !planar assignment (from bottom to top)
 ! Planar_type_1 (Bottom Reflector)
-  4  4  4  4  4  4  4  4  4
+  4  4  4  4  4  4  4  4  4            (LINE 10)
   4  4  4  4  4  4  4  4  4
   4  4  4  4  4  4  4  4  4
   4  4  4  4  4  4  4  4  4
@@ -58,7 +58,7 @@ Example:
   4  4  4  4  4  4  0  0  0
   4  4  4  4  0  0  0  0  0
 ! Planar_type_2 (Fuel)
-  3  2  2  2  3  2  2  1  4
+  3  2  2  2  3  2  2  1  4            (LINE 10)
   2  2  2  2  2  2  2  1  4
   2  2  2  2  2  2  1  1  4
   2  2  2  2  2  2  1  4  4
@@ -68,7 +68,7 @@ Example:
   1  1  1  4  4  4  0  0  0
   4  4  4  4  0  0  0  0  0
 ! Planar_type_3 (Fuel+Partial Control Rods)
-  3  2  2  2  3  2  2  1  4
+  3  2  2  2  3  2  2  1  4           (LINE 10)
   2  2  2  2  2  2  2  1  4
   2  2  3  2  2  2  1  1  4
   2  2  2  2  2  2  1  4  4
@@ -78,7 +78,7 @@ Example:
   1  1  1  4  4  4  0  0  0
   4  4  4  4  0  0  0  0  0
 ! Planar_type_4 (Top reflectors)
-  5  4  4  4  5  4  4  4  4
+  5  4  4  4  5  4  4  4  4           (LINE 10)  
   4  4  4  4  4  4  4  4  4
   4  4  5  4  4  4  4  4  4
   4  4  4  4  4  4  4  4  4

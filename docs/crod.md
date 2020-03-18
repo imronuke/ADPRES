@@ -1,21 +1,21 @@
 ---
-title: %CASE
+title: %crod
 theme: _config.yml
-filename: case
+filename: crod
 ---
 
-# %CASE Card
+# %CROD Card
 
 If the problems have control rods inserted, users can use this card. This card is mandatory for `RODEJECT` calculation mode.
 
 | %CROD | Variable | Description | Remarks or examples |
-| --- |
-| LINE 1 | NB | Number of CR banks | ! Number of CR bank and Max steps2  180.  |
+| --- | --- | --- | --- |
+| LINE 1 | NB | Number of CR banks |   |
 |   | NSTEP | Maximum number of steps |
-| LINE 2 | POS0 | Zero step pos. (cm from bottom) | ! Zero Step pos. and step size  |
+| LINE 2 | POS0 | Zero step pos. (cm from bottom) |   |
 |   | SSIZE | step size (cm/step) |
 | LINE 3 | BPOS(1:NB) | Control Rod Bank position (step) **0 step means full inserted** |  |
-| LINE 4 | DO j = NY, 1, -1<br>  BMAP(1:NX)<br>END DO | Control Rod Bank Map | See example in the inputs |
+| LINE 4 | BMAP(1:NX) | Control Rod Bank Map | Repeat this line NY times (see example the input below) |
 | LINE 5 | DISGTR(g) | Macroscopic Cross Section changes due to control rods insertion | Repeat LINE 2 NG times. And again repeat this input segment NMAT times. **This line is not necessary if `%XTAB` card present** |
 |   | DSIGA(g) |
 |   | DNUF(g) |
@@ -30,7 +30,7 @@ Example:
 7    228                            ! Number of CR banks and max number of banks
 37.7 1.5942237                      ! Zero step pos. (cm) and cm/step (total 228 steps)
 0.   0.  0.  228.   0.   0.  0.     ! CR Bank pos. (0=fully inserted, 228=fully withdrawn)
- 1  0  2  0  0  0  3  0  0
+ 1  0  2  0  0  0  3  0  0          ! (LINE 4)
  0  4  0  0  0  6  0  0  0
  2  0  5  0  6  0  6  0  0
  0  0  0  4  0  0  0  0  0
