@@ -56,7 +56,7 @@ for example, you can run a test by
 adpres /home/imronuke/smpl/static/IAEA3Ds
 ```
 
-If you see `ADPRES EXIT NORMALLY` at the end of terminal output, then congratulations! you have compiled ADPRES correctly. By the way, it should take less than 0.2 seconds for ADPRES to solve IAEA3Ds problem if you compile using gfortran in a typical today's computer. The way to compile using Intel fortran is similar, just change `g95` with `ifort` in the commands above.
+If you see `ADPRES EXIT NORMALLY` at the end of terminal output, then congratulations! you have compiled ADPRES correctly. By the way, it should take less than 0.2 seconds for ADPRES to solve IAEA3Ds problem if you compile using gfortran in a typical today's computer. The way to compile using Intel fortran is similar, just change `gfortran` with `ifort` in the commands above.
 
 ## Compiling in Windows
 In Windows you can compile ADPRES using Intel fortran. However, if you don't have an Intel fortran compiler, you can use completely free fortran compiler g95 which can be obtained from [here](https://www.fortran.com/wp-content/uploads/2013/05/g95-Mingw_201210.exe) (although it is slower). Then install g95 to your computer.
