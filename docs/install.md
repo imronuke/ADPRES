@@ -14,7 +14,7 @@ In Ubuntu, other GNU-Linux based OS or CYGWIN you can use either gfotran or Inte
 sudo apt install gfortran
 ```
 
-Then you can download the [ADPRES zip files](https://github.com/imronuke/ADPRES/archive/ADPRES_v.1.2.zip) from Github or clone them (you need to download git first if you don't have one)
+Then you can download the [ADPRES zip files](https://github.com/imronuke/ADPRES/archive/ADPRES_v.1.2.zip) from Github or clone them (you need to download git first if you don't have it)
 
 ```
 git clone https://github.com/imronuke/ADPRES.git
@@ -47,13 +47,13 @@ sudo cp adpres /usr/bin
 These command will create an executable file named `adpres` and it was also copied to `/usr/bin`. Now, you can run a test using several examples of inputs file in folder [smpl](https://github.com/imronuke/ADPRES/tree/master/smpl) to see if you had compiled properly. You can run ADPRES using command
 
 ```
-./adpres [FILE_PATH_NAME]
+adpres [FILE_PATH_NAME]
 ```
 
 for example, you can run a test by
 
 ```
-./adpres /home/imronuke/smpl/static/IAEA3Ds
+adpres /home/imronuke/smpl/static/IAEA3Ds
 ```
 
 If you see `ADPRES EXIT NORMALLY` at the end of terminal output, then congratulations! you have compiled ADPRES correctly. By the way, it should take less than 0.2 seconds for ADPRES to solve IAEA3Ds problem if you compile using gfortran in a typical today's computer. The way to compile using Intel fortran is similar, just change `g95` with `ifort` in the commands above.

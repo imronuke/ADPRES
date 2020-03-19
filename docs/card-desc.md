@@ -6,8 +6,8 @@ filename: card-desc
 
 # General Rules
 
-Some general rules for the ADPRES inputs:
-1.  Input deck is in free-format form
+Some general rules for ADPRES inputs:
+1.  Input deck is in free-format form with maximum 100 columns
 2.	Comments are marked by `!`. Example:
 ```
 ! COMPOSITION 1
