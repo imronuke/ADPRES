@@ -1257,14 +1257,12 @@ end subroutine print_keff
 
    integer   :: n
    integer   :: i
-   real(dp)  :: sum
 
+   v = 0._dp
    do n = 1, nnod
-     sum = 0._dp
      do i = 1, ind(n)%ncol
-       sum = sum + A(n,g)%elmn(i)*x(ind(n)%col(i))
+       v(n) = v(n) + A(n,g)%elmn(i)*x(ind(n)%col(i))
      end do
-     v(n) = sum
    end do
 
  end function sp_matvec
