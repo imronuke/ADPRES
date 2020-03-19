@@ -14,7 +14,7 @@ ADPRES features:
 * It can handle multi-group of neutron energy
 * It handle calculations with Assembly Discontinuity Factors (ADFs)
 * CMFD accelerated using two-node problem non-linear iteration
-* CMFD matrix is solved with the latest matrix solver: BiCGSTAB
+* CMFD matrix is solved with the latest linear system solver: BiCGSTAB
 * Three nodal kernels are available:
   * Traditional Finite Difference Method
   * Polynomial Nodal Method (PNM)
