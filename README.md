@@ -36,7 +36,7 @@ You may raise an issue or contact me
 # How to cite
 If you find this work helpful and use this work for a publication, you may cite as
 
-**Imron, M. (2019). Development and verification of open reactor simulator ADPRES. Annals of Nuclear Energy, 133, 580–588. https://doi.org/10.1016/j.anucene.2019.06.049**
+**Imron, M. (2019). [Development and verification of open reactor simulator ADPRES](https://doi.org/10.1016/j.anucene.2019.06.049). Annals of Nuclear Energy, 133, 580–588.**
 
 
 > **"The best of people are those who bring most benefit to the rest of mankind." (THE PROPHET)**
