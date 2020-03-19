@@ -364,7 +364,7 @@ OPEN (UNIT=iunit, FILE=iname, STATUS='OLD', ACTION='READ', &
 
 IF (iost /= 0) THEN
   WRITE(*,1020) message, iost
-  WRITE(*,*) '  CANNOT OPEN '// file //' FILE : ', iname
+  WRITE(*,*) '  CANNOT FIND '// file //' FILE : ', iname
   1020 FORMAT    (2X, A, I6)
   STOP
 END IF
