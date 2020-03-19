@@ -23,6 +23,12 @@ git clone https://github.com/imronuke/ADPRES.git
 In a machine where the gfortran is already installed, go to the [src folder](https://github.com/imronuke/ADPRES/tree/master/src) located inside the ADPRES folder which you had been downloaded or cloned, and compile the source codes by using command:
 
 ```
+./install.sh
+```
+
+If this way didn't work, try to install bash into your computer. Alternatively, you can compile ADPRES manually
+
+```
 gfortran -O4 -c mod_data.f90
 gfortran -O4 -c mod_io.f90
 gfortran -O4 -c mod_xsec.f90
@@ -33,9 +39,12 @@ gfortran -O4 -c mod_trans.f90
 gfortran -O4 -c mod_control.f90
 gfortran -O4 -c ADPRES.f90
 gfortran *.o -o adpres
+sudo cp adpres /usr/bin
 ```
 
-These command will create an executable file named `adpres`. Now, you can run a test using several examples of inputs file in folder [smpl](https://github.com/imronuke/ADPRES/tree/master/smpl) to see if you had compiled properly. You can run ADPRES using command
+(NOTE: you need to have admin privilege to run these commands)
+
+These command will create an executable file named `adpres` and it was also copied to `/usr/bin`. Now, you can run a test using several examples of inputs file in folder [smpl](https://github.com/imronuke/ADPRES/tree/master/smpl) to see if you had compiled properly. You can run ADPRES using command
 
 ```
 ./adpres [FILE_PATH_NAME]
@@ -47,18 +56,10 @@ for example, you can run a test by
 ./adpres /home/imronuke/smpl/static/IAEA3Ds
 ```
 
-If you see `ADPRES EXIT NORMALLY` at the end of terminal output, then congratulations! you have compiled ADPRES correctly. By the way, it should take less than 0.2 seconds for ADPRES to solve IAEA3Ds problem if you compile using gfortran in a typical today's computer.
-
-For you to be able to execute ADPRES from any folder, you can copy it to `usr/bin` (provided you have an admin privilege)
-
-```
-sudo cp adpres /usr/bin
-```
-
-And now you can execute ADPRES from the smpl folder directly.
+If you see `ADPRES EXIT NORMALLY` at the end of terminal output, then congratulations! you have compiled ADPRES correctly. By the way, it should take less than 0.2 seconds for ADPRES to solve IAEA3Ds problem if you compile using gfortran in a typical today's computer. The way to compile using Intel fortran is similar, just change `g95` with `ifort` in the commands above.
 
 ## Compiling in Windows
-In Windows you can compile ADPRES using g95 which can be obtained from [here](https://www.fortran.com/wp-content/uploads/2013/05/g95-Mingw_201210.exe). Then install g95 to your computer.
+In Windows you can compile ADPRES using Intel fortran. However, if you don't have an Intel fortran compiler, you can use completely free fortran compiler g95 which can be obtained from [here](https://www.fortran.com/wp-content/uploads/2013/05/g95-Mingw_201210.exe) (although it is slower). Then install g95 to your computer.
 
 Then you can download the [ADPRES zip files](https://github.com/imronuke/ADPRES/archive/ADPRES_v.1.2.zip) from Github.
 
@@ -77,7 +78,7 @@ g95 -O4 -c ADPRES.f90
 g95 *.o -o adpres
 ```
 
-These command will create an executable file named `adpres`. Now, you can run a test using several examples of inputs file in folder [smpl](https://github.com/imronuke/ADPRES/tree/master/smpl) to see if you had compiled properly. You can run ADPRES using command
+These command will create an executable file named `adpres`. If you use Intel fortran compiler, just change `g95` with `ifort` in the commands above. Now, you can run a test using several examples of inputs file in folder [smpl](https://github.com/imronuke/ADPRES/tree/master/smpl) to see if you had compiled properly. You can run ADPRES using command
 
 ```
 adpres [FILE_PATH_NAME]
