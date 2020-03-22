@@ -19,26 +19,26 @@ This ADPRES development would be impossible without the God's Mercy and the work
 * All my colleagues and friends.
 
 # References
-[1] Bennewitz F., Finnemann H. and Moldaschl H.(1975)  Solution of the multidimensional neutron diffusion equa-tion by nodal expansion. Proc. Conf. Computational Methods in Nuclear Engineering, p. 1-99, CONF-750413.
+1. Bennewitz F., Finnemann H. and Moldaschl H.(1975)  Solution of the multidimensional neutron diffusion equa-tion by nodal expansion. Proc. Conf. Computational Methods in Nuclear Engineering, p. 1-99, CONF-750413.
 
-[2] Lawrence, R.D., (1986) Progress in nodal methods for the solution of the neutron diffusion and transport equations, Progress in Nuclear Energy, Vol. 17, No.3, pp. 271-301.
+2. Lawrence, R.D., (1986) Progress in nodal methods for the solution of the neutron diffusion and transport equations, Progress in Nuclear Energy, Vol. 17, No.3, pp. 271-301.
 
-[3] Okumura, K., (1998) MOSRA-Light: High speed three-dimensional nodal diffusion code for vector computers, JAEA-Research 98-025. (in Japanese)
+3. Okumura, K., (1998) MOSRA-Light: High speed three-dimensional nodal diffusion code for vector computers, JAEA-Research 98-025. (in Japanese)
 
-[4] Finnemann, H., Bennewitz F. and Wagner M. R., (1977) Interface current techniques for multidimensional reactor calculations, Atomkernenergie, Vol. 30, pp. 123-128.
+4. Finnemann, H., Bennewitz F. and Wagner M. R., (1977) Interface current techniques for multidimensional reactor calculations, Atomkernenergie, Vol. 30, pp. 123-128.
 
-[5] Liem P.H., et al., (2010) NODAL3: A Nodal Neutron Diffusion Code Version 2.0 User Guides (unpublihsed)
+5. Liem P.H., et al., (2010) NODAL3: A Nodal Neutron Diffusion Code Version 2.0 User Guides (unpublihsed)
 
-[6] Imron, M. (2019). Development and verification of open reactor simulator ADPRES. Annals of Nuclear Energy, 133, 580–588. https://doi.org/10.1016/j.anucene.2019.06.049
+6. Imron, M. (2019). Development and verification of open reactor simulator ADPRES. Annals of Nuclear Energy, 133, 580–588. https://doi.org/10.1016/j.anucene.2019.06.049
 
-[7] Smith, K. S. (1984) Nodal Method Storage Reduction by Nonlinear Iteration. Transactions of American Nuclear Society 44, 265.
+7. Smith, K. S. (1984) Nodal Method Storage Reduction by Nonlinear Iteration. Transactions of American Nuclear Society 44, 265.
 
-[8] Zimin V.G. and Ninokata, H., (1997) Nonlinear Iteration Procedure Based on Legendre Polynomials, Trans. Am. Nucl. Soc., 76, 162.
+8. Zimin V.G. and Ninokata, H., (1997) Nonlinear Iteration Procedure Based on Legendre Polynomials, Trans. Am. Nucl. Soc., 76, 162.
 
-[9] Zimin, V. G., & Ninokata, H. (1998). Nodal neutron kinetics model based on nonlinear iteration procedure for LWR analysis. Annals of Nuclear Energy, 25(8), 507–528. https://doi.org/10.1016/S0306-4549(97)00078-9
+9. Zimin, V. G., & Ninokata, H. (1998). Nodal neutron kinetics model based on nonlinear iteration procedure for LWR analysis. Annals of Nuclear Energy, 25(8), 507–528. https://doi.org/10.1016/S0306-4549(97)00078-9
 
-[10] Zimin V.G. and Ninokata, H., (1997) Polynomials ans Semi-Analytic Nodal Methods For Non-Linear Iteration Procedures, Trans. Am. Nucl. Soc., 76, 162.
+10. Zimin V.G. and Ninokata, H., (1997) Polynomials ans Semi-Analytic Nodal Methods For Non-Linear Iteration Procedures, Trans. Am. Nucl. Soc., 76, 162.
 
-[11] Engrand, P. R., Maldonado, G. I., A1-Chalabi, R. M. and Turinsky, P. J. (1992) Non-Linear Iterative Strategy for NEM Refinement and Extension. Transactions of American Nuclear Society 65, 221.
+11. Engrand, P. R., Maldonado, G. I., A1-Chalabi, R. M. and Turinsky, P. J. (1992) Non-Linear Iterative Strategy for NEM Refinement and Extension. Transactions of American Nuclear Society 65, 221.
 
-[12] Hendricks, J.S., “Finite difference solution of the time dependent neutron group diffusion equations”, Thesis, Department of Nuclear Engineering, Massachusetts Institute of Technology, MITNE-176 (1975).
+12. Hendricks, J.S., “Finite difference solution of the time dependent neutron group diffusion equations”, Thesis, Department of Nuclear Engineering, Massachusetts Institute of Technology, MITNE-176 (1975).
