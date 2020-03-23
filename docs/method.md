@@ -1,21 +1,21 @@
-# Background and Methodology   
+# Theory and Background
 
-Current version of ADPRES uses the available methods; therefore, rather than re-explaining the methods, the author would like to just mention the references of the methods implemented in ADPRES.
+Since ADPRES uses the current available methods, rather than re-explaining the methods, we would like to just mention the references of the methods implemented in the ADPRES.
 
-The ADPRES development began on the early 2017 and was motivated by many hurdles to obtain such similar codes in region where the author was working. The initial version of ADPRES used Nodal Expansion Method (NEM) based on the response matrix formulations [1,2,3]. The transverse integrated leakages were approximated by the Quadratic Transverse Leakage Approximation (QTLA)[4]. The transient and and thermal module were also added to enable ADPRES handle time-dependent problems with thermal-hydraulics (T-H) feedback. The transient diffusion equation was solved with fully implicit method, and T-H solutions were obtained by solving mass and energy conservation equations in an enclosed channel, following NODAL 3 computer code [5] with slight modifications. This version of ADPRES was published in Annals of Nuclear Energy in 2019 [6]. However, this version encountered slow performance compared to other modern nodal simulators.
+The ADPRES development began in 2017 and was motivated by many hurdles to obtain such similar codes in the region where the author was working. The initial version of ADPRES employed Nodal Expansion Method (NEM) based on the response matrix formulations [1,2,3]. The transverse integrated leakages were approximated by the Quadratic Transverse Leakage Approximation (QTLA)[4]. The transient and and thermal module were also added to enable ADPRES solving time-dependent problems with thermal-hydraulics (T-H) feedback. The transient diffusion equation was solved with fully implicit method, and T-H solutions were obtained by solving mass and energy conservation equations in an enclosed channel following NODAL 3 computer code [5] with slight modifications. This version of ADPRES was published in Annals of Nuclear Energy in 2019 [6]. However, this version encountered slow performance compared to other modern nodal simulators.
 
-In the early 2020, the ADPRES was revamped to implement CMFD acceleration with two-node problems non-linear iteration procedures [7] for the sake of rapid calculations. Initially, ADPRES implemented Polynomial Nodal Method [8,5], but then upgraded to Semi-Analytic Nodal Method [9,10] for better accuracy. Also, in the transient calculations, the delayed terms and other terms that do not appear in static calculations are included with transverse leakages in the calculation of transverse moments to further save memory storage [11]. Users also have option to perform exponential flux [12] transformation for time-dependent problems which might be useful for rod ejection simulation from HZP. By implementing CMFD acceleration, the current ADPRES version is able to run time-dependent problems with running time 10-20 times faster than previous version of ADPRES.
+Thus, in the early 2020, the ADPRES was revamped to implement CMFD acceleration with two-node problems non-linear iteration procedures [7] for the sake of rapid calculations. Initially, ADPRES implemented Polynomial Nodal Method [8,5], but then upgraded to Semi-Analytic Nodal Method [9,10] for better accuracy. Also, in the transient calculations, the delayed terms and other terms that do not appear in static calculations are included with transverse leakages in the calculation of transverse moments to further save memory storage [11]. Users also have option to perform exponential flux [12] transformation and to set theta value for time-dependent problems. By implementing CMFD acceleration, the current ADPRES version is able to solve time-dependent problems 10-20 times faster than previous version of ADPRES.
 
 # Acknowledgement
 
 This ADPRES development would be impossible without the God's Mercy and the works done by those mentioned in the references. We would like to thank them and other people who contributed on their works. We also would like to thank to other people who directly or indirectly contributed to this work:
 
-* Dr. Ali Al Naqbi
-* Dr. Anthony Hechanova
-* Prof. Nam Zin Cho
-* Dr. Alexander Agung
-* Dr. Andang Widiharto
-* Liem Peng Hong, PhD
+* Dr. Ali Al Naqbi, Abu Dhabi Polytechnic
+* Dr. Anthony Hechanova, Abu Dhabi Polytechnic
+* Prof. Nam Zin Cho, KAIST
+* Dr. Alexander Agung, Gadjah Mada University
+* Dr. Andang Widiharto, Gadjah Mada University
+* Liem Peng Hong, PhD, NAIS and Tokyo City University
 * All my colleagues and friends.
 
 # References
