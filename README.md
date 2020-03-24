@@ -23,7 +23,7 @@ ADPRES features:
 
 # User Guides
 
-Here you can find quick and advanced guides on how to use ADPRES. Given you have background on nuclear engineering, we believe you can create your own ADPRES input within minutes!
+Here you can find quick and advanced guides on how to use ADPRES. Given you have background on nuclear engineering, **we believe you can create your own ADPRES input within minutes!**
 ## [Theory and Background](https://imronuke.github.io/ADPRES/method)
 ## [Source code compilation](https://imronuke.github.io/ADPRES/install)
 ## [Quick guides](https://imronuke.github.io/ADPRES/quick-guides)
@@ -31,7 +31,7 @@ Here you can find quick and advanced guides on how to use ADPRES. Given you have
 
 
 # How to give feedbacks
-You may raise an issue or contact me
+You may raise an issue or contact me at
 * muhammad.imron[at]adpoly.ac.ae
 * makrus.imron[at]gmail.com
 
