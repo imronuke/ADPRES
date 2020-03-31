@@ -9,7 +9,7 @@ FORWARD
 ! Case card
 %CASE
 BIBLIS
-BIBLIS Benchmark With Representative of Actual Data
+BIBLIS Benchmark With Representative of Actual Data 2x2/FA
 
 ! Cross-sections card
 %XSEC

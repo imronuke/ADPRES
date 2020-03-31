@@ -9,7 +9,7 @@ FORWARD
 ! Case card
 %CASE
 KOEBERG
-KOEBERG Benchmark With Real Operation Data
+KOEBERG 2x2/FA and 4-group xsec
 
 ! Cross-sections card
 %XSEC
@@ -61,7 +61,7 @@ KOEBERG Benchmark With Real Operation Data
 %GEOM
 9 9 2              !nx, ny, nz
 10.804 8*21.608    !x-direction assembly size in cm
-1  8*2             !x-direction assembly divided into 2 
+1  8*2             !x-direction assembly divided into 2
 8*21.608 10.804    !y-direction assembly size in cm
 8*2  1             !y-direction assembly divided into 2
 2*10.804           !z-direction assembly  in cm
