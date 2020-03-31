@@ -722,20 +722,20 @@ ALLOCATE(xD    (nmat,ng))
 ALLOCATE(xsigr (nmat,ng))
 ALLOCATE(chi  (nmat,ng))
 
+! To ancticipate users make mistake when they use %XTAB instead of %XSEC
+READ(xbunit, '(A100)') iline
+comm1 = INDEX(iline, '/')
+comm2 = INDEX(iline, '\')
+IF (comm1 > 0 .OR. comm2 > 0) THEN
+  WRITE(ounit, *) '  ERROR: SLASH (/) OR BACKSLASH (\) NOT ACCEPTED IN %XSEC CARD '
+  WRITE(*, *) '  ERROR: SLASH (/) OR BACKSLASH (\) NOT ACCEPTED IN %XSEC CARD '
+  STOP
+END IF
+BACKSPACE(xbunit)
+
 ! Reading MACROSCOPIC CXs
 DO i= 1, nmat
     DO g= 1, ng
-        ! To ancticipate users make mistake when they use %XTAB instead of %XSEC
-        READ(xbunit, '(A100)') iline
-        comm1 = INDEX(iline, '/')
-        comm2 = INDEX(iline, '\')
-        IF (comm1 > 0 .OR. comm2 > 0) THEN
-          WRITE(ounit, *) '  ERROR: SLASH (/) OR BACKSLASH (\) NOT ACCEPTED IN %XSEC CARD '
-          WRITE(*, *) '  ERROR: SLASH (/) OR BACKSLASH (\) NOT ACCEPTED IN %XSEC CARD '
-          STOP
-        END IF
-        BACKSPACE(xbunit)
-
         READ(xbunit, *, IOSTAT=ios) ind, ln, xsigtr(i,g), &
         xsiga(i,g), xnuf(i,g), xsigf(i,g), &
         chi(i,g), (xsigs(i,g,h), h = 1, ng)
@@ -3231,14 +3231,18 @@ CHARACTER(LEN=*), INTENT(IN) :: mess
 
 IF (iost < 0) THEN
     IF (PRESENT(xtab)) THEN
+      WRITE(funit, *)
       WRITE(funit, 1014) ln, xtab
     ELSE
+      WRITE(funit, *)
       WRITE(funit, 1013) ln
     END IF
     WRITE(funit,*) mess
     IF (PRESENT(xtab)) THEN
+      WRITE(*,*)
       WRITE(*, 1014) ln, xtab
     ELSE
+      WRITE(*,*)
       WRITE(*, 1013) ln
     END IF
     WRITE(*,*) mess
@@ -3249,14 +3253,18 @@ IF (iost < 0) THEN
 END IF
 IF (iost > 0) THEN
     IF (PRESENT(xtab)) THEN
+       WRITE(funit, *)
        WRITE(funit, 1005) ln, xtab
     ELSE
+       WRITE(funit, *)
        WRITE(funit, 1004) ln
     END IF
     WRITE(funit,*) mess
     IF (PRESENT(xtab)) THEN
+      WRITE(*,*)
       WRITE(*, 1005) ln, xtab
     ELSE
+      WRITE(*,*)
       WRITE(*, 1004) ln
     END IF
     WRITE(*,*) mess
