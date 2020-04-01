@@ -5,7 +5,7 @@ before_install:
   - sudo apt-get install gfortran
 
 script:
-  - cd /src
+  - cd src
   - gfortran -fprofile-arcs -ftest-coverage -c mod_data.f90
   - gfortran -fprofile-arcs -ftest-coverage -c mod_io.f90
   - gfortran -fprofile-arcs -ftest-coverage -c mod_xsec.f90
@@ -16,7 +16,7 @@ script:
   - gfortran -fprofile-arcs -ftest-coverage -c mod_control.f90
   - gfortran -fprofile-arcs -ftest-coverage -c ADPRES.f90
   - gfortran -fprofile-arcs -ftest-coverage *.o -o adpres
-  - ./adpres /smpl/static/IAEA3Ds
+  - ./adpres test
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
