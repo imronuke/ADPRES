@@ -28,12 +28,12 @@ echo "Combining all together"
 gfortran *.o -o adpres
 
 echo " "
-echo "Copy adpres to usr/bin"
+echo "Copy adpres to /usr/bin"
 sudo cp adpres /usr/bin
 
 echo " "
-echo "Get rid unnecessary files"
-rm *.o *.mod adpres
+echo "Deleted unnecessary files"
+rm *.o *.mod
 
 echo " "
 echo "ADPRES successfully compiled"
