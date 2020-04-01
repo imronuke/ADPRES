@@ -3230,48 +3230,49 @@ INTEGER, OPTIONAL, INTENT(IN) :: xtab
 CHARACTER(LEN=*), INTENT(IN) :: mess
 
 IF (iost < 0) THEN
-    IF (PRESENT(xtab)) THEN
-      WRITE(funit, *)
-      WRITE(funit, 1014) ln, xtab
-    ELSE
-      WRITE(funit, *)
-      WRITE(funit, 1013) ln
-    END IF
-    WRITE(funit,*) mess
-    IF (PRESENT(xtab)) THEN
-      WRITE(*,*)
-      WRITE(*, 1014) ln, xtab
-    ELSE
-      WRITE(*,*)
-      WRITE(*, 1013) ln
-    END IF
-    WRITE(*,*) mess
-    1013 FORMAT(2x, 'ERROR: Line', I4, ' needs more data')
-    1014 FORMAT(2x, 'ERROR: Line', I4, &
-    'in XTAB file for material number' , I4, '. It needs more data')
-    STOP
+  WRITE(funit,*)
+  WRITE(*,*)
+  WRITE(*,*)''//achar(27)//'[31m OOPS! WE FOUND AN ERROR.'//achar(27)//'[0m.'
+
+  IF (PRESENT(xtab)) THEN
+    WRITE(funit, 1014) ln, xtab
+  ELSE
+    WRITE(funit, 1013) ln
+  END IF
+  WRITE(funit,*) mess
+  IF (PRESENT(xtab)) THEN
+    WRITE(*, 1014) ln, xtab
+  ELSE
+    WRITE(*, 1013) ln
+  END IF
+  WRITE(*,*) mess
+  1013 FORMAT(2x, 'ERROR: LINE', I4, ' NEEDS MORE INPUT DATA')
+  1014 FORMAT(2x, 'ERROR: LINE', I4, &
+  'IN XTAB FILE FOR MATERIAL NUMBER' , I4, '. IT NEEDS MORE DATA')
+  STOP
 END IF
+
 IF (iost > 0) THEN
-    IF (PRESENT(xtab)) THEN
-       WRITE(funit, *)
-       WRITE(funit, 1005) ln, xtab
-    ELSE
-       WRITE(funit, *)
-       WRITE(funit, 1004) ln
-    END IF
-    WRITE(funit,*) mess
-    IF (PRESENT(xtab)) THEN
-      WRITE(*,*)
-      WRITE(*, 1005) ln, xtab
-    ELSE
-      WRITE(*,*)
-      WRITE(*, 1004) ln
-    END IF
-    WRITE(*,*) mess
-    1004 FORMAT(2X, 'ERROR: Please check line number', I4)
-    1005 FORMAT(2X, 'ERROR: Please check line number', I4, &
-    ' in XTAB file for material number ', I4)
-    STOP
+  WRITE(funit,*)
+  WRITE(*,*)
+  WRITE(*,*)''//achar(27)//'[31m OOPS! WE FOUND AN ERROR.'//achar(27)//'[0m.'
+
+  IF (PRESENT(xtab)) THEN
+     WRITE(funit, 1005) ln, xtab
+  ELSE
+     WRITE(funit, 1004) ln
+  END IF
+  WRITE(funit,*) mess
+  IF (PRESENT(xtab)) THEN
+    WRITE(*, 1005) ln, xtab
+  ELSE
+    WRITE(*, 1004) ln
+  END IF
+  WRITE(*,*) mess
+  1004 FORMAT(2X, 'ERROR: PLEASE CHECK LINE NUMBER', I4)
+  1005 FORMAT(2X, 'ERROR: PLEASE CHECK LINE NUMBER', I4, &
+  ' IN XTAB FILE FOR MATERIAL NUMBER ', I4)
+  STOP
 END IF
 
 END SUBROUTINE er_message
