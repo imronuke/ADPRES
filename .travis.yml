@@ -1,3 +1,4 @@
+# Thanks to https://github.com/codecov. Got this script from there.
 language: c
 sudo: required
 
