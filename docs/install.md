@@ -23,7 +23,7 @@ git clone https://github.com/imronuke/ADPRES.git
 In a machine where the gfortran is already installed, go to the [src folder](https://github.com/imronuke/ADPRES/tree/master/src) located inside the ADPRES folder which you had been downloaded or cloned, and compile the source codes by using command:
 
 ```
-./install.sh
+sudo ./install.sh
 ```
 
 If this way didn't work, try to install bash into your computer. Alternatively, you can compile ADPRES manually
@@ -44,7 +44,7 @@ sudo cp adpres /usr/bin
 
 (NOTE: you need to have admin privilege to run these commands)
 
-These command will create an executable file named `adpres` and it was also copied to `/usr/bin`. Now, you can run a test using several examples of inputs file in folder [smpl](https://github.com/imronuke/ADPRES/tree/master/smpl) to see if you had compiled properly. You can run ADPRES using command
+These command will create an executable file named `adpres` and copied the executable file to `/usr/bin`. Now, you can run a test using several examples of inputs file in folder [smpl](https://github.com/imronuke/ADPRES/tree/master/smpl) to see if you had compiled properly. You can run ADPRES using command
 
 ```
 adpres [FILE_PATH_NAME]
