@@ -5,6 +5,7 @@ before_install:
   - sudo apt-get install gfortran
 
 script:
+  - cd /src
   - gfortran -fprofile-arcs -ftest-coverage -c mod_data.f90
   - gfortran -fprofile-arcs -ftest-coverage -c mod_io.f90
   - gfortran -fprofile-arcs -ftest-coverage -c mod_xsec.f90
