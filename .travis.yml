@@ -17,5 +17,5 @@ script:
   - gfortran -fprofile-arcs -ftest-coverage -c mod_control.f90
   - gfortran -fprofile-arcs -ftest-coverage -c ADPRES.f90
   - gfortran -fprofile-arcs -ftest-coverage *.o -o adpres
-  - ./adpres $HOME/smpl/static/IAEA3Ds
-  - ./adpres $HOME/smpl/static/MOX/part3_serpent
+  - ./adpres /home/travis/smpl/static/IAEA3Ds
+  - ./adpres /home/travis/static/MOX/part3_serpent
