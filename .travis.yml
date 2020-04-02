@@ -4,7 +4,6 @@ sudo: required
 
 before_install:
   - sudo apt-get install gfortran
-  - pip install --user cpp-coveralls
 
 script:
   - cd src
@@ -19,6 +18,3 @@ script:
   - gfortran -fprofile-arcs -ftest-coverage -c ADPRES.f90
   - gfortran -fprofile-arcs -ftest-coverage *.o -o adpres
   - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/IAEA3Ds
-
-after_success:
-  - coveralls --exclude lib --exclude tests --gcov-options '\-lp'
