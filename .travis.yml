@@ -18,6 +18,3 @@ script:
   - gfortran -fprofile-arcs -ftest-coverage -c ADPRES.f90
   - gfortran -fprofile-arcs -ftest-coverage *.o -o adpres
   - ./adpres test
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
