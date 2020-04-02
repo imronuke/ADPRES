@@ -1,4 +1,4 @@
-![Language](https://img.shields.io/badge/made%20with-fortran-blueviolet) [![Build Status](https://travis-ci.com/imronuke/ADPRES.svg?branch=master)](https://travis-ci.com/imronuke/ADPRES) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Language](https://img.shields.io/badge/made%20with-fortran-blueviolet)](https://gcc.gnu.org/wiki/GFortran) [![Build Status](https://travis-ci.com/imronuke/ADPRES.svg?branch=master)](https://travis-ci.com/imronuke/ADPRES) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/imronuke/ADPRES/blob/master/LICENSE)
 # ADPRES
 
 Abu Dhabi Polytechnic Reactor Simulator (ADPRES) is an open nuclear reactor simulator and reactor core analysis tool that solves static and transient neutron diffusion equation for two or three dimensional reactor problems in Cartesian geometry. Currently, ADPRES uses Semi-Analytic Nodal Method (SANM) to spatially discretised the neutron diffusion equation. While theta method is used for the time discretisation.
