@@ -19,4 +19,3 @@ script:
   - gfortran -fprofile-arcs -ftest-coverage *.o -o adpres
   - pwd
   - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/IAEA3Ds
-  - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/MOX/part3_serpent
