@@ -4,9 +4,9 @@ sudo: required
 
 before_install:
   - sudo apt-get install gfortran
+  - cd src
 
 script:
-  - cd src
   - gfortran -fprofile-arcs -ftest-coverage -c mod_data.f90
   - gfortran -fprofile-arcs -ftest-coverage -c mod_io.f90
   - gfortran -fprofile-arcs -ftest-coverage -c mod_xsec.f90
@@ -17,4 +17,5 @@ script:
   - gfortran -fprofile-arcs -ftest-coverage -c mod_control.f90
   - gfortran -fprofile-arcs -ftest-coverage -c ADPRES.f90
   - gfortran -fprofile-arcs -ftest-coverage *.o -o adpres
-  - ./adpres test
+  - ./adpres $HOME/smpl/static/IAEA3Ds
+  - ./adpres $HOME/smpl/static/MOX/part3_serpent
