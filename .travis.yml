@@ -20,6 +20,9 @@ script:
   - gfortran -fprofile-arcs -ftest-coverage *.o -o adpres
   - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/IAEA3Ds
   - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/FDM
+  - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/PNM
+  - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/DVP
+  - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/CBCsearch
   - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/adjoint
   - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/fixed_source
   - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/MOX/part3_helios
