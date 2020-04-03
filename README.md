@@ -33,7 +33,7 @@ Here you can find quick and advanced guides on how to use ADPRES. Given you have
 ## [Theory and Background](https://imronuke.github.io/ADPRES/method)
 ## [Source code compilation](https://imronuke.github.io/ADPRES/install)
 ## [Quick guides](https://imronuke.github.io/ADPRES/quick-guides)
-## [Advanced guides](https://imronuke.github.io/ADPRES/card-desc)
+## [Complete guides](https://imronuke.github.io/ADPRES/card-desc)
 
 
 # How to give feedbacks
