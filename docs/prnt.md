@@ -16,7 +16,7 @@ This card can be used to choose the specific output that users want.
 
 Example:
 ```
-! CASE CARD
+! PRINT CARD
 %PRNT
 1 1 0 ! print output
 ```
