@@ -8,16 +8,16 @@ before_install:
 
 script:
   - cd src
-  - gfortran -fprofile-arcs -ftest-coverage -c mod_data.f90
-  - gfortran -fprofile-arcs -ftest-coverage -c mod_io.f90
-  - gfortran -fprofile-arcs -ftest-coverage -c mod_xsec.f90
-  - gfortran -fprofile-arcs -ftest-coverage -c mod_nodal.f90
-  - gfortran -fprofile-arcs -ftest-coverage -c mod_cmfd.f90
-  - gfortran -fprofile-arcs -ftest-coverage -c mod_th.f90
-  - gfortran -fprofile-arcs -ftest-coverage -c mod_trans.f90
-  - gfortran -fprofile-arcs -ftest-coverage -c mod_control.f90
-  - gfortran -fprofile-arcs -ftest-coverage -c ADPRES.f90
-  - gfortran -fprofile-arcs -ftest-coverage *.o -o adpres
+  - gfortran -O4 -fprofile-arcs -ftest-coverage -c mod_data.f90
+  - gfortran -O4 -fprofile-arcs -ftest-coverage -c mod_io.f90
+  - gfortran -O4 -fprofile-arcs -ftest-coverage -c mod_xsec.f90
+  - gfortran -O4 -fprofile-arcs -ftest-coverage -c mod_nodal.f90
+  - gfortran -O4 -fprofile-arcs -ftest-coverage -c mod_cmfd.f90
+  - gfortran -O4 -fprofile-arcs -ftest-coverage -c mod_th.f90
+  - gfortran -O4 -fprofile-arcs -ftest-coverage -c mod_trans.f90
+  - gfortran -O4 -fprofile-arcs -ftest-coverage -c mod_control.f90
+  - gfortran -O4 -fprofile-arcs -ftest-coverage -c ADPRES.f90
+  - gfortran -O4 -fprofile-arcs -ftest-coverage *.o -o adpres
   - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/IAEA3Ds
   - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/FDM
   - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/PNM
