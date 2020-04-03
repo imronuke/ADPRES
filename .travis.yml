@@ -18,3 +18,11 @@ script:
   - gfortran -fprofile-arcs -ftest-coverage -c ADPRES.f90
   - gfortran -fprofile-arcs -ftest-coverage *.o -o adpres
   - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/IAEA3Ds
+  - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/FDM
+  - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/adjoint
+  - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/fixed_source
+  - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/MOX/part3_helios
+  - ./adpres /home/travis/build/imronuke/ADPRES/smpl/static/NEACRP/A1
+  - ./adpres /home/travis/build/imronuke/ADPRES/smpl/transient/LMW
+  - ./adpres /home/travis/build/imronuke/ADPRES/smpl/transient/MOX/part4_helios
+  - ./adpres /home/travis/build/imronuke/ADPRES/smpl/transient/NEACRP/A1t
