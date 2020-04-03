@@ -3170,56 +3170,6 @@ END SUBROUTINE inp_ther
 
 !******************************************************************************!
 
-SUBROUTINE  GetFq(fn)
-
-!
-! Purpose:
-!    To get Heat Flux Hot Channel Factor
-!    The maximum local linear power density in the core divided by the core average fuel rod linear power density.
-!
-
-USE sdata, ONLY: ix, iy, iz, nnod, zdel, node_nf
-
-IMPLICIT NONE
-
-REAL(DP), DIMENSION(:), INTENT(IN) :: fn           ! Relative Power
-
-INTEGER :: n
-REAL(DP), DIMENSION(nnod) :: locp, xf
-REAL(DP) :: totp, npmax, tleng, pave
-
-
-totp = 0.; tleng = 0.
-DO n = 1, nnod
-    IF (fn(n) > 0.) THEN
-        xf(n) = fn(n) / node_nf(ix(n),iy(n))
-        totp = totp + xf(n)
-        tleng = tleng + zdel(iz(n))
-        locp(n) = xf(n) / zdel(iz(n))
-    END IF
-END DO
-
-pave = totp / tleng
-
-npmax = 0.
-DO n = 1, nnod
-    IF (fn(n) > 0.) THEN
-       locp(n) = locp(n) / pave
-       IF (locp(n) > npmax) npmax = locp(n)
-    END IF
-END DO
-
-
-WRITE(ounit,*)
-WRITE(ounit, 4001) npmax
-
-4001 FORMAT (2X, ' HEAT FLUX HOT CHANNEL FACTOR :', F7.3)
-
-
-END SUBROUTINE GetFq
-
-!******************************************************************************!
-
 SUBROUTINE er_message (funit, iost, ln, mess, xtab)
 !
 ! Purpose:
@@ -3279,51 +3229,6 @@ IF (iost > 0) THEN
 END IF
 
 END SUBROUTINE er_message
-
-!******************************************************************************!
-
-SUBROUTINE NodPow (fn)
-
-!
-! Purpose:
-!    To print axially averaged node-wise power distribution
-!
-
-USE sdata, ONLY: nxx, nyy, nzz, ystag, nnod, ix, iy, iz
-
-IMPLICIT NONE
-
-REAL(DP), DIMENSION(:), INTENT(IN) :: fn
-
-REAL(DP), DIMENSION(nxx, nyy, nzz) :: fx
-INTEGER :: i, j, k, n
-REAL(DP) :: summ
-REAL(DP), DIMENSION(nxx, nyy) :: fnode
-
-
-fx = 0._DP
-DO n = 1, nnod
-    fx(ix(n), iy(n), iz(n)) = fn(n)
-END DO
-
-!Calculate radial node-wise distribution
-fnode = 0._DP
-DO j = 1, nyy
-    DO i = ystag(j)%smin, ystag(j)%smax
-        summ = 0._DP
-        DO k = 1, nzz
-            summ = summ + fx(i,j,k)
-        END DO
-        fnode(i,j)= summ/REAL(nzz)
-    END DO
-END DO
-
-! Print
-DO j = nyy, 1, -1
-    WRITE(ounit,'(100F8.3)') (fnode(i,j), i=1,nxx)
-END DO
-
-END SUBROUTINE NodPow
 
 !******************************************************************************!
 

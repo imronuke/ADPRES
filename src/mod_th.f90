@@ -841,7 +841,7 @@ SUBROUTINE cbsearcht()
 USE sdata, ONLY: Ke, ftem, mtem, cden, bcon, rbcon, npow, nnod, &
                  f0, ser, fer, tfm, aprad, apaxi, afrad, npow, th_err, &
                  serc, ferc
-USE io, ONLY: ounit, AsmFlux, AsmPow, AxiPow, getfq, scr
+USE io, ONLY: ounit, AsmFlux, AsmPow, AxiPow, scr
 USE cmfd, ONLY: powdis, outer
 
 IMPLICIT NONE
@@ -922,7 +922,6 @@ CALL par_ave(mtem, tm)
 
 CALL par_max(tfm(:,1), mtf)
 CALL par_max(mtem, mtm)
-CALL getfq(npow)
 
 CALL par_ave_out(mtem, otm)
 CALL par_ave(cden, cd)
