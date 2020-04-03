@@ -1,11 +1,8 @@
 [![Language](https://img.shields.io/badge/made%20with-fortran-blueviolet)](https://gcc.gnu.org/wiki/GFortran) [![Build Status](https://travis-ci.com/imronuke/ADPRES.svg?branch=master)](https://travis-ci.com/imronuke/ADPRES) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/imronuke/ADPRES/blob/master/LICENSE) [![Coverage Status](https://coveralls.io/repos/github/imronuke/ADPRES/badge.svg?branch=master)](https://coveralls.io/github/imronuke/ADPRES?branch=master)
-# ADPRES
 
-Abu Dhabi Polytechnic Reactor Simulator (ADPRES) is an open nuclear reactor simulator and reactor core analysis tool that solves static and transient neutron diffusion equation for two or three dimensional reactor problems in Cartesian geometry. Currently, ADPRES uses Semi-Analytic Nodal Method (SANM) to spatially discretised the neutron diffusion equation. While theta method is used for the time discretisation.
-
-ADPRES is also a great learning tool for reactor theory classes, and we have been striving hard to make the input is easy to create. Among ADPRES' main objectives is to make all nuclear engineering students have access on reactor simulator code for them to learn. It is open and completely free, so everyone has access to the source code and modify for his/her own purposes.
-
-ADPRES features:
+[![ADPRES](https://raw.githubusercontent.com/imronuke/ADPRES/master/docs/images/adpres2.png)](https://imronuke.github.io/ADPRES/)
+**Documentation available at**: https://imronuke.github.io/ADPRES/
+**Features:**
 * Input is straightforward, modular and in a free-format form
 * Solves both static and transient core problems **with or without TH feedback**
 * Performs forward, adjoint and fixed-source calculations
@@ -21,6 +18,12 @@ ADPRES features:
   * Traditional Finite Difference Method
   * Polynomial Nodal Method (PNM) which is equivalent to Nodal Expansion Method (NEM)
   * Semi-Analytic Nodal Method (SANM)
+
+# ADPRES
+
+Abu Dhabi Polytechnic Reactor Simulator (ADPRES) is an open nuclear reactor simulator and reactor core analysis tool that solves static and transient neutron diffusion equation for two or three dimensional reactor problems in Cartesian geometry. Currently, ADPRES uses Semi-Analytic Nodal Method (SANM) to spatially discretised the neutron diffusion equation. While theta method is used for the time discretisation.
+
+ADPRES is also a great learning tool for reactor theory classes, and we have been striving hard to make the input is easy to create. Among ADPRES' main objectives is to make all nuclear engineering students have access on reactor simulator code for them to learn. It is open and completely free, so everyone has access to the source code and modify for his/her own purposes.
 
 # User Guides
 
