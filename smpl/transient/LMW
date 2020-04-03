@@ -78,3 +78,10 @@ LMW  TRANSIENT
 ! Iteration control card
 %ITER
 1200 2 1.e-5 1.e-5 13 45 20 60
+
+! Theta card. Theta value is set to  0.5 (Crank-Nicholson)
+%THET
+0.5
+
+! Exponential flux transformation
+%EXTR
