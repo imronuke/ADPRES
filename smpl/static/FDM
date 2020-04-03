@@ -50,3 +50,7 @@ FDM
  4  4  4  4  0  0  0  0  0
 ! Boundary conditions (east), (west), (north), (south), (bottom), (top)
 1 2 2 1 2 2
+
+! Print Card
+%PRNT
+1 1 0 ! print output
