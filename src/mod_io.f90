@@ -902,16 +902,19 @@ DO k= 1,nz
 END DO
 
 ! Limit values of nxx, nyy and nzz
-IF (nxx > 80) THEN
-    WRITE(ounit,*) '  Error: nxx shall be maximum 80'
+IF (nxx > 800) THEN
+    WRITE(ounit,*) '  Error: nxx shall be maximum 800'
+    WRITE(*,*) '  Error: nxx shall be maximum 800'
     STOP
 END IF
-IF (nyy > 80) THEN
-    WRITE(ounit,*) '  Error: nyy shall be maximum 80'
+IF (nyy > 800) THEN
+    WRITE(ounit,*) '  Error: nyy shall be maximum 800'
+    WRITE(*,*) '  Error: nyy shall be maximum 800'
     STOP
 END IF
-IF (nzz > 80) THEN
-    WRITE(ounit,*) '  Error: nzz shall be maximum 80'
+IF (nzz > 800) THEN
+    WRITE(ounit,*) '  Error: nzz shall be maximum 800'
+    WRITE(*,*) '  Error: nzz shall be maximum 800'
     STOP
 END IF
 
