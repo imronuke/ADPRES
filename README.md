@@ -31,7 +31,7 @@ ADPRES is also a great learning tool for reactor theory classes, and we have bee
 
 Here you can find quick and advanced guides on how to use ADPRES. Given you have background on nuclear engineering, **we believe you can create your own ADPRES input within minutes!**
 ## [Theory and Background](https://imronuke.github.io/ADPRES/method)
-## [Source code compilation](https://imronuke.github.io/ADPRES/install)
+## [Installation (Building from Source Codes)](https://imronuke.github.io/ADPRES/install)
 ## [Quick guides](https://imronuke.github.io/ADPRES/quick-guides)
 ## [Complete guides](https://imronuke.github.io/ADPRES/card-desc)
 

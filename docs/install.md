@@ -4,10 +4,10 @@ theme: _config.yml
 filename: install
 ---
 
-# Compiling the source codes
+# Building from source codes
 To compile ADPRES source codes you just need a Fortran compiler, that's it. We design ADPRES to be very portable, so it can be installed using any Fortran compiler.
 
-## Compiling in Ubuntu or other GNU-Linux based OS
+## Building in Ubuntu or other GNU-Linux based OS
 In Ubuntu, other GNU-Linux based OS or CYGWIN you can use either gfotran or Intel fortran to compile the source codes. You can install gfortran in Ubuntu OS by using this command in your computer's terminal
 
 ```
@@ -58,7 +58,7 @@ adpres /home/imronuke/smpl/static/IAEA3Ds
 
 If you see `ADPRES EXIT NORMALLY` at the end of terminal output, then congratulations! you have successfully compiled ADPRES. By the way, it should take about 0.2 seconds for ADPRES to solve IAEA3Ds problem if you compile using gfortran in a typical today's computer. The way to compile using Intel fortran is similar, just change `gfortran` with `ifort` in the commands above.
 
-## Compiling in Windows
+## Building in Windows
 In Windows you can compile ADPRES using Intel fortran. However, if you don't have an Intel fortran compiler, you can use completely free fortran compiler g95 which can be obtained from [here](https://www.fortran.com/wp-content/uploads/2013/05/g95-Mingw_201210.exe) (although it is slower). Then install g95 to your computer.
 
 Then you can download the [ADPRES zip files](https://github.com/imronuke/ADPRES/archive/ADPRES_v.1.2.zip) from Github.
