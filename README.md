@@ -1,4 +1,8 @@
-[![Language](https://img.shields.io/badge/made%20with-fortran-blueviolet)](https://gcc.gnu.org/wiki/GFortran) [![Build Status](https://travis-ci.com/imronuke/ADPRES.svg?branch=master)](https://travis-ci.com/imronuke/ADPRES) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/imronuke/ADPRES/blob/master/LICENSE) [![Coverage Status](https://coveralls.io/repos/github/imronuke/ADPRES/badge.svg?branch=master)](https://coveralls.io/github/imronuke/ADPRES?branch=master)
+[![Language](https://img.shields.io/badge/made%20with-fortran-blueviolet)](https://gcc.gnu.org/wiki/GFortran) [![Build Status](https://travis-ci.com/imronuke/ADPRES.svg?branch=master)](https://travis-ci.com/imronuke/ADPRES) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/imronuke/ADPRES/blob/master/LICENSE)  [![codecov](https://codecov.io/gh/imronuke/ADPRES/branch/master/graph/badge.svg)](https://codecov.io/gh/imronuke/ADPRES)
+
+
+
+
 
 [![ADPRES](https://raw.githubusercontent.com/imronuke/ADPRES/master/docs/images/adpres1.png)](https://imronuke.github.io/ADPRES/)
 
