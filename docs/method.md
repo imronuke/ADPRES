@@ -46,4 +46,4 @@ This ADPRES development would have been impossible without the God's Mercy and t
 
 13. Hendricks, J.S., “Finite difference solution of the time dependent neutron group diffusion equations”, Thesis, Department of Nuclear Engineering, Massachusetts Institute of Technology, MITNE-176 (1975).
 
-14. Kozlowski, T., Downar, T., 2007. PWR MOX/UO2 Core Transient Benchmark Final Report. Retrieved from: https://www.oecd-nea.org/science/wprs/MOX-UOX-transients/benchmark_documents/final_report/mox-uo2-bench.pdf
+14. Kozlowski, T., Downar, T., 2007. PWR MOX/UO 2 Core Transient Benchmark Final Report. Retrieved from: https://www.oecd-nea.org/science/wprs/MOX-UOX-transients/benchmark_documents/final_report/mox-uo2-bench.pdf
