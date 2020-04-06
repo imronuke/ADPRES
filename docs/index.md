@@ -1,4 +1,4 @@
-[![ADPRES](https://raw.githubusercontent.com/imronuke/ADPRES/master/docs/images/adpres1.png)](https://imronuke.github.io/ADPRES/)
+[![ADPRES](https://raw.githubusercontent.com/imronuke/ADPRES/master/docs/images/adpres1.png)](https://github.com/imronuke/ADPRES)
 
 # Users Manual
 
