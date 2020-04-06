@@ -1,6 +1,8 @@
+[![ADPRES](https://raw.githubusercontent.com/imronuke/ADPRES/master/docs/images/adpres1.png)](https://imronuke.github.io/ADPRES/)
+
 # Users Manual
 
-Here you can find quick and advanced guides on how to use ADPRES. Given you have background on nuclear engineering, **we believe you can create your own ADPRES input within minutes!**
+Here you can find quick and complete guides on how to use ADPRES. Given you have background on nuclear engineering, **we believe you can create your own ADPRES input within minutes!**
 ## [Theory and Background](https://imronuke.github.io/ADPRES/method)
 ## [Installation (Building from Source Codes)](https://imronuke.github.io/ADPRES/install)
 ## [Quick guides](https://imronuke.github.io/ADPRES/quick-guides)
