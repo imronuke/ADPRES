@@ -14,11 +14,13 @@ The point of origin is located at the corner between west, bottom and south side
 
 ![alt text](https://raw.githubusercontent.com/imronuke/ADPRES/master/docs/images/geom_2.png "ADPRES 2D coordinate system")
 
+Below you can find various %GEOM card examples for one, two and three-dimensional problems.
+
 | `%GEOM` | Variable    | Description | Remarks |
 | --- | --- | --- | --- |
-| LINE 1 | NX | Number of assemblies along X-direction |  |
-|   | NY | Number of assemblies along Y-direction |
-|   | NZ | Number of assemblies along Z-direction |
+| LINE 1 | NX | Number of assemblies along X-direction | NX at least equal to 2 |
+|   | NY | Number of assemblies along Y-direction | NY at least equal to 2 |
+|   | NZ | Number of assemblies along Z-direction | NZ at least equal to 2 |
 | LINE 2 | XSIZE(1:NX) | Assembly size along X-direction(from west to east) |  |
 | LINE 3 | XDIV(1:NX) | Assembly division along X-direction(from west to east) |  |
 | LINE 4 | YSIZE(1:NY) | Assembly size along Y-direction(from south to north) |  |
@@ -35,8 +37,10 @@ The point of origin is located at the corner between west, bottom and south side
 |   | ZBOTT | Bottom boundary conditions |
 |   | ZTOP | Top boundary conditions |
 
-Example:
+## Example for 3D problem
+Three-dimensional problem with 2x2 nodes per FA
 ```
+! Typical %GEOM CARD for 3D problem with 2x2 nodes per FA
 %GEOM
 9 9 19         !nx, ny, nz
 10.0 8*20.0    !x-direction assembly size in cm
@@ -93,4 +97,92 @@ Example:
 ! 2 = reflective
 (east), (west), (north), (south), (bottom), (top)
    1       2       2        1        1        1
+```
+
+## Example for 2D problem
+Two-dimensional problem with 2x2 nodes per FA
+```
+! Typical %GEOM CARD for 2D problem with 2x2 nodes per FA
+%GEOM
+9 9 2                  !nx, ny, nz
+11.5613   8*23.1226    !x-direction assembly size in cm
+1  8*2                 !x-direction assembly divided into 2 (10 cm each)
+8*23.1226 11.5613      !y-direction assembly size in cm
+8*2  1                 !y-direction assembly divided into 2 (10 cm each)
+2*11.5613              !z-direction assembly  in cm
+2*1                    !z-direction nodal is not divided
+1                      !np number of planar type
+2*1                    !planar assignment (from bottom to top)
+! Planar_type_1 (Bottom Reflector)
+ 1  8  2  6  1  7  1  4  3
+ 8  1  8  2  8  1  1  4  3
+ 2  8  1  8  2  7  1  4  3
+ 6  2  8  2  8  1  8  4  3
+ 1  8  2  8  2  5  4  3  3
+ 7  1  7  1  5  4  4  3  0
+ 1  1  1  8  4  4  3  3  0
+ 4  4  4  4  3  3  3  0  0
+ 3  3  3  3  3  0  0  0  0
+! Boundary conditions
+! 0 = zero-flux
+! 1 = zero-incoming current
+! 2 = reflective
+(east), (west), (north), (south), (bottom), (top)
+   1       2       2        1        2        2
+```
+
+Two-dimensional problem with 16x16 nodes per FA
+```
+! Typical %GEOM CARD for 2D problem with 16x16 nodes per FA
+%GEOM
+9 9 2                  !nx, ny, nz
+10.0   8*20.0          !x-direction assembly size in cm
+8  8*16                ! 16x16 per FA
+8*20.0 10.0            !y-direction assembly size in cm
+8*16  8                ! 16x16 per FA
+2*1.25                 !z-direction assembly  in cm
+2*1                    !z-direction nodal is not divided
+1                      !np number of planar type
+2*1                    !planar assignment (from bottom to top)
+! Planar_type_1 (Bottom Reflector)
+ 3  2  2  2  3  2  2  1  4
+ 2  2  2  2  2  2  2  1  4
+ 2  2  2  2  2  2  1  1  4
+ 2  2  2  2  2  2  1  4  4
+ 3  2  2  2  3  1  1  4  0
+ 2  2  2  2  1  1  4  4  0
+ 2  2  1  1  1  4  4  0  0
+ 1  1  1  4  4  4  0  0  0
+ 4  4  4  4  0  0  0  0  0
+! Boundary conditions
+! 0 = zero-flux
+! 1 = zero-incoming current
+! 2 = reflective
+(east), (west), (north), (south), (bottom), (top)
+   1       2       2        1        2        2
+```
+
+## Example for 1D problem
+One-dimensional problem with 1 cm node or mesh size
+```
+! Typical %GEOM CARD for 1D problem with 1 cm node or mesh size
+%GEOM
+5 2 2                !nx, ny, nz
+5*20.0               !x-direction assembly size in cm
+5*20                 !x-direction assembly divided into 20 (1 cm each)
+2*1.0                !y-direction assembly size in cm
+2*1                  !y-direction nodal is not divided
+2*1.0                !z-direction assembly  in cm
+2*1                  !z-direction nodal is not divided
+1                    !np number of planar type
+2*1                  !planar assignment (from bottom to top)
+! Planar_type_1 (Bottom Reflector)
+ 5 4 3 2 1
+ 5 4 3 2 1
+! Boundary conditions
+! 0 = zero-flux
+! 1 = zero-incoming current
+! 2 = reflective
+(east), (west), (north), (south), (bottom), (top)
+   2       1       2        2        2        2
 ```
