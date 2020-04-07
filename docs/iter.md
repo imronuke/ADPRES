@@ -33,5 +33,5 @@ Example:
 ! Set nodal update interval every 40 outer iterations
 ! Set maximum number of TH iterations = 20
 ! Set maximum number outer iterations for each TH iteration is 80
-1200 3 1.e-5 1.e-5 20 40 20 80
+1200 3 1.e-5 1.e-5 25 40 20 80
 ```
