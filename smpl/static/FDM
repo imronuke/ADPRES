@@ -7,13 +7,13 @@ FORWARD
 ! Case card
 %CASE
 IAEA2D
-IAEA2D Benchmark With  2x2 nodes/FA with FDM nodal kernel
+IAEA2D Benchmark With  16x16 nodes/FA with FDM nodal kernel
 
 %KERN
 FDM
 
 %ITER
-1200 5 1.e-5 1.e-5 10 40 20 80
+1200 5 1.e-5 1.e-5 10 40 20 80 ! Set fission interpolation interval every 10 outer iteration
 
 ! Cross-sections card
 %XSEC
@@ -31,9 +31,9 @@ FDM
 %GEOM
 9 9 2                  !nx, ny, nz
 10.0   8*20.0          !x-direction assembly size in cm
-8  8*16                 !x-direction assembly divided into 2 (10 cm each)
+8  8*16                ! 16x16 per FA
 8*20.0 10.0            !y-direction assembly size in cm
-8*16  8                 !y-direction assembly divided into 2 (10 cm each)
+8*16  8                ! 16x16 per FA
 2*1.25                 !z-direction assembly  in cm
 2*1                    !z-direction nodal is not divided
 1                      !np number of planar type

@@ -1,18 +1,19 @@
 ! UOS NUCLEAR REACTOR THEORY
 ! PROJECT 2
+! INITIALLY CREATED BY DONNY HARTANTO PhD (dhartanto@sharjah.ac.ae)
 
 %MODE
 FORWARD
 
 %CASE
 PROJECT
-1D  MODEL
+1D  MODEL WITH 1 CM MESH SIZE IN X-DIRECTION
 
 %KERN
 FDM
 
 %ITER
-1200 5 1.e-5 1.e-5 25 40 20 80
+1200 5 1.e-5 1.e-5 25 40 20 80  ! Set fission interpolation interval every 25 outer iteration
 
 ! Cross-sections card
 %XSEC
@@ -38,9 +39,9 @@ FDM
 %GEOM
 5 2 2                !nx, ny, nz
 5*20.0               !x-direction assembly size in cm
-5*20                 !x-direction assembly divided into 2 (10 cm each)
+5*20                 !x-direction assembly divided into 20 (1 cm each)
 2*0.5                !y-direction assembly size in cm
-2*1                  !y-direction assembly divided into 2 (10 cm each)
+2*1                  !y-direction nodal is not divided
 2*0.5                !z-direction assembly  in cm
 2*1                  !z-direction nodal is not divided
 1                    !np number of planar type
