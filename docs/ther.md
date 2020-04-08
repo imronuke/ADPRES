@@ -6,7 +6,7 @@ filename: ther
 
 # %THER Card
 
-This card is used to set the T-H parameters. It also activates T-H feedback. When  `%THER` card present, one of the following conditions must be satisfied
+This card is used to set the T-H parameters. It also activates T-H feedback. When  `%THER` card present, either conditions must be satisfied
 1. `%FTEM` and one or more of these cards shall also present: `%MTEM` and `%CDEN`
 2. `%XTAB` shall be present
 

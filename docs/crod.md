@@ -12,7 +12,7 @@ If the problems have control rods inserted, users can use this card. This card i
 | --- | --- | --- | --- |
 | LINE 1 | NB | Number of CR banks |   |
 |   | NSTEP | Maximum number of steps |
-| LINE 2 | POS0 | Zero step pos. (cm from bottom) |   |
+| LINE 2 | POS0 | Zero step position (cm from bottom) |   |
 |   | SSIZE | step size (cm/step) |
 | LINE 3 | BPOS(1:NB) | Control Rod Bank position (step) **0 step means full inserted** |  |
 | LINE 4 | BMAP(1:NX) | Control Rod Bank Map | Repeat this line NY times (see example the input below) |
