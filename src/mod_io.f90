@@ -1154,39 +1154,41 @@ IF (ogeom) THEN
     WRITE(ounit,'(2X,10F7.2)')(ydel(j), j=1,nyy)
     WRITE(ounit,*)
 
-    ip = nxx/xm
-    ipr = MOD(nxx,xm) - 1
-    DO k= 1,np
+    IF (nxx < 100) THEN
+      ip = nxx/xm
+      ipr = MOD(nxx,xm) - 1
+      DO k= 1,np
 
-        DO j = 1, nyy
-            DO i = 1, nxx
-                IF (plnr(k)%node(i,j) == 0) THEN
-                    mmap(i,j) = '  '
-                ELSE
-                    WRITE (mmap(i,j),'(I2)') plnr(k)%node(i,j)
-                    mmap(i,j) = TRIM(ADJUSTL(mmap(i,j)))
-                END IF
-            END DO
-        END DO
+          DO j = 1, nyy
+              DO i = 1, nxx
+                  IF (plnr(k)%node(i,j) == 0) THEN
+                      mmap(i,j) = '  '
+                  ELSE
+                      WRITE (mmap(i,j),'(I2)') plnr(k)%node(i,j)
+                      mmap(i,j) = TRIM(ADJUSTL(mmap(i,j)))
+                  END IF
+              END DO
+          END DO
 
-        WRITE(ounit,1017) k
-        xs = 1; xf = xm
-        DO kp = 1, ip
-            WRITE(ounit,'(6X,100I3)') (i, i = xs, xf)
-            DO j= nyy, 1, -1
-                WRITE(ounit,'(2X,I4,1X,100A3)') j, (mmap(i,j), i=xs, xf)
-            END DO
-            xs = xs + xm
-            xf = xf + xm
-        END DO
+          WRITE(ounit,1017) k
+          xs = 1; xf = xm
+          DO kp = 1, ip
+              WRITE(ounit,'(6X,100I3)') (i, i = xs, xf)
+              DO j= nyy, 1, -1
+                  WRITE(ounit,'(2X,I4,1X,100A3)') j, (mmap(i,j), i=xs, xf)
+              END DO
+              xs = xs + xm
+              xf = xf + xm
+          END DO
 
-        WRITE(ounit,'(6X,100I3)') (i, i = xs, xs+ipr)
-        IF (xs+ipr > xs) THEN
-            DO j= nyy, 1, -1
-                WRITE(ounit,'(2X,I4,1X,100A3)') j, (mmap(i,j), i=xs, xs+ipr)
-            END DO
-        END IF
-    END DO
+          WRITE(ounit,'(6X,100I3)') (i, i = xs, xs+ipr)
+          IF (xs+ipr > xs) THEN
+              DO j= nyy, 1, -1
+                  WRITE(ounit,'(2X,I4,1X,100A3)') j, (mmap(i,j), i=xs, xs+ipr)
+              END DO
+          END IF
+      END DO
+    END IF
 
     WRITE(ounit,*)
     WRITE(ounit,1018)
@@ -1259,7 +1261,7 @@ END IF
 
 
 1016 FORMAT(2X,A,'-directed nodes division (delta-',A,')')
-1017 FORMAT(3X, 'Planar Region : ', I2)
+1017 FORMAT(3X, 'Material Map for Planar Region : ', I2)
 1018 FORMAT(2X, 'Planar Region Assignment to planes.')
 1019 FORMAT(2X, 'ERROR: Wrong boundary conditions in line : ', I4)
 
