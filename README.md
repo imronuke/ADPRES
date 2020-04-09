@@ -1,4 +1,4 @@
-[![Language](https://raw.githubusercontent.com/imronuke/ADPRES/master/docs/images/fortran.png)](https://gcc.gnu.org/wiki/GFortran) [![Build Status](https://travis-ci.com/imronuke/ADPRES.svg?branch=master)](https://travis-ci.com/imronuke/ADPRES) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/imronuke/ADPRES/blob/master/LICENSE)  [![codecov](https://codecov.io/gh/imronuke/ADPRES/branch/master/graph/badge.svg)](https://codecov.io/gh/imronuke/ADPRES)
+![Language](https://raw.githubusercontent.com/imronuke/ADPRES/master/docs/images/fortran.png) [![Build Status](https://travis-ci.com/imronuke/ADPRES.svg?branch=master)](https://travis-ci.com/imronuke/ADPRES) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/imronuke/ADPRES/blob/master/LICENSE)  [![codecov](https://codecov.io/gh/imronuke/ADPRES/branch/master/graph/badge.svg)](https://codecov.io/gh/imronuke/ADPRES)
 
 
 
@@ -27,9 +27,9 @@
 
 # ADPRES
 
-Abu Dhabi Polytechnic Reactor Simulator (ADPRES) is an open nuclear reactor simulator and reactor core analysis tool that solves static and transient neutron diffusion equation for two or three dimensional reactor problems in Cartesian geometry. Currently, ADPRES uses Semi-Analytic Nodal Method (SANM) to spatially discretised the neutron diffusion equation. While theta method is used for the time discretisation.
+Abu Dhabi Polytechnic Reactor Simulator (ADPRES) is an open nuclear reactor simulator and reactor core analysis tool that solves static and transient neutron diffusion equation for one, two or three dimensional reactor problems in Cartesian geometry. Currently, ADPRES uses Semi-Analytic Nodal Method (SANM) to spatially discretised the neutron diffusion equation. While theta method is used for the time discretisation.
 
-ADPRES is also a great learning tool for reactor theory classes, and we have been striving hard to make the input is easy to create. Among ADPRES' main objectives is to make all nuclear engineering students have access on reactor simulator code for them to learn. It is open and completely free, so everyone has access to the source code and modify for his/her own purposes.
+ADPRES is also a great learning tool for reactor theory classes, and we have been striving hard to make the input is easy to create. Among ADPRES' main objectives is to make all nuclear engineering students have access on reactor simulator code for them to use, learn, and modify for their own purposes. It is open and completely free, so everyone has access to the source codes and and play with them.
 
 # User Guides
 
