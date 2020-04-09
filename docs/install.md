@@ -1,5 +1,5 @@
 ---
-title: Quick install guide
+title: Quick Install Guide
 theme: _config.yml
 filename: install
 ---

@@ -1,12 +1,12 @@
 ---
-title: Quick install guide
+title: Quick Guides
 theme: _config.yml
 filename: quick-guides
 ---
 
 # Quick Guides
 ## Writing Input
-ADPRES input is designed to be self-explanatory. It has several input cards marke by `%`, for example: `%mode`, `%geom`, `%xsec`, and so on. Some cards are mandatory for any problems. While some cards are conditional depending on the problems at hand and some cards are optional. Comments are marked by `!`. For example, the following is the [IAEA3D input](https://github.com/imronuke/ADPRES/blob/master/smpl/static/IAEA3Ds), where you can find its specification [here](https://engineering.purdue.edu/PARCS/Code/TestSuite/CalculationMode/StandAloneMode/Eigenvalue/IAEA3DPWR).
+ADPRES input is designed to be self-explanatory. It has several input cards marked by `%`, for example: `%mode`, `%geom`, `%xsec`, and so on. Some cards are mandatory for any problems. While some cards are conditional depending on the problems at hand and some cards are optional. Comments are marked by `!`. For example, the following is the [IAEA3D input](https://github.com/imronuke/ADPRES/blob/master/smpl/static/IAEA3Ds), where you can find its specification [here](https://engineering.purdue.edu/PARCS/Code/TestSuite/CalculationMode/StandAloneMode/Eigenvalue/IAEA3DPWR).
 
 ```
 ! IAEA3D input data
@@ -102,7 +102,7 @@ In the above example, there are
 2. One conditional card: `%XSEC`
 3. One optional card   : `%CASE`
 
-You find the detailed description for each card [here](https://imronuke.github.io/ADPRES/card-desc), but we will explain them briefly here
+You find the detailed description for each card [here](https://imronuke.github.io/ADPRES/card-desc), but we will explain them briefly now
 ### [%MODE Card](https://imronuke.github.io/ADPRES/mode)
 This is the mode of ADPRES calculation. Since here we want to calculate static forward calculation (eigenvalue problem) the calculation mode is `FORWARD`. The detailed description of this card is [here](https://imronuke.github.io/ADPRES/mode).
 ### [%CASE Card](https://imronuke.github.io/ADPRES/case)
