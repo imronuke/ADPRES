@@ -113,9 +113,29 @@ This card is conditional, necessary only if `%XTAB` card is not present. This ca
 This card is describes the geometry of the problem. It quite similar to other reactor core simulator which you can easily understand if you have background on nuclear engineering. The description of the inputs given in the comments. The detailed description of this card is [here](https://imronuke.github.io/ADPRES/geom).
 
 
+## Running a Test
+In Linux or other Unix based OS, you can run ADPRES using command
+
+```
+adpres [INPUT_FILE_PATH_NAME]
+```
+
+for example, you can run [`IAEA3Ds`](https://github.com/imronuke/ADPRES/blob/master/smpl/static/IAEA3Ds) input by
+
+```
+adpres /home/imronuke/smpl/static/IAEA3Ds
+```
+
+While in Windows, for example, you can run as follow
+
+```
+adpres C:\Users\imronuke\Downloads\ADPRES-master\smpl\static\IAEA3Ds
+```
+
+
 ## Reading Output
 
-After you run a test (as explained [here]((https://imronuke.github.io/ADPRES/install))), you should see in the summary of the output in terminal as follow
+After you run a test, you should see in the summary of the output in terminal as follow
 
 ```
            ###########################################################
@@ -184,3 +204,5 @@ MAX. CHANGE IN NODAL COUPLING COEF.=  3.16843E-01 AT NODE I =  6, J =  4, K = 19
   ```
 
   If you get `ADPRES EXIT NORMALLY` in the end of the terminal output, it means you successfully run ADPRES. Since it is a forward (eigenvalue) problem, you will see the outer iterations as they evolve and you will see also the effective multiplication factor as well as CPU time breakdown. The detailed output, such as radial and axial power distribution, can be found in the same file name as input but with an `.out` extension.
+
+  It is always a good idea to see this output file to ensure that you had written input correctly. ADPRES echoes your input and redescribe the input to make sure that this is the problem you want to solve.  ADPRES may run well without any error but it gives you wrong results. This might happen if the input is not consistent with the problem specification.
