@@ -10,7 +10,7 @@ Here you can find quick and complete guides on how to use ADPRES. Given you have
 
 # ADPRES
 
-Abu Dhabi Polytechnic Reactor Simulator (ADPRES) is an open nuclear reactor simulator and reactor core analysis tool that solves static and transient neutron diffusion equation for one, two or three dimensional reactor problems in Cartesian geometry. Currently, ADPRES uses Semi-Analytic Nodal Method (SANM) to spatially discretised the neutron diffusion equation. While theta method is used for the time discretisation.
+Abu Dhabi Polytechnic Reactor Simulator (ADPRES) is an open nuclear reactor simulator and reactor core analysis tool that solves static and transient neutron diffusion equation for one, two or three dimensional reactor problems in Cartesian geometry. Currently, ADPRES uses Semi-Analytic Nodal Method (SANM) to spatially discretise the neutron diffusion equation. While theta method is used for the time discretisation.
 
 ADPRES is also a great learning tool for reactor theory classes, and we have been striving hard to make the input is easy to create. Among ADPRES' main objectives is to make all nuclear engineering students have access on reactor simulator code for them to use, learn, and modify for their own purposes. It is open and completely free, so everyone has access to the source codes and and play with them.
 
