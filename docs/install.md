@@ -47,10 +47,10 @@ sudo cp adpres /usr/bin
 These command will create an executable file named `adpres` and copied the executable file to `/usr/bin`. Now, you can run a test using several examples of inputs file in folder [smpl](https://github.com/imronuke/ADPRES/tree/master/smpl) to see if you had built ADPRES properly. You can run ADPRES using command
 
 ```
-adpres [FILE_PATH_NAME]
+adpres [INPUT_FILE_PATH_NAME]
 ```
 
-for example, you can run a test by
+for example, you can run [`IAEA3Ds`](https://github.com/imronuke/ADPRES/blob/master/smpl/static/IAEA3Ds) input by
 
 ```
 adpres /home/imronuke/smpl/static/IAEA3Ds
@@ -81,10 +81,10 @@ g95 *.o -o adpres
 These command will create an executable file named `adpres`. If you use Intel fortran compiler, just change `g95` with `ifort` in the commands above. Now, you can run a test using several examples of inputs file in folder [smpl](https://github.com/imronuke/ADPRES/tree/master/smpl) to see if you had built ADPRES properly. You can run ADPRES using command
 
 ```
-adpres [FILE_PATH_NAME]
+adpres [INPUT_FILE_PATH_NAME]
 ```
 
-for example, you can run a test by
+for example, you can run [`IAEA3Ds`](https://github.com/imronuke/ADPRES/blob/master/smpl/static/IAEA3Ds) input by
 
 ```
 adpres C:\Users\imronuke\Downloads\ADPRES-master\smpl\static\IAEA3Ds
