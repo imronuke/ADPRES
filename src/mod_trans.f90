@@ -248,6 +248,8 @@ else
     end do
   end do
   call calc_beta(af)
+  write(*,*)
+  write(*,1324) ctbeta*1.e5
 end if
 
 ! Calculate reactivity
@@ -320,6 +322,8 @@ do i = 1, imax
     call trans_calc(1,tstep2,af,tpow1,step,t2)
 
 end do
+
+1324 format(2X,'Core-averaged delayed neutron fraction :', F7.2, ' pcm')
 
 end subroutine rod_eject_th
 
