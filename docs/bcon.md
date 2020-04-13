@@ -6,7 +6,7 @@ filename: bcon
 
 # %BCON Card
 
-This card is used to input fuel temperature parameters. `%BCON` and `%CBCS` shall not present together.
+This card is used to input boron concentration parameters. `%BCON` and `%CBCS` shall not present together.
 
 | `%BCON` | Variable | Description | Remarks |
 | --- | --- | --- | --- |
