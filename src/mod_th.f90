@@ -477,6 +477,9 @@ real(dp) :: st, fn
 !Get start th_time
 st = get_time()
 
+!set initial tridiagonal matrix element a, b
+a = 0._dp; b = 0._dp; c = 0._dp;
+
 if (first) then
   allocate(frate(nnod))
   frate = cflow
@@ -613,6 +616,9 @@ REAL(DP), DIMENSION(nxx, nyy) :: entm   ! enthalpy at node boundary
 REAL(DP) :: cpline     ! Coolant Linear power densisty (W/m)
 REAL(DP) :: Pr, kv, tcon ! Coolant Prandtl Number, Kinematic viscosity, and thermal conductivity
 REAL(DP) :: zd  ! zdel in meter
+
+!set initial tridiagonal matrix element a, b
+a = 0._dp; b = 0._dp; c = 0._dp;
 
 CALL getent(tin, enti)
 
