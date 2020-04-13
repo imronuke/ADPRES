@@ -72,15 +72,15 @@ Then you can download the [ADPRES zip files](https://github.com/imronuke/ADPRES/
 After you installed g95 and extracted ADPRES zip file, open the command prompt. And from the command prompt, using `cd` command, go to the  ADPRES folder which you had been extracted, and build the source codes using g95:
 
 ```
-g95 -O4 -c src/mod_data.f90
-g95 -O4 -c src/mod_io.f90
-g95 -O4 -c src/mod_xsec.f90
-g95 -O4 -c src/mod_nodal.f90
-g95 -O4 -c src/mod_cmfd.f90
-g95 -O4 -c src/mod_th.f90
-g95 -O4 -c src/mod_trans.f90
-g95 -O4 -c src/mod_control.f90
-g95 -O4 -c src/ADPRES.f90
+g95 -O4 -c src\mod_data.f90
+g95 -O4 -c src\mod_io.f90
+g95 -O4 -c sr\mod_xsec.f90
+g95 -O4 -c src\mod_nodal.f90
+g95 -O4 -c src\mod_cmfd.f90
+g95 -O4 -c src\mod_th.f90
+g95 -O4 -c src\mod_trans.f90
+g95 -O4 -c src\mod_control.f90
+g95 -O4 -c src\ADPRES.f90
 g95 *.o -o adpres
 ```
 
