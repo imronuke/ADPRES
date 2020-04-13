@@ -10,20 +10,23 @@ IMPLICIT NONE
 
 SAVE
 
-CHARACTER(LEN=1) :: ind          ! used to read x indicator in input buffer to prevent error
+! ind is sed to read x indicator in beginning of input buffer line.
+! This to prevent reading next line
+CHARACTER(LEN=1) :: ind
+
 CHARACTER(LEN=200) :: message    ! error message
-CHARACTER(LEN=100):: iline  ! Input line
+CHARACTER(LEN=100):: iline       ! Input line
 !Ouput options
-LOGICAL, PARAMETER :: ogeom = .TRUE.  ! Geometry output option
-LOGICAL, PARAMETER :: oxsec = .TRUE.  ! Macroscopic CXs output option
-LOGICAL, PARAMETER :: scr = .TRUE.    ! Terminal ouput option
+LOGICAL, PARAMETER :: ogeom = .TRUE.  ! Geometry output print option
+LOGICAL, PARAMETER :: oxsec = .TRUE.  ! Macroscopic CXs output print option
+LOGICAL, PARAMETER :: scr = .TRUE.    ! Terminal ouput print option
 
 ! Input, output and buffer input file unit number
-INTEGER, PARAMETER :: iunit = 100   !input
-INTEGER, PARAMETER :: ounit = 101   !output
-INTEGER, PARAMETER :: wunit = 201   !write restart file
-INTEGER, PARAMETER :: runit = 202   !read restart file
-INTEGER, PARAMETER :: buff  = 99   !input buffer
+INTEGER, PARAMETER :: iunit = 100   !input file unit number
+INTEGER, PARAMETER :: ounit = 101   !output file unit number
+INTEGER, PARAMETER :: buff  = 99    !input buffer file unit number (entire input)
+
+! Input buffer file unit number for each card
 INTEGER, PARAMETER :: umode = 111, uxsec = 112, ugeom = 113
 INTEGER, PARAMETER :: ucase = 114, uesrc = 115
 INTEGER, PARAMETER :: uiter = 118, uprnt = 119
@@ -34,7 +37,7 @@ INTEGER, PARAMETER :: uxtab = 129, ukern = 130, uextr = 131
 INTEGER, PARAMETER :: uthet = 132
 INTEGER :: bunit
 
-! Card active/inactive indicator
+! Card active/inactive indicator (active = 1, inactive = 0)
 INTEGER :: bmode = 0, bxsec = 0, bgeom = 0, bcase = 0, besrc = 0
 INTEGER :: biter = 0, bprnt = 0, badf  = 0, bcrod = 0, bbcon = 0
 INTEGER :: bftem = 0, bmtem = 0, bcden = 0, bcbcs = 0, bejct = 0
@@ -43,7 +46,7 @@ INTEGER :: bther = 0, bxtab = 0, bkern = 0, bextr = 0, bthet = 0
 ! Geometry
 INTEGER :: np                                           ! Number of planars
 INTEGER, DIMENSION(:), ALLOCATABLE :: zpln              ! Planar assignment to z direction
-REAL(DP), DIMENSION(:), ALLOCATABLE :: xsize, ysize, zsize  !Assembly size
+REAL(DP), DIMENSION(:), ALLOCATABLE :: xsize, ysize, zsize  !Assembly size for each direction
 TYPE :: MAT_ASGN                                        ! Material assignment
     INTEGER, DIMENSION(:,:), ALLOCATABLE :: asm         ! Material assignment into assembly
     INTEGER, DIMENSION(:,:), ALLOCATABLE :: node        ! Material assignment into nodes
@@ -112,17 +115,22 @@ OPEN (UNIT=ukern, STATUS='SCRATCH', ACTION='READWRITE')
 OPEN (UNIT=uextr, STATUS='SCRATCH', ACTION='READWRITE')
 OPEN (UNIT=uthet, STATUS='SCRATCH', ACTION='READWRITE')
 
-
+! Echo the input to the output file
 CALL inp_echo()
+
+! Remove comments and write the entire input to the buffer file
 CALL inp_comments (iunit, buff, '!')
+
+! Break the buffer file and re-write into different input card buffer
 CALL inp_rewrite(buff)
 
+! Back to the first line for all input card buffer
 REWIND(umode); REWIND(uxsec); REWIND(ugeom); REWIND(ucase); REWIND(uesrc)
 REWIND(uiter); REWIND(uprnt); REWIND(uadf); REWIND(ucrod); REWIND(ubcon)
 REWIND(uftem); REWIND(umtem); REWIND(ucden); REWIND(ucbcs); REWIND(uejct)
 REWIND(uther); REWIND(uxtab); REWIND(ukern); REWIND(uextr); REWIND(uthet)
 
-! Start reading buffer files for each card
+! Start reading buffer files for each input card buffer
 
 WRITE(ounit,*)
 WRITE(ounit,*)
@@ -477,8 +485,8 @@ END SUBROUTINE inp_comments
 SUBROUTINE inp_rewrite (buffer)
 
 ! Purpose:
-! Read previous input buffer and rewrite into different buffer for particular cards
-! Cards identfied by %
+! Read previous input buffer and rewrite and break into different input buffer
+! for particular cards. Cards identfied by %
 
 IMPLICIT NONE
 
@@ -1294,6 +1302,7 @@ SUBROUTINE misc ()
 !    To assign material xsec to nodes
 !    To arranges the nodes into 1-D array instead of 3-D array
 !    To allocate CMFD matrix index
+!    etc
 
 
 USE sdata, ONLY: nxx, nyy, nzz, ix, iy, iz, xyz, &
@@ -1550,13 +1559,13 @@ WRITE(ounit,'(A,I5)') '  NODAL UPDATE INTERVAL                                 :
 WRITE(ounit,'(A,I5)') '  MAX. NUMBER OF T-H ITERATION                          : ', th_niter
 WRITE(ounit,'(A,I5)') '  MAX. NUMBER OF OUTER ITERATION PER T-H ITERATION      : ', nth
 
-if (nout < nupd .and. kern == ' FDM') then
+if (nout < nupd .and. kern /= ' FDM') then
   write(*,*) "ERROR: MAX. NUMBER OF OUTER ITERATION SHOULD BE BIGGER THAN NODAL UPDATE INTERVAL"
   write(ounit,*) "ERROR: MAX. NUMBER OF OUTER ITERATION SHOULD BE BIGGER THAN NODAL UPDATE INTERVAL"
   stop
 end if
 
-if (nth < nupd .and. kern == ' FDM' .and. bther == 1) then
+if (nth < nupd .and. kern /= ' FDM' .and. bther == 1) then
   write(*,*) "ERROR: MAX. NUMBER OF OUTER ITERATION PER T-H ITERATION SHOULD BE BIGGER THAN NODAL UPDATE INTERVAL"
   write(ounit,*) "ERROR: MAX. NUMBER OF OUTER ITERATION PER T-H ITERATION SHOULD BE BIGGER THAN NODAL UPDATE INTERVAL"
   stop

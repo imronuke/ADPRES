@@ -8,25 +8,26 @@ CHARACTER(LEN=100) :: mode
 
 INTEGER :: ng     ! number of groups
 INTEGER :: nmat   ! number of materials
-!! CXs Assigned to Nodes
-REAL(DP), DIMENSION(:,:), ALLOCATABLE :: sigtr          ! Transport macroscopic cx
-REAL(DP), DIMENSION(:,:), ALLOCATABLE :: siga           ! Absorption macroscopic cx
-REAL(DP), DIMENSION(:,:), ALLOCATABLE :: nuf            ! nu* fission macroscopic cx
-REAL(DP), DIMENSION(:,:), ALLOCATABLE :: sigf           ! fission macroscopic cx
+
+! XSECs Assigned to Nodes
+REAL(DP), DIMENSION(:,:), ALLOCATABLE :: sigtr          ! Transport macroscopic XSEC
+REAL(DP), DIMENSION(:,:), ALLOCATABLE :: siga           ! Absorption macroscopic XSEC
+REAL(DP), DIMENSION(:,:), ALLOCATABLE :: nuf            ! nu* fission macroscopic XSEC
+REAL(DP), DIMENSION(:,:), ALLOCATABLE :: sigf           ! fission macroscopic XSEC
 REAL(DP), DIMENSION(:,:), ALLOCATABLE :: chi            ! neutron fission spectrum
-REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: sigs         ! Scattering macroscopic cx
+REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: sigs         ! Scattering macroscopic XSEC
 REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: dc           ! ADF
 REAL(DP), DIMENSION(:,:), ALLOCATABLE :: D              ! Diffusion coefficient
-REAL(DP), DIMENSION(:,:), ALLOCATABLE :: sigr           ! Removal macroscopic cx
+REAL(DP), DIMENSION(:,:), ALLOCATABLE :: sigr           ! Removal macroscopic XSEC
 
-!! CXs Assigned to Materials
-REAL(DP), DIMENSION(:,:), ALLOCATABLE :: xsigtr          ! Transport macroscopic cx
-REAL(DP), DIMENSION(:,:), ALLOCATABLE :: xsiga           ! Absorption macroscopic cx
-REAL(DP), DIMENSION(:,:), ALLOCATABLE :: xnuf            ! nu* fission macroscopic cx
-REAL(DP), DIMENSION(:,:), ALLOCATABLE :: xsigf           ! fission macroscopic cx
+! XSECs Assigned to Materials
+REAL(DP), DIMENSION(:,:), ALLOCATABLE :: xsigtr          ! Transport macroscopic XSEC
+REAL(DP), DIMENSION(:,:), ALLOCATABLE :: xsiga           ! Absorption macroscopic XSEC
+REAL(DP), DIMENSION(:,:), ALLOCATABLE :: xnuf            ! nu* fission macroscopic XSEC
+REAL(DP), DIMENSION(:,:), ALLOCATABLE :: xsigf           ! fission macroscopic XSEC
 REAL(DP), DIMENSION(:,:), ALLOCATABLE :: xD              ! Diffusion coefficient
-REAL(DP), DIMENSION(:,:), ALLOCATABLE :: xsigr           ! Removal macroscopic cx
-REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: xsigs         ! Scattering macroscopic cx
+REAL(DP), DIMENSION(:,:), ALLOCATABLE :: xsigr           ! Removal macroscopic XSEC
+REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: xsigs         ! Scattering macroscopic XSEC
 LOGICAL :: ccnuf = .TRUE.                            ! Logical variable to check the presence of fissile material
 LOGICAL :: ccsigf = .TRUE.                           ! Logical variable to check the presence of fissile material
 
@@ -90,26 +91,26 @@ INTEGER :: aprad=1, apaxi=1, afrad=1
 ! FUEL TEMPERATURE
 REAL(DP), DIMENSION(:), ALLOCATABLE :: ftem       ! Fuel temperature in Kelvin for each nodes
 REAL(DP) :: rftem      ! Fuel temperature Reference in Kelvin
-REAL(DP), DIMENSION(:,:), ALLOCATABLE :: fsigtr, fsiga, fnuf, fsigf   ! CX changes per fuel temp changes
+REAL(DP), DIMENSION(:,:), ALLOCATABLE :: fsigtr, fsiga, fnuf, fsigf   ! XSEC changes per fuel temp changes
 REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: fsigs
 
 ! MODERATOR TEMPERATURE
 REAL(DP), DIMENSION(:), ALLOCATABLE :: mtem       ! Moderator temperature in Kelvin for each nodes
 REAL(DP) :: rmtem      ! Moderator temperature Reference in Kelvin
-REAL(DP), DIMENSION(:,:), ALLOCATABLE :: msigtr, msiga, mnuf, msigf   ! CX changes per Moderator temp changes
+REAL(DP), DIMENSION(:,:), ALLOCATABLE :: msigtr, msiga, mnuf, msigf   ! XSEC changes per Moderator temp changes
 REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: msigs
 
 ! COOLANT DENSITY
 REAL(DP), DIMENSION(:), ALLOCATABLE :: cden       ! Coolant Density in g/cm3 for each nodes
 REAL(DP) :: rcden      ! Coolant Density Reference in g/cm3
-REAL(DP), DIMENSION(:,:), ALLOCATABLE :: lsigtr, lsiga, lnuf, lsigf   ! CX changes per Coolant density changes
+REAL(DP), DIMENSION(:,:), ALLOCATABLE :: lsigtr, lsiga, lnuf, lsigf   ! XSEC changes per Coolant density changes
 REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: lsigs
 
 ! Crod changes
 INTEGER :: nb                                                     ! Number of CR banks
 REAL(DP), DIMENSION(:), ALLOCATABLE :: bpos  ! CR bank position
 REAL(DP), DIMENSION(:), ALLOCATABLE :: fbpos    ! Final CR bank position
-REAL(DP), DIMENSION(:,:), ALLOCATABLE :: dsigtr, dsiga, dnuf, dsigf   ! CX incerement or decrement due to CR insertion
+REAL(DP), DIMENSION(:,:), ALLOCATABLE :: dsigtr, dsiga, dnuf, dsigf   ! XSEC incerement or decrement due to CR insertion
 REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: dsigs
 REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: ddc   ! increment or decreent for ADF
 REAL(DP), DIMENSION(:), ALLOCATABLE :: tmove    ! Time when CR bank starts moving
@@ -123,7 +124,7 @@ REAL(DP) :: pos0, ssize                                   ! Zero step position a
 ! Boron Concentration
 REAL(DP) :: bcon       ! Boron concentration in ppm
 REAL(DP) :: rbcon      ! Boron concentration in ppm Reference
-REAL(DP), DIMENSION(:,:), ALLOCATABLE :: csigtr, csiga, cnuf, csigf   ! CX changes due to boron concentration
+REAL(DP), DIMENSION(:,:), ALLOCATABLE :: csigtr, csiga, cnuf, csigf   ! XSEC changes due to boron concentration
 REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: csigs                      ! Used only for CBCS card
 
 ! Transient parameters
