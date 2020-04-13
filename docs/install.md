@@ -69,7 +69,13 @@ In Windows you can build ADPRES using Intel fortran. However, if you don't have 
 
 Then you can download the [ADPRES zip files](https://github.com/imronuke/ADPRES/archive/master.zip) from Github then extract that zip file.
 
-After you installed g95 and extracted ADPRES zip file, open the command prompt. And from the command prompt, using `cd` command, go to the  ADPRES folder which you had been extracted, and build the source codes using g95:
+After you installed g95 and extracted ADPRES zip file, open the command prompt. And from the command prompt, using `cd` command, go to the  ADPRES folder which you had been extracted
+
+```
+cd ADPRES-master
+```
+
+and build the source codes using g95:
 
 ```
 g95 -O4 -c src\mod_data.f90
