@@ -135,3 +135,6 @@ MOX TRANSIENT PROBLEM WITH XSEC FROM HELIOS
 ! Iteration control card (see manual or output file for description)
 %ITER
 1200 3 1.e-5 1.e-5 20 40 20 80
+
+! Flux extrapolation card
+%EXTR
