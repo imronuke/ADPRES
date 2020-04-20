@@ -174,6 +174,25 @@ contains
 
   END SUBROUTINE print_head
 
+  !******************************************************************************!
+
+  SUBROUTINE PinPowerRec()
+
+    !
+    ! Purpose:
+    !    To reconstruct pin power
+    !
+
+    use sdata, only: mode
+    use io,    only: ounit, scr
+
+    IMPLICIT NONE
+
+    
+
+
+  END SUBROUTINE PinPowerRec
+
 
 
 end module

@@ -27,14 +27,12 @@ INTEGER, PARAMETER :: ounit = 101   !output file unit number
 INTEGER, PARAMETER :: buff  = 99    !input buffer file unit number (entire input)
 
 ! Input buffer file unit number for each card
-INTEGER, PARAMETER :: umode = 111, uxsec = 112, ugeom = 113
-INTEGER, PARAMETER :: ucase = 114, uesrc = 115
-INTEGER, PARAMETER :: uiter = 118, uprnt = 119
-INTEGER, PARAMETER :: uadf  = 120, ucrod = 121, ubcon = 122
-INTEGER, PARAMETER :: uftem = 123, umtem = 124, ucden = 125
-INTEGER, PARAMETER :: ucbcs = 126, uejct = 127, uther = 128
-INTEGER, PARAMETER :: uxtab = 129, ukern = 130, uextr = 131
-INTEGER, PARAMETER :: uthet = 132
+INTEGER, PARAMETER :: umode = 111, uxsec = 112, ugeom = 113, ucase = 114
+INTEGER, PARAMETER :: uesrc = 115, uiter = 118, uprnt = 119, uadf  = 120
+INTEGER, PARAMETER :: ucrod = 121, ubcon = 122, uftem = 123, umtem = 124
+INTEGER, PARAMETER :: ucbcs = 126, uejct = 127, uther = 128, ucden = 125
+INTEGER, PARAMETER :: uxtab = 129, ukern = 130, uextr = 131, uthet = 132
+INTEGER, PARAMETER :: uprec = 133
 INTEGER :: bunit
 
 ! Card active/inactive indicator (active = 1, inactive = 0)
@@ -42,6 +40,7 @@ INTEGER :: bmode = 0, bxsec = 0, bgeom = 0, bcase = 0, besrc = 0
 INTEGER :: biter = 0, bprnt = 0, badf  = 0, bcrod = 0, bbcon = 0
 INTEGER :: bftem = 0, bmtem = 0, bcden = 0, bcbcs = 0, bejct = 0
 INTEGER :: bther = 0, bxtab = 0, bkern = 0, bextr = 0, bthet = 0
+INTEGER :: bprec = 0
 
 ! Geometry
 INTEGER :: np                                           ! Number of planars
@@ -114,6 +113,7 @@ OPEN (UNIT=uxtab, STATUS='SCRATCH', ACTION='READWRITE')
 OPEN (UNIT=ukern, STATUS='SCRATCH', ACTION='READWRITE')
 OPEN (UNIT=uextr, STATUS='SCRATCH', ACTION='READWRITE')
 OPEN (UNIT=uthet, STATUS='SCRATCH', ACTION='READWRITE')
+OPEN (UNIT=uprec, STATUS='SCRATCH', ACTION='READWRITE')
 
 ! Echo the input to the output file
 CALL inp_echo()
@@ -129,6 +129,7 @@ REWIND(umode); REWIND(uxsec); REWIND(ugeom); REWIND(ucase); REWIND(uesrc)
 REWIND(uiter); REWIND(uprnt); REWIND(uadf); REWIND(ucrod); REWIND(ubcon)
 REWIND(uftem); REWIND(umtem); REWIND(ucden); REWIND(ucbcs); REWIND(uejct)
 REWIND(uther); REWIND(uxtab); REWIND(ukern); REWIND(uextr); REWIND(uthet)
+REWIND(uprec)
 
 ! Start reading buffer files for each input card buffer
 
@@ -354,8 +355,9 @@ CLOSE(UNIT=umode); CLOSE(UNIT=uxsec); CLOSE(UNIT=ugeom); CLOSE(UNIT=ucase)
 CLOSE(UNIT=uesrc); CLOSE(UNIT=uiter); CLOSE(UNIT=uprnt); CLOSE(UNIT=uadf)
 CLOSE(UNIT=ucrod); CLOSE(UNIT=ubcon); CLOSE(UNIT=uftem); CLOSE(UNIT=umtem)
 CLOSE(UNIT=ucden); CLOSE(UNIT=ucbcs); CLOSE(UNIT=uejct); CLOSE(UNIT=uther)
-CLOSE(UNIT=uxtab); CLOSE(UNIT=ukern); CLOSE(UNIT=uextr); CLOSE(UNIT=buff)
-CLOSE(UNIT=uthet)
+CLOSE(UNIT=uxtab); CLOSE(UNIT=ukern); CLOSE(UNIT=uextr); CLOSE(UNIT=uthet)
+CLOSE(UNIT=buff)
+
 
 END SUBROUTINE inp_read
 
@@ -564,6 +566,9 @@ DO
             CASE('THET')
                 bunit = uthet
                 bthet = 1
+            CASE('PREC')
+                bunit = uprec
+                bprec = 1
             CASE DEFAULT
                 WRITE(ounit,1014) ln, iline
                 WRITE(*,1014) ln, iline
@@ -3178,6 +3183,37 @@ WRITE(ounit,*) ' ...Thermal-hydraulic Card is successfully read...'
 DEALLOCATE(xsize, ysize, zsize)
 
 END SUBROUTINE inp_ther
+
+!******************************************************************************!
+
+SUBROUTINE inp_prec (xbunit)
+
+!
+! Purpose:
+!    To read thermalhydraulics parameters input
+
+USE sdata, ONLY: pow, tin, nx, ny, nxx, nyy
+
+IMPLICIT NONE
+
+INTEGER, INTENT(IN) :: xbunit
+
+INTEGER :: ln   !Line number
+INTEGER :: ios  ! IOSTAT status
+
+INTEGER :: i, j
+INTEGER :: popt
+
+WRITE(ounit,*)
+WRITE(ounit,*)
+WRITE(ounit,*) '       >>>>   READING PIN POWER RECONSTRUCTION DATA   <<<<'
+WRITE(ounit,*) '       ---------------------------------------------------'
+
+
+
+CLOSE(UNIT=uprec)
+
+END SUBROUTINE inp_prec
 
 !******************************************************************************!
 
