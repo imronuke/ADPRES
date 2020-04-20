@@ -51,7 +51,7 @@ TYPE :: FDM_IND
   INTEGER                            :: ncol               ! Number of non-zero column in a row for the FDM Matrix
   INTEGER, DIMENSION(:), ALLOCATABLE :: col                ! Column index for the non-zero element of the FDM matrix
 END TYPE
-TYPE(FDM_IND), DIMENSION(:), ALLOCATABLE :: ind            ! Group for the corresponding FDM matrix
+TYPE(FDM_IND), DIMENSION(:), ALLOCATABLE :: ind            ! Index of the FDM matrix
 
 ! Keff, flux and currents
 REAL(DP) :: Ke
