@@ -64,6 +64,19 @@ adpres smpl/static/IAEA3Ds
 
 If you see `ADPRES EXIT NORMALLY` at the end of terminal output, then congratulations! you have successfully installed ADPRES. By the way, it should take about 0.2 seconds for ADPRES to solve IAEA3Ds problem if you build using gfortran in a typical today's computer. The way to build using Intel fortran is similar, just change `gfortran` with `ifort` in the commands above.
 
+## Building in Mac OS
+The way to install ADPRES on Mac OS is all the way same as installing ADPRES on Ubuntu. Except, instead of executing this command
+
+```
+sudo ./install.sh
+```
+
+one shall execute this command
+
+```
+sudo ./mac_install.sh
+```
+
 ## Building in Windows
 In Windows you can build ADPRES using Intel fortran. However, if you don't have an Intel fortran compiler, you can use completely free fortran compiler g95 which can be obtained from [here](https://www.fortran.com/wp-content/uploads/2013/05/g95-Mingw_201210.exe) (although it is slower). Then install g95 to your computer.
 
