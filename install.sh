@@ -25,7 +25,7 @@ gfortran -O4 -c src/mod_control.f90
 echo "Compiling src/ADPRES.f90"
 gfortran -O4 -c src/ADPRES.f90
 echo "Combining all together"
-gfortran *.o -g -fbacktrace -ffpe-trap=invalid,zero,overflow,underflow,denormal -o adpres
+gfortran *.o -o adpres
 
 echo " "
 echo "Copy adpres to /usr/bin"
