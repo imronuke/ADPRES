@@ -71,11 +71,12 @@ The way to install ADPRES on Mac OS is all the way same as installing ADPRES on 
 sudo ./install.sh
 ```
 
-one shall execute this command
+you shall execute this command
 
 ```
 sudo ./mac_install.sh
 ```
+You can find information on gfortran for Mac OS from [here](https://gcc.gnu.org/wiki/GFortranBinariesMacOS).
 
 ## Building in Windows
 In Windows you can build ADPRES using Intel fortran. However, if you don't have an Intel fortran compiler, you can use completely free fortran compiler g95 which can be obtained from [here](https://www.fortran.com/wp-content/uploads/2013/05/g95-Mingw_201210.exe) (although it is slower). Then install g95 to your computer.
