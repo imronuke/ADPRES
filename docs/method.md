@@ -16,6 +16,7 @@ This ADPRES development would have been impossible without the God's Mercy and t
 * Dr. Alexander Agung, Gadjah Mada University
 * Dr. Andang Widiharto, Gadjah Mada University
 * Liem Peng Hong, PhD, NAIS and Tokyo City University
+* Donny Hartanto, Phd
 * GNU Fortran and Intel Fortran developer teams.
 * All my colleagues and friends.
 
