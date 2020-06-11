@@ -65,23 +65,31 @@ adpres smpl/static/IAEA3Ds
 If you see `ADPRES EXIT NORMALLY` at the end of terminal output, then congratulations! you have successfully installed ADPRES. By the way, it should take about 0.2 seconds for ADPRES to solve IAEA3Ds problem if you build using gfortran in a typical today's computer. The way to build using Intel fortran is similar, just change `gfortran` with `ifort` in the commands above.
 
 ## Building in Mac OS
-The way to install ADPRES on Mac OS is all the way same as installing ADPRES on Ubuntu. Except, instead of executing this command
+The way to install ADPRES on Mac OS is similar to installing ADPRES on Ubuntu. First you need to install gfortran to your computer. You can find the information on how to install gfortran for Mac OS from [here](https://gcc.gnu.org/wiki/GFortranBinariesMacOS). And instead of executing this command as you were supposed to do in Ubuntu
 
 ```
 sudo ./install.sh
 ```
 
-you shall execute this command
+you shall execute this command in Mac OS
 
 ```
 sudo ./mac_install.sh
 ```
-You can find information on gfortran for Mac OS from [here](https://gcc.gnu.org/wiki/GFortranBinariesMacOS).
+
+The rest of the steps are the same.
+
 
 ## Building in Windows
-In Windows you can build ADPRES using Intel fortran. However, if you don't have an Intel fortran compiler, you can use completely free fortran compiler g95 which can be obtained from [here](https://www.fortran.com/wp-content/uploads/2013/05/g95-Mingw_201210.exe) (although it is slower). Then install g95 to your computer.
+There are at least two ways installing ADPRES on Windows.
 
-Then you can download the [ADPRES zip files](https://github.com/imronuke/ADPRES/archive/master.zip) from Github then extract that zip file.
+### Using Windows Subsystem for Linux (WSL) in Windows 10
+Using this way, you can go to Microsoft Store and install Ubuntu from there for free. Open the Ubuntu app and follow the same steps on installing ADPRES on Ubuntu OS.
+
+### Using g95 Fortran Compiler
+You can also intsall ADPRES directly into Windows by using free fortran compiler g95 which can be obtained from [here](https://www.fortran.com/wp-content/uploads/2013/05/g95-Mingw_201210.exe). Then install g95 to your computer.
+
+Now you can download the [ADPRES zip files](https://github.com/imronuke/ADPRES/archive/master.zip) from Github then extract that zip file.
 
 After you installed g95 and extracted ADPRES zip file, open the command prompt. And from the command prompt, using `cd` command, go to the  ADPRES folder which you had been extracted
 
