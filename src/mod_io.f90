@@ -522,7 +522,7 @@ DO
       iline = ADJUSTL(iline)                                             ! Adjust to left
       comm = INDEX(iline, ' ')                                           ! Get space position
       fname = TRIM(ADJUSTL(iline(comm+1:200)))                           ! Get card file name
-      farr(FINDLOC(uarr, bunit)) = fname                                 ! Change default file name for error notification
+      farr(GETLOC(uarr, bunit)) = fname                                 ! Change default file name for error notification
       CALL openFile(xunit, fname, card, 'CARD File Open Failed--status') ! Open card file
       CALL inp_comments(xunit, cunit, '!')                               ! Remove comments in card file
       ! Begin read card in a separated file
@@ -3195,15 +3195,15 @@ IF (iost < 0) THEN
   IF (PRESENT(xtab)) THEN
     WRITE(funit, 1014) ln, xtab
   ELSE
-    WRITE(funit, 1006) carr(FINDLOC(uarr,buf))
-    WRITE(funit, 1013) ln, farr(FINDLOC(uarr,buf))
+    WRITE(funit, 1006) carr(GETLOC(uarr,buf))
+    WRITE(funit, 1013) ln, farr(GETLOC(uarr,buf))
   END IF
   WRITE(funit,*) mess
   IF (PRESENT(xtab)) THEN
     WRITE(*, 1014) ln, xtab
   ELSE
-    WRITE(*, 1006) carr(FINDLOC(uarr,buf))
-    WRITE(*, 1013) ln, farr(FINDLOC(uarr,buf))
+    WRITE(*, 1006) carr(GETLOC(uarr,buf))
+    WRITE(*, 1013) ln, farr(GETLOC(uarr,buf))
   END IF
   WRITE(*,*) mess
   1013 FORMAT(2x, 'THIS LINE NEEDS MORE INPUT DATA. LINE', I4, &
@@ -3221,15 +3221,15 @@ IF (iost > 0) THEN
   IF (PRESENT(xtab)) THEN
     WRITE(funit, 1005) ln, xtab
   ELSE
-    WRITE(funit, 1006) carr(FINDLOC(uarr,buf))
-    WRITE(funit, 1004) ln, farr(FINDLOC(uarr,buf))
+    WRITE(funit, 1006) carr(GETLOC(uarr,buf))
+    WRITE(funit, 1004) ln, farr(GETLOC(uarr,buf))
   END IF
   WRITE(funit,*) mess
   IF (PRESENT(xtab)) THEN
     WRITE(*, 1005) ln, xtab
   ELSE
-    WRITE(*, 1006) carr(FINDLOC(uarr,buf))
-    WRITE(*, 1004) ln, farr(FINDLOC(uarr,buf))
+    WRITE(*, 1006) carr(GETLOC(uarr,buf))
+    WRITE(*, 1004) ln, farr(GETLOC(uarr,buf))
   END IF
   WRITE(*,*) mess
   1006 FORMAT(2X, 'ERROR: THERE IS AN ERROR IN CARD %', A4)
@@ -3240,6 +3240,27 @@ IF (iost > 0) THEN
 END IF
 
 END SUBROUTINE er_message
+
+!****************************************************************************!
+
+FUNCTION GETLOC(arr, elm) RESULT (loc)
+
+  !Purpose: To  get location of an element in an array
+
+  INTEGER, DIMENSION(:), INTENT(IN)  :: arr    ! input array
+  INTEGER, INTENT(IN)  :: elm                  ! element whose location is wanted to find
+  INTEGER :: loc
+
+  integer :: i
+
+  DO i = 1, SIZE(arr)
+    IF (arr(i) == elm) THEN
+      loc = i
+      EXIT
+    END IF
+  END DO
+
+END FUNCTION GETLOC
 
 !******************************************************************************!
 
