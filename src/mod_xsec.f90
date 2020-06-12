@@ -38,6 +38,8 @@ contains
   IF (bcrod == 1) CALL crod_updt(xbpos)
   CALL Dsigr_updt()
 
+  call check_xs()
+
   fn = get_time()
   xs_time = xs_time + (fn-st)
 
@@ -75,11 +77,95 @@ contains
   IF (bcrod == 1) CALL crod_tab_updt(xbpos)
   CALL Dsigr_updt()
 
+  call check_xs()
+
   fn = get_time()
   xs_time = xs_time + (fn-st)
 
 
   END SUBROUTINE XStab_updt
+
+  !******************************************************************************!
+
+  SUBROUTINE check_xs ()
+  !
+  ! Purpose:
+  !    To check errors in xsec
+  !
+
+  use sdata, only : D, sigr, nuf, chi, sigs, nnod, ng, mat, nmat
+  use io,    only : ounit
+
+
+  IMPLICIT NONE
+
+  INTEGER :: n, g, h
+
+  DO g = 1, ng
+    DO n = 1, nnod
+      IF (D(n,g) < 1.e-20) then
+        WRITE(*,*)
+        WRITE(*,3541) mat(n), g
+        WRITE(*,*) ' DIFFUSION COEF. IS CLOSE TO ZERO OR NEGATIVE'
+        WRITE(ounit,3541) mat(n), g
+        WRITE(ounit,*) ' DIFFUSION COEF. IS CLOSE TO ZERO OR NEGATIVE'
+        STOP
+      END IF
+      IF (sigr(n,g) < 0.) then
+        WRITE(*,*)
+        WRITE(*,3542) mat(n), g
+        WRITE(*,*) ' REMOVAL XS IS  NEGATIVE'
+        WRITE(ounit,3542) mat(n), g
+        WRITE(ounit,*) ' REMOVAL XS IS NEGATIVE'
+        STOP
+      END IF
+      IF (nuf(n,g) < 0.) then
+        WRITE(*,*)
+        WRITE(*,3544) mat(n), g
+        WRITE(*,*) ' NU*FISSION XS IS  NEGATIVE'
+        WRITE(ounit,3544) mat(n), g
+        WRITE(ounit,*) ' NU*FISSION XS IS NEGATIVE'
+        STOP
+      END IF
+    END DO
+    DO n = 1, nmat
+      IF (chi(n,g) < 0.) then
+        WRITE(*,*)
+        WRITE(*,3543) n, g
+        WRITE(*,*) ' FISSION SPECTRUM IS  NEGATIVE'
+        WRITE(ounit,3543) n, g
+        WRITE(ounit,*) ' FISSION SPECTRUM IS NEGATIVE'
+        STOP
+      END IF
+    END DO
+    DO h = 1, ng
+      DO n = 1, nnod
+        IF (sigs(n,g,h) < 0.) then
+          WRITE(*,*)
+          WRITE(*,3545) mat(n), g, h
+          WRITE(*,*) ' SCATTERING XS IS  NEGATIVE'
+          WRITE(ounit,3545) mat(n), g, h
+          WRITE(ounit,*) ' SCATTERING XS IS NEGATIVE'
+          STOP
+        END IF
+      END DO
+    END DO
+  END DO
+
+  3541 FORMAT (2X, 'ERROR IN THE DIFFUSION COEFFICIENT ', &
+  'FOR MATERIAL NUMBER : ', I3, ' ENERGY GROUP : ', I2)
+  3542 FORMAT (2X, 'ERROR IN THE REMOVAL CROSS SECTION ', &
+  'FOR MATERIAL NUMBER : ', I3, ' ENERGY GROUP : ', I2)
+  3543 FORMAT (2X, 'ERROR IN THE FISSION SPECTRUM ', &
+  'FOR MATERIAL NUMBER : ', I3, ' ENERGY GROUP : ', I2)
+  3544 FORMAT (2X, 'ERROR IN THE NU*FISSION XSEC ', &
+  'FOR MATERIAL NUMBER : ', I3, ' ENERGY GROUP : ', I2)
+  3545 FORMAT (2X, 'ERROR IN THE SCATTERING CROSS SECTION ', &
+  'FOR MATERIAL NUMBER : ', I3, ' ENERGY GROUP : ', I2, &
+   ' TO ENERGY GROUP : ', I2)
+
+
+  END SUBROUTINE check_xs
 
   !******************************************************************************!
 
@@ -191,7 +277,7 @@ contains
 
              dum = dum + zdel(k)
            END DO
-           ! if negative CX found, Surpress CX to zero  and calculate D and sigr
+           ! if negative CX found, Surpress CX to zero and calculate D and sigr
            DO k = nzz, 1, -1
              DO g = 1, ng
                 IF (siga(xyz(i,j,k),g) < 0.) siga(xyz(i,j,k),g) = 0.
