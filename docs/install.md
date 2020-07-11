@@ -102,7 +102,7 @@ and build the source codes using g95:
 ```
 g95 -O4 -c src\mod_data.f90
 g95 -O4 -c src\mod_io.f90
-g95 -O4 -c sr\mod_xsec.f90
+g95 -O4 -c src\mod_xsec.f90
 g95 -O4 -c src\mod_nodal.f90
 g95 -O4 -c src\mod_cmfd.f90
 g95 -O4 -c src\mod_th.f90
