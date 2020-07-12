@@ -46,7 +46,7 @@ FDM
 2*1                  !z-direction nodal is not divided
 1                    !np number of planar type
 2*1                  !planar assignment (from bottom to top)
-! Planar_type_1 (Bottom Reflector)
+! Planar
  5 4 3 2 1
  5 4 3 2 1
 ! Boundary conditions (east), (west), (north), (south), (bottom), (top)
