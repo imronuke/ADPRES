@@ -1,3 +1,7 @@
+***
+# ADPRES IS NOW OBSOLETE. USERS ARE ENCOURAGED TO VISIT THE NEWER VERSION NAMED [KOMODO](https://github.com/imronuke/KOMODO)
+***
+
 ![Language](https://raw.githubusercontent.com/imronuke/ADPRES/master/docs/images/fortran.png) [![Build Status](https://travis-ci.com/imronuke/ADPRES.svg?branch=master)](https://travis-ci.com/imronuke/ADPRES) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/imronuke/ADPRES/blob/master/LICENSE)  [![codecov](https://codecov.io/gh/imronuke/ADPRES/branch/master/graph/badge.svg)](https://codecov.io/gh/imronuke/ADPRES)
 
 
