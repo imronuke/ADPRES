@@ -1,3 +1,7 @@
+***
+# ADPRES IS NOW OBSOLETE. USERS ARE ENCOURAGED TO VISIT THE NEWER VERSION NAMED [KOMODO](https://github.com/imronuke/KOMODO)
+***
+
 [![ADPRES](https://raw.githubusercontent.com/imronuke/ADPRES/master/docs/images/adpres1.png)](https://github.com/imronuke/ADPRES)
 
 # Users Manual
